@@ -1,0 +1,49 @@
+name: Refresh windows
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'    # weekly: 03:17 UTC every Monday
+  workflow_dispatch:
+
+permissions:
+  contents: write           # needs to commit the regenerated JSON
+  pull-requests: write      # falls back to PR if direct push fails
+
+concurrency:
+  group: refresh-windows
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deps
+        run: pip install pyyaml
+      - name: Sync catalogue from upstream
+        run: |
+          # Fetch the canonical seed catalogue from the main cyclers repo.
+          # Hard rule: catalogue is source-of-truth at Bwooce/cyclers; this
+          # repo carries a refreshed copy. If upstream is private the
+          # raw.githubusercontent.com URL returns 404 — see README for the
+          # token-based workaround.
+          curl -fsSL https://raw.githubusercontent.com/Bwooce/cyclers/main/data/seed_cyclers.yaml \
+            -o src/data/seed_cyclers.yaml
+      - name: Recompute windows
+        run: python scripts/compute_windows.py
+      - name: Commit if changed
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add src/data/seed_cyclers.yaml src/data/windows.json
+            git commit -m "refresh: synced catalogue + recomputed encounter schedules (auto)"
+            git push
+          else
+            echo "No catalogue or window changes; nothing to commit."
+          fi

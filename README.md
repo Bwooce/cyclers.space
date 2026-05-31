@@ -56,6 +56,43 @@ Without DNS, the site is also reachable at
 apex-domain absolute form; the GH Pages subpath URL will 404 on navigation
 until DNS is wired).
 
+## Periodic data refresh
+
+The site re-syncs its catalogue and recomputes encounter windows
+automatically once a week (Mondays 03:17 UTC) via
+`.github/workflows/refresh-windows.yml`.
+
+What it does:
+
+1. Pulls the latest `data/seed_cyclers.yaml` from upstream
+   [Bwooce/cyclers](https://github.com/Bwooce/cyclers).
+2. Runs `scripts/compute_windows.py` to generate
+   `src/data/windows.json` — a synodic-cadence preview of upcoming
+   encounters per cycler (N=5 by default; `REFERENCE_EPOCH` is
+   currently 2026-01-01).
+3. If anything changed, commits both files; the next `deploy`
+   workflow ships the updated site.
+
+### Limitations (intentional)
+
+- **Synodic-cadence only.** This is *not* phase-matched launch-window
+  computation. Real phase-matched windows require M6 work in the
+  upstream cyclerfinder package; until that lands, `windows.json`
+  carries cadence-only previews and the site's UI labels them as such.
+  When upstream M6 lands, the compute script swaps to a real call —
+  the JSON schema does not change.
+- **Upstream repo must be readable.** The sync step uses
+  `raw.githubusercontent.com`, which returns 404 if upstream
+  `Bwooce/cyclers` is private. To unblock: either make upstream
+  public, OR add a repo secret `UPSTREAM_GH_TOKEN` and switch the
+  `curl` step to send it as a header.
+- **Ephemerides:** astropy ships JPL DE440 ephemerides bundled with
+  the package; no periodic ephemeris refresh is needed for our use.
+  If the project ever adopts DE441/DE442, the corresponding astropy
+  release will carry them.
+
+Manual trigger: Actions → Refresh windows → Run workflow.
+
 ## Status
 
 Bootstrap (v1):
