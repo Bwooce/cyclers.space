@@ -22,7 +22,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'  # cyclerfinder pyproject pins >=3.11,<3.12
       - name: Install deps
         run: |
           # cyclerfinder pulls astropy + scipy + numpy + jplephem transitively.
