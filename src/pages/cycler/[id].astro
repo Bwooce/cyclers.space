@@ -38,13 +38,54 @@ const formatCite = (c: Citation): string => {
   <h2>Signature</h2>
   <dl class="cycler">
     <dt>Bodies</dt><dd>{fmtBodies(entry.bodies)}</dd>
+    <dt>Primary</dt>
+    <dd>
+      {entry.primary ?? "Sun"}
+      {!entry.primary && <span class="muted"> (default — heliocentric)</span>}
+    </dd>
     <dt>Sequence (canonical)</dt><dd><code>{entry.sequence_canonical}</code></dd>
     <dt>Sense</dt><dd>{entry.sense}</dd>
+    <dt>Trajectory regime</dt>
+    <dd>
+      {entry.trajectory_regime ?? "ballistic"}
+      {!entry.trajectory_regime && <span class="muted"> (default)</span>}
+    </dd>
+    <dt>Model assumption</dt>
+    <dd>
+      {entry.model_assumption ?? "circular-coplanar"}
+      {!entry.model_assumption && <span class="muted"> (default)</span>}
+      <div class="muted" style="font-size:0.85em">
+        {entry.model_assumption === "cr3bp" && "CR3BP — Jacobi-constant-conserved; signature not patched-conic comparable."}
+        {entry.model_assumption === "analytic-ephemeris" && "Mid-fidelity: real eccentricity / inclination retained; not full N-body."}
+        {(!entry.model_assumption || entry.model_assumption === "circular-coplanar") && "Idealised: planets on circles, coplanar ecliptic."}
+      </div>
+    </dd>
     <dt>Period</dt>
     <dd>
       {fmt(entry.period.years, 3)} yr ({entry.period.k} × {entry.period.pair} synodic)
       {entry.period.note && <div class="muted">{entry.period.note}</div>}
     </dd>
+    {entry.delta_v_kms !== undefined && entry.delta_v_kms !== null && (
+      <>
+        <dt>Maintenance ΔV</dt>
+        <dd>
+          {entry.delta_v_kms === 0 ? (
+            <span>0 km/s <span class="muted">— strict ballistic</span></span>
+          ) : (
+            <span>{fmt(entry.delta_v_kms, 3)} km/s <span class="muted">— near-ballistic (powered nudge)</span></span>
+          )}
+        </dd>
+      </>
+    )}
+    {entry.v_infinity_leveraging_dv_kms !== undefined && entry.v_infinity_leveraging_dv_kms !== null && (
+      <>
+        <dt>V<sub>∞</sub> leveraging ΔV (establishment)</dt>
+        <dd>{fmt(entry.v_infinity_leveraging_dv_kms, 3)} km/s</dd>
+      </>
+    )}
+    {entry.fleet_size !== undefined && entry.fleet_size !== null && (
+      <><dt>Fleet size</dt><dd>{entry.fleet_size} vehicles</dd></>
+    )}
     <dt>Priority date</dt><dd>{entry.priority_date}</dd>
   </dl>
 
