@@ -1,7 +1,9 @@
-name: Deploy to GitHub Pages
+name: CI
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -18,20 +20,41 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build with Astro
-        uses: withastro/action@v3
+      - uses: actions/checkout@v5
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
   deploy:
+    # Only deploys when Pages is enabled (i.e. repo is public + Pages configured).
+    # Until then this job is skipped — build still runs and CI stays green.
     needs: build
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Check Pages enabled
+        id: check_pages
+        run: |
+          if gh api repos/${{ github.repository }}/pages > /dev/null 2>&1; then
+            echo "enabled=true" >> $GITHUB_OUTPUT
+          else
+            echo "enabled=false" >> $GITHUB_OUTPUT
+            echo "::notice::GitHub Pages is not enabled for this repository. Skipping deploy. To enable: make repo public, then Settings → Pages → Source: GitHub Actions."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy to GitHub Pages
+        if: steps.check_pages.outputs.enabled == 'true'
         id: deployment
         uses: actions/deploy-pages@v4

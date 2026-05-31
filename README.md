@@ -18,6 +18,16 @@ on a schedule. Sync mechanism is a follow-up.
 - [GitHub Pages](https://pages.github.com/) deploy via
   `.github/workflows/deploy.yml`
 
+## Deploy status
+
+CI runs on every push. The workflow has two jobs:
+
+- **`build`** — always runs. Compiles the Astro site and uploads a Pages artifact. Fails CI if the site build is broken.
+- **`deploy`** — only deploys to GitHub Pages when the repo is **public** AND Pages is enabled in repo settings. Until then, `deploy` checks Pages status and logs a notice (CI stays green). To activate live deployment:
+  1. Flip the repo to public (Settings → Danger Zone → Change visibility).
+  2. Enable Pages: Settings → Pages → Build and deployment → Source: GitHub Actions.
+  3. The next push to `main` will deploy automatically. Or trigger manually via Actions → CI → Run workflow.
+
 ## Local dev
 
 ```sh
