@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-31T13:59:45.738555Z",
+  "generated_at": "2026-05-31T15:26:25.026517Z",
   "method": "synodic-cadence-preview",
   "reference_epoch": "2026-01-01",
   "n_per_cycler": 5,
@@ -192,6 +192,536 @@
         "2038-10-23",
         "2043-01-30"
       ]
+    },
+    {
+      "id": "vem-emeeve-3syn",
+      "name": "EMEEVE VEM Triple Cycler (3-synodic beat archetype)",
+      "period_years": 6.41,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M",
+        "E",
+        "E",
+        "V",
+        "E"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2032-05-30",
+        "2038-10-27",
+        "2045-03-25",
+        "2051-08-23"
+      ]
+    },
+    {
+      "id": "aldrin-classic-em-k1-inbound",
+      "name": "Aldrin classic Earth-Mars cycler (inbound / down-escalator, 1 synodic)",
+      "period_years": 2.135,
+      "primary": "Sun",
+      "bodies": [
+        "M",
+        "E"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2028-02-19",
+        "2030-04-09",
+        "2032-05-28",
+        "2034-07-17"
+      ]
+    },
+    {
+      "id": "aldrin-4-3-2-establishment",
+      "name": "Aldrin 4:3(2)- Variant (Analytic Ephemeris Establishment)",
+      "period_years": 4.27,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2030-04-09",
+        "2034-07-17",
+        "2038-10-23",
+        "2043-01-30"
+      ]
+    },
+    {
+      "id": "aldrin-3-2-1-establishment",
+      "name": "Aldrin 3:2(1)- Variant (Analytic Ephemeris Establishment)",
+      "period_years": 2.135,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2028-02-19",
+        "2030-04-09",
+        "2032-05-28",
+        "2034-07-17"
+      ]
+    },
+    {
+      "id": "russell-ocampo-3.1.1+3",
+      "name": "Russell-Ocampo cycler 3.1.1.+3 (low-V_inf 3-synodic)",
+      "period_years": 6.405,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2032-05-28",
+        "2038-10-23",
+        "2045-03-20",
+        "2051-08-15"
+      ]
+    },
+    {
+      "id": "russell-ocampo-3.3.1+2",
+      "name": "Russell-Ocampo cycler 3.3.1.+2 (3-synodic)",
+      "period_years": 6.405,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2032-05-28",
+        "2038-10-23",
+        "2045-03-20",
+        "2051-08-15"
+      ]
+    },
+    {
+      "id": "russell-ocampo-3.5.1+1",
+      "name": "Russell-Ocampo cycler 3.5.1.+1 (high-V_inf, short-transit, 3-synodic)",
+      "period_years": 6.405,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2032-05-28",
+        "2038-10-23",
+        "2045-03-20",
+        "2051-08-15"
+      ]
+    },
+    {
+      "id": "russell-ocampo-3.5.2+0",
+      "name": "Russell-Ocampo cycler 3.5.2.+0 (high-V_inf, short-transit, 3-synodic)",
+      "period_years": 6.405,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2032-05-28",
+        "2038-10-23",
+        "2045-03-20",
+        "2051-08-15"
+      ]
+    },
+    {
+      "id": "russell-ocampo-3.7.1+1",
+      "name": "Russell-Ocampo cycler 3.7.1.+1 (low-V_inf 3-synodic)",
+      "period_years": 6.405,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2032-05-28",
+        "2038-10-23",
+        "2045-03-20",
+        "2051-08-15"
+      ]
+    },
+    {
+      "id": "russell-ocampo-3.9.1+0",
+      "name": "Russell-Ocampo cycler 3.9.1.+0 (high-V_inf, short-transit, 3-synodic)",
+      "period_years": 6.405,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2032-05-28",
+        "2038-10-23",
+        "2045-03-20",
+        "2051-08-15"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.0.3+1",
+      "name": "Russell-Ocampo cycler 4.0.3.+1 (good terminal speeds, generic returns only)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.1.1-5",
+      "name": "Russell-Ocampo cycler 4.1.1.-5 (4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.3.1-4",
+      "name": "Russell-Ocampo cycler 4.3.1.-4 (4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.5.1-4",
+      "name": "Russell-Ocampo cycler 4.5.1.-4 (promising energy)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.5.1-3",
+      "name": "Russell-Ocampo cycler 4.5.1.-3 (high-V_inf, 4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.5.2-2",
+      "name": "Russell-Ocampo cycler 4.5.2.-2 (promising energy)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.5.3-1",
+      "name": "Russell-Ocampo cycler 4.5.3.-1 (high-V_inf, 4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.7.1-3",
+      "name": "Russell-Ocampo cycler 4.7.1.-3 (4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.9.1-2",
+      "name": "Russell-Ocampo cycler 4.9.1.-2 (high-V_inf, 4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.9.2-1",
+      "name": "Russell-Ocampo cycler 4.9.2.-1 (turn-angle showcase)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.10.1+2",
+      "name": "Russell-Ocampo cycler 4.10.1.+2 (high-V_inf, 4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.11.1-2",
+      "name": "Russell-Ocampo cycler 4.11.1.-2 (promising energy)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.12.1+1",
+      "name": "Russell-Ocampo cycler 4.12.1.+1 (high-V_inf, short-transit, 4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.13.1-1",
+      "name": "Russell-Ocampo cycler 4.13.1.-1 (high-V_inf, 4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.14.1-1",
+      "name": "Russell-Ocampo cycler 4.14.1.-1 (high-V_inf, 4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "russell-ocampo-4.14.1+0",
+      "name": "Russell-Ocampo cycler 4.14.1.+0 (high-V_inf, short-transit, 4-synodic)",
+      "period_years": 8.54,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2034-07-17",
+        "2043-01-30",
+        "2051-08-15",
+        "2060-02-28"
+      ]
+    },
+    {
+      "id": "arenstorf-em-figure8-1963",
+      "name": "Arenstorf periodic Earth-Moon free-return orbit (CR3BP)",
+      "period_years": null,
+      "primary": "Earth",
+      "bodies": [
+        "E",
+        "Moon"
+      ],
+      "next_encounters_iso": []
+    },
+    {
+      "id": "genova-aldrin-2015-em-3petal-cycler",
+      "name": "Genova/Aldrin free-return Earth-Moon cycler (interplanetary cruise ship, 3:1 lunar resonant)",
+      "period_years": null,
+      "primary": "Earth",
+      "bodies": [
+        "E",
+        "Moon"
+      ],
+      "next_encounters_iso": []
+    },
+    {
+      "id": "wittal-2022-em-cycler-family",
+      "name": "Wittal/Miaule/Asher Earth-Moon cycler family for lunar logistics (family seed)",
+      "period_years": null,
+      "primary": "Earth",
+      "bodies": [
+        "E",
+        "Moon"
+      ],
+      "next_encounters_iso": []
+    },
+    {
+      "id": "hernandez-2017-jovian-ieg-triple-family",
+      "name": "Hernandez/Jones/Jesick Io-Europa-Ganymede triple cyclers (Jovian family seed)",
+      "period_years": null,
+      "primary": "Jupiter",
+      "bodies": [
+        "Io",
+        "Europa",
+        "Ganymede"
+      ],
+      "next_encounters_iso": []
+    },
+    {
+      "id": "russell-strange-2009-jovian-multimoon-family",
+      "name": "Russell/Strange Jovian moon cycler family (family seed)",
+      "period_years": null,
+      "primary": "Jupiter",
+      "bodies": [
+        "Io",
+        "Europa",
+        "Ganymede",
+        "Callisto"
+      ],
+      "next_encounters_iso": []
+    },
+    {
+      "id": "russell-strange-2009-saturnian-multimoon-family",
+      "name": "Russell/Strange Saturnian moon cycler family (family seed, Titan-Enceladus focus)",
+      "period_years": null,
+      "primary": "Saturn",
+      "bodies": [
+        "Mimas",
+        "Enceladus",
+        "Tethys",
+        "Dione",
+        "Rhea",
+        "Titan"
+      ],
+      "next_encounters_iso": []
+    },
+    {
+      "id": "hollister-menning-1970-ev-periodic",
+      "name": "Hollister & Menning periodic Earth-Venus swing-by cycler",
+      "period_years": null,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "V"
+      ],
+      "next_encounters_iso": []
     }
   ]
 }
