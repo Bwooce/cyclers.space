@@ -1,0 +1,176 @@
+---
+import Base from "../../layouts/Base.astro";
+import { loadCatalogue } from "../../lib/catalogue";
+import windowsData from "../../data/windows.json";
+
+interface WindowEntry {
+  id: string;
+  name: string;
+  period_years: number | null;
+  primary: string;
+  trajectory_regime: string;
+  bodies: string[];
+  next_encounters_iso: string[];
+  vinf_actual_kms: number[][];
+  mismatch_kms: number[];
+  status: string;
+}
+
+interface WindowsData {
+  generated_at: string;
+  method: string;
+  horizon_start: string;
+  horizon_end: string;
+  horizon_years: number;
+  n_per_cycler: number;
+  step_days: number;
+  mismatch_cap_kms: number;
+  disclaimer: string;
+  entries: WindowEntry[];
+}
+
+const data = windowsData as WindowsData;
+const catalogue = loadCatalogue();
+
+// Sort entries: ones with windows first, then by id.
+const withWindows = data.entries.filter((e) => e.next_encounters_iso.length > 0);
+const withoutWindows = data.entries.filter((e) => e.next_encounters_iso.length === 0);
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-CA"); // YYYY-MM-DD
+}
+
+function formatVinf(vinf: number[]): string {
+  return vinf.map((v) => v.toFixed(2)).join(" / ");
+}
+
+const nWithWindows = withWindows.length;
+const nTotal = data.entries.length;
+---
+<Base title="Launch windows" description="Real-ephemeris launch windows for each catalogued ballistic cycler.">
+  <h1>Launch windows</h1>
+
+  <div class="banner">
+    <strong>Real ephemeris, geometric match only.</strong> Dates below are real and verifiable —
+    they come from astropy + JPL DE440 + a Lambert solve at each candidate date,
+    keeping the dates whose V<sub>∞</sub> at injection matches the cycler's signature.
+    <strong>Not yet shown:</strong> C<sub>3</sub> at departure, time-of-flight to first
+    encounter, or TCM-budget cost over the cycler's lifetime — those require multi-lap
+    propagation and ephemeris-mode optimisation that remains in
+    <a href="https://github.com/Bwooce/cyclers">full M6 of the upstream cyclers project</a>.
+    The dates here are honest; the cost columns will populate when full M6 ships.
+  </div>
+
+  <p>
+    Horizon: <strong>{data.horizon_start}</strong> → <strong>{data.horizon_end}</strong>
+    ({data.horizon_years} years). Generated <strong>{formatDate(data.generated_at)}</strong>;
+    refreshes weekly. Grid resolution {data.step_days} d; V<sub>∞</sub> mismatch cap
+    {data.mismatch_cap_kms} km/s. Per-cycler window count: up to {data.n_per_cycler}.
+  </p>
+
+  <p class="muted">
+    {nWithWindows} of {nTotal} catalogue entries produced launch windows. The remaining
+    {nTotal - nWithWindows} were skipped — non-ballistic, non-heliocentric, lacking the
+    orbital data needed to reconstruct a phase signature, or no geometric match found
+    inside the horizon at the current mismatch cap.
+  </p>
+
+  <h2>Cyclers with launch windows in the horizon</h2>
+
+  <table class="catalogue">
+    <thead>
+      <tr>
+        <th scope="col">Cycler</th>
+        <th scope="col">Bodies</th>
+        <th scope="col">Period (yr)</th>
+        <th scope="col">Next windows</th>
+        <th scope="col">V<sub>∞</sub> (km/s, per encounter)</th>
+        <th scope="col">Mismatch</th>
+      </tr>
+    </thead>
+    <tbody>
+      {withWindows.map((e) => (
+        <tr>
+          <td><a href={`/cycler/${e.id}/`}>{e.name}</a></td>
+          <td>{e.bodies.join(",")}</td>
+          <td class="right">{e.period_years?.toFixed(2) ?? "—"}</td>
+          <td>
+            <ul class="window-dates">
+              {e.next_encounters_iso.map((d, i) => (
+                <li>
+                  <strong>{d}</strong>
+                  <span class="muted"> · V<sub>∞</sub> {formatVinf(e.vinf_actual_kms[i])}</span>
+                </li>
+              ))}
+            </ul>
+          </td>
+          <td class="muted"></td>
+          <td class="right muted">{e.mismatch_kms[0]?.toFixed(2) ?? "—"}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  {withoutWindows.length > 0 && (
+    <>
+      <h2>Cyclers without windows (skipped or no match)</h2>
+      <table class="catalogue">
+        <thead>
+          <tr>
+            <th scope="col">Cycler</th>
+            <th scope="col">Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          {withoutWindows.map((e) => (
+            <tr>
+              <td><a href={`/cycler/${e.id}/`}>{e.name}</a></td>
+              <td class="muted">{e.status}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  )}
+
+  <h2>What's missing (and what brings it in)</h2>
+  <p>
+    The columns currently blank or absent — <strong>C<sub>3</sub></strong>, <strong>TOF
+    to first encounter</strong>, <strong>maintenance-ΔV budget</strong>, <strong>validation
+    level (V0–V5)</strong> — require milestones M6a (multi-lap propagation in the rotating
+    frame, with bounded closure-drift check) and M6b (ephemeris-mode TCM minimisation over
+    a 3–5 lap horizon) in the
+    <a href="https://github.com/Bwooce/cyclers">upstream cyclerfinder</a>. When those land,
+    this page's JSON schema is already shaped for them (see
+    <code>src/data/windows.json</code>) and the cells will populate without further site
+    changes.
+  </p>
+
+  <h2>How the dates are computed</h2>
+  <p>
+    For each ballistic, heliocentric, Earth-touching cycler in the
+    <a href="/catalogue/">seed catalogue</a>: the cycler's per-encounter V<sub>∞</sub>
+    targets and per-leg time-of-flight are extracted as a <em>phase signature</em>. We then
+    grid-scan the next 10 years of real ephemeris at {data.step_days} d resolution; at each
+    candidate departure date we solve the Lambert two-point boundary-value problem between
+    Earth's actual position and Mars's (or the relevant body's) actual position at the
+    cycler's leg ToF. The candidate's "mismatch" is the sum of <em>|V<sub>∞</sub><sub>,actual</sub>
+    − V<sub>∞</sub><sub>,target</sub>|</em> across encounters. The N lowest-mismatch dates
+    below the {data.mismatch_cap_kms} km/s cap are kept, sorted best-match first.
+  </p>
+
+  <p class="muted">
+    Source: <code>cyclerfinder.search.phase_match.find_real_windows</code> in the upstream
+    repo. Ephemeris: JPL DE440 via astropy. Refresh cadence: weekly cron in
+    <code>.github/workflows/refresh-windows.yml</code>; also triggers on workflow_dispatch.
+  </p>
+</Base>
+
+<style>
+  ul.window-dates {
+    margin: 0;
+    padding-left: 1em;
+    font-size: 0.92em;
+  }
+</style>

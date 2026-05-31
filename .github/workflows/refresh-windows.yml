@@ -24,7 +24,10 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install deps
-        run: pip install pyyaml
+        run: |
+          # cyclerfinder pulls astropy + scipy + numpy + jplephem transitively.
+          pip install pyyaml
+          pip install git+https://github.com/Bwooce/cyclers.git@main
       - name: Sync catalogue from upstream
         run: |
           # Fetch the canonical seed catalogue from the main cyclers repo.
@@ -35,7 +38,10 @@ jobs:
           # stale data.
           curl -fsSL https://raw.githubusercontent.com/Bwooce/cyclers/main/data/seed_cyclers.yaml \
             -o src/data/seed_cyclers.yaml
-      - name: Recompute windows
+      - name: Recompute windows (real ephemeris via phase_match)
+        # Reads seed_cyclers.yaml, calls cyclerfinder.search.phase_match
+        # for each ballistic Earth-touching cycler, writes windows.json
+        # with real JPL DE440 dates + actual Lambert V_inf per window.
         run: python scripts/compute_windows.py
       - name: Commit if changed
         run: |
