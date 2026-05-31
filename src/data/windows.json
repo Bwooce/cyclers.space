@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-31T15:37:10.252154Z",
+  "generated_at": "2026-05-31T15:46:58.401000Z",
   "method": "synodic-cadence-preview",
   "reference_epoch": "2026-01-01",
   "n_per_cycler": 5,
@@ -720,6 +720,51 @@
       "bodies": [
         "E",
         "V"
+      ],
+      "next_encounters_iso": []
+    },
+    {
+      "id": "mcconaghy-2005-em-case1",
+      "name": "Case 1 ballistic two-synodic-period Earth-Mars cycler (S2L1 family)",
+      "period_years": 4.27,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2030-04-09",
+        "2034-07-17",
+        "2038-10-23",
+        "2043-01-30"
+      ]
+    },
+    {
+      "id": "mcconaghy-2005-em-u0l1",
+      "name": "U0L1 high-energy zero-loop one-synodic Earth-Mars cycler",
+      "period_years": 2.14,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
+      ],
+      "next_encounters_iso": [
+        "2026-01-01",
+        "2028-02-21",
+        "2030-04-13",
+        "2032-06-02",
+        "2034-07-24"
+      ]
+    },
+    {
+      "id": "mcconaghy-2005-em-snlm-broadclass-family",
+      "name": "McConaghy 2005 dissertation SnLm Earth-Mars broad-class cycler family seed",
+      "period_years": null,
+      "primary": "Sun",
+      "bodies": [
+        "E",
+        "M"
       ],
       "next_encounters_iso": []
     }
