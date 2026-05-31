@@ -17,7 +17,10 @@ const entries = loadCatalogue();
     Each entry is sourced from the published literature and shown with its
     <a href="/about/#validation-levels">validation level</a>, V∞ signature, orbital elements, and
     primary citation. All numerical values trace back to a specific table, page, or equation in a
-    cited paper.
+    cited paper. Every entry is currently <span class="vlevel">V0</span> — literature-sourced,
+    not yet independently re-derived by the upstream
+    <a href="https://github.com/Bwooce/cyclers">cyclerfinder</a>; higher levels will populate as the
+    finder's verification gauntlet (M5–M9) closes loops on each entry.
   </p>
 
   <h2>Catalogue ({entries.length} entries)</h2>
@@ -30,10 +33,12 @@ const entries = loadCatalogue();
   <h2>What's here, what isn't</h2>
   <ul>
     <li>
-      <strong>Here:</strong> a seed catalogue covering the Aldrin classic E-M cycler,
-      the McConaghy / S1L1 two-synodic cyclers, the Niehoff VISIT-1/2 orbits,
-      selected Russell-Ocampo ballistic cyclers, and a placeholder for the Jones 2017 V-E-M
-      triple cycler family.
+      <strong>Here:</strong> {entries.length} entries. The bulk (~195) come from Russell 2004's
+      strict- and near-ballistic E-M Tables (3.9–3.11 and 4.9–4.13). Plus the Aldrin classic
+      E-M cycler, Niehoff VISIT-1/2, the McConaghy SnLm two-synodic taxonomy, the Jones 2017
+      V-E-M triples, the Hollister-Menning 1970 Earth-Venus periodic swing-by, and six
+      non-heliocentric entries (Earth-Moon, Jovian-moon, Saturnian). All currently strict- or
+      near-ballistic; low-thrust and manifold regimes are scheduled for the v2 pass.
     </li>
     <li>
       <strong>Now live:</strong> real-ephemeris geometric-match
