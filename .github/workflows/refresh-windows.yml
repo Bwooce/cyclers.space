@@ -29,9 +29,10 @@ jobs:
         run: |
           # Fetch the canonical seed catalogue from the main cyclers repo.
           # Hard rule: catalogue is source-of-truth at Bwooce/cyclers; this
-          # repo carries a refreshed copy. If upstream is private the
-          # raw.githubusercontent.com URL returns 404 — see README for the
-          # token-based workaround.
+          # repo carries a refreshed copy. Upstream is public, so no token
+          # is needed; if it ever moves private again the curl below will
+          # 404 and the workflow will fail loud rather than silently using
+          # stale data.
           curl -fsSL https://raw.githubusercontent.com/Bwooce/cyclers/main/data/seed_cyclers.yaml \
             -o src/data/seed_cyclers.yaml
       - name: Recompute windows
