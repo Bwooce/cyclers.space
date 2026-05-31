@@ -81,11 +81,13 @@ What it does:
   carries cadence-only previews and the site's UI labels them as such.
   When upstream M6 lands, the compute script swaps to a real call —
   the JSON schema does not change.
-- **Upstream repo must be readable.** The sync step uses
-  `raw.githubusercontent.com`, which returns 404 if upstream
-  `Bwooce/cyclers` is private. To unblock: either make upstream
-  public, OR add a repo secret `UPSTREAM_GH_TOKEN` and switch the
-  `curl` step to send it as a header.
+- **Upstream sync depends on upstream being readable.** The sync step
+  uses `raw.githubusercontent.com`; upstream `Bwooce/cyclers` is public,
+  so this just works. If the upstream is ever flipped back to private
+  the `curl` will 404 and the workflow will fail loud — preferable to
+  silently serving stale data. Recovery would be either re-publishing
+  upstream or adding a repo secret `UPSTREAM_GH_TOKEN` and a header on
+  the `curl` step.
 - **Ephemerides:** astropy ships JPL DE440 ephemerides bundled with
   the package; no periodic ephemeris refresh is needed for our use.
   If the project ever adopts DE441/DE442, the corresponding astropy
