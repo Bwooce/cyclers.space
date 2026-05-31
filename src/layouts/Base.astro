@@ -1,0 +1,58 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  path?: string;
+}
+
+const { title, description = "Catalogue of published planetary cycler trajectories.", path = "" } = Astro.props;
+const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+const nav = [
+  { href: "/", label: "Home" },
+  { href: "/catalogue/", label: "Catalogue" },
+  { href: "/coming-soon/", label: "Launch windows" },
+  { href: "/about/", label: "About" },
+];
+
+const isCurrent = (href: string) => {
+  const normHref = href.replace(/\/$/, "") || "/";
+  return normHref === currentPath;
+};
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} — cyclers.space</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a href="#main" class="sr-only" style="position:absolute;left:-9999px;">Skip to main content</a>
+    <header class="site">
+      <div class="inner">
+        <a href="/" class="brand">cyclers.space</a>
+        <nav aria-label="Primary">
+          {nav.map((item) => (
+            <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>{item.label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site">
+      <p>
+        Static site, generated from a YAML catalogue.
+        Source: <a href="https://github.com/Bwooce/cyclers.space">github.com/Bwooce/cyclers.space</a>.
+        Catalogue data attributed to the original authors; see each entry.
+      </p>
+    </footer>
+  </body>
+</html>

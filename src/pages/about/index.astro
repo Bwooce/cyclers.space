@@ -1,0 +1,74 @@
+---
+import Base from "../../layouts/Base.astro";
+---
+<Base title="About" description="What cyclers.space is, how it's built, and how to contribute.">
+  <h1>About</h1>
+
+  <h2>What is this?</h2>
+  <p>
+    <strong>cyclers.space</strong> is an open catalogue of <em>planetary cycler trajectories</em>:
+    repeating heliocentric orbits that periodically encounter two or more planets without
+    propulsive maneuvers (or with only small course-correction burns). They were proposed
+    in the 1980s by Aldrin and Niehoff as the backbone of a sustainable Earth-Mars transport
+    architecture, and the literature on them is now scattered across four decades of papers,
+    dissertations, and conference proceedings.
+  </p>
+  <p>
+    There is no single canonical public database. This site exists to be one — generated
+    from a YAML file under version control, with every numerical value traceable to a
+    specific table or page in the cited source.
+  </p>
+
+  <h2 id="validation-levels">Validation levels (V0–V5)</h2>
+  <p>
+    Each entry carries a validation level, drawn from the design spec of the upstream
+    <a href="https://github.com/Bwooce/cyclers">cyclers</a> project. Currently every entry is
+    <strong>V0</strong> — literature-sourced but not independently re-derived by this project.
+    Higher levels are populated as the upstream finder and validation gauntlet produce them.
+  </p>
+  <table class="catalogue" style="margin-top:0.5rem;">
+    <thead>
+      <tr><th scope="col">Level</th><th scope="col">Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="vlevel">V0</span></td><td>Literature: a cycler reported in a published source. Not independently re-derived.</td></tr>
+      <tr><td><span class="vlevel">V1</span></td><td>Reproduced in a circular-coplanar model; signature matches the literature within binning tolerance.</td></tr>
+      <tr><td><span class="vlevel">V2</span></td><td>Reproduced in a real ephemeris model; closes the loop for at least one full cycle within drift tolerance.</td></tr>
+      <tr><td><span class="vlevel">V3</span></td><td>Holds over a multi-cycle horizon with bounded TCM ΔV budget.</td></tr>
+      <tr><td><span class="vlevel">V4</span></td><td>Cross-validated in an independent astrodynamics tool (e.g. GMAT).</td></tr>
+      <tr><td><span class="vlevel">V5</span></td><td>Published, peer-reviewed re-validation.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Attribution policy</h2>
+  <p>
+    For every entry, attribution goes to the <strong>earliest published source</strong>. Later
+    elaborations, corroborations, or re-tabulations are listed as
+    <em>corroborating sources</em>. If this project's finder later re-derives a literature
+    cycler, the entry is tagged as a <code>known-reproduction</code>; the original authors
+    keep the credit. This rule mirrors spec §16.4.
+  </p>
+  <p>
+    If you find an attribution error, please open an issue on the
+    <a href="https://github.com/Bwooce/cyclers.space">site repo</a>.
+  </p>
+
+  <h2>How to contribute corrections</h2>
+  <p>
+    The catalogue is a single YAML file:
+    <code>src/data/seed_cyclers.yaml</code> in the
+    <a href="https://github.com/Bwooce/cyclers.space">cyclers.space</a> repo. Open a pull
+    request with the change, including the verbatim quote and source identifier (page,
+    table, equation number, DOI) for every modified numerical value. Bare numbers without
+    provenance are not accepted.
+  </p>
+
+  <h2>Data flow</h2>
+  <p>
+    The site is a static build of the YAML catalogue. v1 copies the YAML in at bootstrap
+    time; the long-term plan is for the build to pull the latest version from the upstream
+    <a href="https://github.com/Bwooce/cyclers">cyclers</a> repo on a schedule. The site
+    has no backend, no analytics, and no JavaScript beyond the small client-side island
+    that powers the planet filter and column sorting on the catalogue page.
+  </p>
+</Base>

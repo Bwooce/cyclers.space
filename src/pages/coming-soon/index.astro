@@ -1,0 +1,76 @@
+---
+import Base from "../../layouts/Base.astro";
+import { loadCatalogue } from "../../lib/catalogue";
+
+const entries = loadCatalogue();
+
+// Placeholder rows. These are NOT real launch windows — see banner.
+// They exist only so the page layout/navigation is stable.
+const placeholderRows = entries
+  .filter((e) => e.bodies.includes("E") && e.bodies.includes("M"))
+  .slice(0, 5)
+  .map((e) => ({
+    id: e.id,
+    name: e.name,
+    period_yr: e.period.years,
+  }));
+---
+<Base title="Launch windows (preview)" description="Forthcoming: per-cycler launch window forecasts.">
+  <h1>Launch windows</h1>
+
+  <div class="banner">
+    <strong>Preview.</strong> The data below is a layout placeholder. Real launch-window
+    forecasts require the phase-matching code from
+    <a href="https://github.com/Bwooce/cyclers">milestone M6 of the upstream cyclers project</a>,
+    which doesn't exist yet. No real launch dates are shown — the table below contains no
+    numerical windows. This page exists so navigation is stable; it will be populated when M6
+    lands.
+  </div>
+
+  <p>
+    Once the phase-matching pipeline produces a ledger of launch opportunities, each row in
+    the table below will show the next several launch windows for that cycler: the launch
+    date, the launch C₃, the V∞ at injection, and the time-of-flight to the first encounter.
+    Per the design spec, windows will be tagged with the same V0–V5 validation level as the
+    cycler they belong to.
+  </p>
+
+  <h2>Cyclers eligible for window forecasts</h2>
+  <p class="muted">
+    Earth-touching cyclers in the current catalogue ({placeholderRows.length} of {entries.length}
+    entries). Real launch dates will appear here once M6 lands.
+  </p>
+
+  <table class="catalogue">
+    <thead>
+      <tr>
+        <th scope="col">Cycler</th>
+        <th scope="col">Period (yr)</th>
+        <th scope="col">Next window</th>
+        <th scope="col">C₃</th>
+        <th scope="col">TOF to first encounter</th>
+        <th scope="col">Validation</th>
+      </tr>
+    </thead>
+    <tbody>
+      {placeholderRows.map((r) => (
+        <tr>
+          <td><a href={`/cycler/${r.id}/`}>{r.name}</a></td>
+          <td class="right">{r.period_yr.toFixed(2)}</td>
+          <td class="muted">— pending M6 —</td>
+          <td class="muted">—</td>
+          <td class="muted">—</td>
+          <td><span class="vlevel">N/A</span></td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h2>What "M6" means</h2>
+  <p>
+    Milestone M6 in the upstream <a href="https://github.com/Bwooce/cyclers">cyclers</a> spec
+    is the phase-matching pipeline: given a validated cycler geometry and a real ephemeris,
+    find calendar dates where Earth phases into the geometry within an injection budget. The
+    outputs feed this page directly — see spec §12.1 of the upstream repo.
+  </p>
+</Base>

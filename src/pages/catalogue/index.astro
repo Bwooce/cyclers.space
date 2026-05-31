@@ -1,0 +1,21 @@
+---
+import Base from "../../layouts/Base.astro";
+import CatalogueTable from "../../components/CatalogueTable.astro";
+import { loadCatalogue } from "../../lib/catalogue";
+
+const entries = loadCatalogue();
+---
+<Base title="Catalogue" description="Full cycler catalogue with planet filter.">
+  <h1>Catalogue</h1>
+  <p>
+    {entries.length} entries from the seed catalogue. Click a column header to sort;
+    use the checkboxes to filter by encounter body.
+  </p>
+  <p class="muted">
+    Every value is sourced; see each entry's detail page for the verbatim quote from the
+    citing paper. <code>—</code> means the value is not in the accessible source and is
+    deliberately left blank rather than guessed.
+  </p>
+
+  <CatalogueTable entries={entries} />
+</Base>

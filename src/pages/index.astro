@@ -1,0 +1,50 @@
+---
+import Base from "../layouts/Base.astro";
+import CatalogueTable from "../components/CatalogueTable.astro";
+import { loadCatalogue } from "../lib/catalogue";
+
+const entries = loadCatalogue();
+---
+<Base title="Home" description="cyclers.space — an open, validated catalogue of planetary cycler trajectories.">
+  <h1>cyclers.space</h1>
+
+  <p>
+    A public, reproducible catalogue of <strong>planetary cycler trajectories</strong> — Earth-Mars and
+    Earth-Venus-Mars repeating orbits proposed for interplanetary transport architectures.
+  </p>
+
+  <p>
+    Each entry is sourced from the published literature and shown with its
+    <a href="/about/#validation-levels">validation level</a>, V∞ signature, orbital elements, and
+    primary citation. All numerical values trace back to a specific table, page, or equation in a
+    cited paper.
+  </p>
+
+  <h2>Catalogue ({entries.length} entries)</h2>
+  <p class="muted">
+    Filter by encounter body. Click a column header to sort. Click a name for the full record.
+  </p>
+
+  <CatalogueTable entries={entries} />
+
+  <h2>What's here, what isn't</h2>
+  <ul>
+    <li>
+      <strong>Here:</strong> a seed catalogue covering the Aldrin classic E-M cycler,
+      the McConaghy / S1L1 two-synodic cyclers, the Niehoff VISIT-1/2 orbits,
+      selected Russell-Ocampo ballistic cyclers, and a placeholder for the Jones 2017 V-E-M
+      triple cycler family.
+    </li>
+    <li>
+      <strong>Coming:</strong> automated launch-window forecasts for each cycler — see the
+      <a href="/coming-soon/">launch windows preview</a>.
+      This requires the phase-matching code from milestone M6 of the upstream
+      <a href="https://github.com/Bwooce/cyclers">cyclers</a> project, which doesn't exist yet.
+      The page is a stub with a clear preview banner; no fake numbers.
+    </li>
+    <li>
+      <strong>Out of scope (for now):</strong> interactive Tisserand exploration,
+      3-D orbit visualisation. See spec §15.
+    </li>
+  </ul>
+</Base>

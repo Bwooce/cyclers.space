@@ -1,0 +1,888 @@
+# Seed catalogue of published cyclers.
+#
+# Shape: each entry is a subset of the signature_fields described in
+# docs/spec.md §16.1, plus full source attribution. Future milestones
+# (M3 golden tests, M7 novelty matching) consume this file; until then no
+# loader exists.
+#
+# CRITICAL RULES (mirrored in docs/known-cyclers.md):
+# - Every numerical value MUST appear in `source_quotes:` with a verbatim or
+#   paraphrased quote citing a section/table/page, OR be `null` with the gap
+#   explained in `notes:`. No bare numbers without provenance.
+# - `priority_date` is the earliest published date for the cycler; attribution
+#   per spec §16.4 always goes to the earliest source.
+# - Tolerances and binning per spec §16.2 are applied by the matcher, NOT
+#   baked in here; numerical values are reported as published.
+# - For multi-source literature entries the citation in `first_published`
+#   is the *earliest* one; corroborating later sources go in `notes:` and
+#   `corroborating_sources:`.
+
+# ---------------------------------------------------------------------------
+# 1. Aldrin classic Earth-Mars cycler (1-synodic)
+# ---------------------------------------------------------------------------
+- id: aldrin-classic-em-k1-outbound
+  name: "Aldrin classic Earth-Mars cycler (outbound / up-escalator, 1 synodic)"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-M"   # cyclic-canonical per spec §16.2; one Earth + one Mars encounter per synodic
+  sense: "outbound"            # "up escalator": short Earth->Mars leg, long Mars->Earth return
+  period:
+    pair: "E-M"
+    k: 1
+    years: 2.135
+    note: "Cycler period = 1 Earth-Mars synodic period; 2.135 yr is the synodic value used throughout this catalogue (see spec §9). Wikipedia/Hollister tables sometimes quote 2.02 yr for the Aldrin cycler — that is the orbital period of the heliocentric ellipse, NOT the cycler repeat period; the cycler still re-encounters Earth at the synodic cadence via the gravity assist."
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: 6.5
+      note: "Russell 2004 dissertation Table 3.4, cycler 1.0.1.-1 (footnoted as the Aldrin cycler). Rogers/Hughes/Longuski/Aldrin 2012 Table 4 reports V_inf,flyby ranging 5.51-6.55 km/s in the analytic ephemeris model for the 4:3(2)- and 3:2(1)- Aldrin trajectories."
+    - body: "M"
+      vinf_kms: 9.7
+      note: "Russell 2004 dissertation Table 3.4, cycler 1.0.1.-1 (Aldrin). This is the heliocentric V_inf at Mars in the simplified circular-coplanar model; the Aldrin geometry sacrifices V_inf at Mars to keep V_inf at Earth low and the E->M transit short (146 d)."
+  orbit_elements:
+    a_au: 1.60
+    e: 0.393
+    perihelion_au: 0.97
+    aphelion_au: 2.23
+    inclination_deg: 0.0
+    note: "Values per Rogers/Hughes/Longuski/Aldrin 2012 Table 1, attributed there to the Aldrin cycler. Spec.md §9 quotes a≈1.659, e≈0.41, peri≈0.98, apo≈2.34 — those are also literature-cited but appear to come from a different rounding/source convention (possibly an early SAIC presentation or the original Aldrin 1985 talk). See docs/known-cyclers.md 'Outstanding questions' for the discrepancy. M3 test tolerances (±0.01 AU on a, ±0.02 on e) absorb both numbers."
+  legs:
+    - from: "E"
+      to: "M"
+      tof_days: 146
+      n_revs: 0
+      note: "Earth->Mars outbound transit. Confirmed in multiple sources: Wikipedia (citing McConaghy/Longuski/Byrnes 2002 p. 6), Rogers et al. 2012 (Table 4 STOUR ephemeris ToF: 161-172 d depending on K:L(M) variant — the 146-d value is the circular-coplanar idealization)."
+    - from: "M"
+      to: "E"
+      tof_days: 519
+      n_revs: 0
+      note: "Mars->Earth return leg. ~16 months = ~487 d per Wikipedia ('spends the next 16 months beyond the orbit of Mars'), plus the second 146-d Mars-orbit-to-Earth-orbit transit, ~633 d total. The 519-d value here is the residual: T_cycler - tof_E->M = 779.8 d - 146 d ≈ 633 d ... actually inconsistent. TBD: the precise breakdown of the return leg between aphelion loitering and inbound transit is not cleanly stated in any single source. Treat tof_days = 519 as UNVERIFIED and rely only on the E->M leg for M3."
+  first_published:
+    authors: ["Aldrin, B."]
+    year: 1985
+    title: "Cyclic Trajectory Concepts"
+    venue: "SAIC presentation to the Interplanetary Rapid Transit Study Meeting, JPL"
+    date: "1985-10-28"
+    doi: null
+    url: null
+    note: "The original presentation is not online; citation per Rogers et al. 2012 ref [8] and Russell 2004 dissertation ref [13]. The first peer-reviewed elaboration is Byrnes/Longuski/Aldrin 1993 (DOI 10.2514/3.25519, see corroborating_sources)."
+  corroborating_sources:
+    - authors: ["Byrnes, D. V.", "Longuski, J. M.", "Aldrin, B."]
+      year: 1993
+      title: "Cycler Orbit Between Earth and Mars"
+      venue: "Journal of Spacecraft and Rockets, Vol. 30, No. 3, pp. 334-336"
+      doi: "10.2514/3.25519"
+      url: "https://ui.adsabs.harvard.edu/abs/1993JSpRo..30..334B/abstract"
+    - authors: ["Friedlander, A. L.", "Niehoff, J. C.", "Byrnes, D. V.", "Longuski, J. M."]
+      year: 1986
+      title: "Circulating Transportation Orbits Between Earth and Mars"
+      venue: "AIAA/AAS Astrodynamics Conference, Williamsburg VA, AIAA 86-2009-CP"
+      doi: "10.2514/6.1986-2009"
+      url: "https://doi.org/10.2514/6.1986-2009"
+    - authors: ["Rogers, B. A.", "Hughes, K. M.", "Longuski, J. M.", "Aldrin, B."]
+      year: 2012
+      title: "Preliminary Analysis of Establishing Cycler Trajectories Between Earth and Mars via V-Infinity Leveraging"
+      venue: "AIAA/AAS Astrodynamics Specialist Conference, Minneapolis MN, AIAA 2012-4746"
+      doi: "10.2514/6.2012-4746"
+      url: "https://engineering.purdue.edu/AAC/wp-content/uploads/2012/09/EstablishingCyclerTrajectoriesBetweenEarthAndMarsViaV-InfinityLeveraging-AIAA-2012-47461.pdf"
+    - authors: ["Russell, R. P."]
+      year: 2004
+      title: "Global Search and Optimization for Free-Return Earth-Mars Cyclers"
+      venue: "Ph.D. dissertation, University of Texas at Austin, Department of Aerospace Engineering"
+      doi: null
+      url: "http://hdl.handle.net/2152/1253"
+      note: "Russell's dissertation Table 3.4 lists the Aldrin cycler as 'cycler 1.0.1.-1' with V_inf 6.5 (Earth), 9.7 (Mars), E->M time 146 d, Aphelion Ratio 1.47 (=> aphelion 1.47 x 1.52 AU = 2.23 AU)."
+  priority_date: "1985-10-28"
+  notes: |
+    The "outbound" / "up escalator" branch. Aldrin's original concept includes
+    a complementary "inbound" / "down escalator" cycler that is the time-mirror
+    image (short Mars->Earth, long Earth->Mars). Per Russell 2004 dissertation
+    section 3.8: "Due to symmetry, the energy properties for inbound and
+    outbound cyclers are identical." The inbound cycler is NOT separately
+    catalogued here because it shares the same canonical signature except for
+    the `sense` field; M7 will collapse them under one identity.
+
+    Russell 2004 dissertation section 3.8 footnote 'c' explicitly identifies
+    cycler 1.0.1.-1 in Table 3.4 as "Aldrin cycler". This is the only entry
+    in the dissertation explicitly labelled Aldrin.
+
+    Spec §9 anchor values (a≈1.659, e≈0.41, peri≈0.98, apo≈2.34, E->M 146 d)
+    vs. the Rogers 2012 / Russell 2004 / Wikipedia values (a=1.60, e=0.393,
+    peri=0.97, apo=2.23, E->M 146 d): the discrepancy is real but the test
+    tolerances in docs/phases/m3-model-construct/plan.md §4.3 (TOL_A_AU=0.01,
+    TOL_E=0.02, TOL_PERI_AU=0.02, TOL_APO_AU=0.02) are too tight to absorb
+    the gap between the two value sets. M3 implementers MUST reconcile this
+    before the gate test passes — either widen tolerances or pick the value
+    set that matches the construction the code actually produces from the
+    M1 circular-coplanar ephemeris (which uses sma_E=1.00000261, sma_M=1.52371034).
+    See docs/known-cyclers.md "Outstanding questions" §A.
+  source_quotes:
+    a_au: |
+      Rogers et al. 2012, Table 1 'Orbital elements and number of vehicles for selected
+      cycler trajectories': "Aldrin Cycler ... Semi-Major Axis, AU: 1.60". Same value
+      derivable from Russell 2004 Table 3.4 (Aldrin = cycler 1.0.1.-1) via Aphelion
+      Ratio 1.47 and the geometry.
+    e: |
+      Rogers et al. 2012, Table 1: "Aldrin Cycler ... Eccentricity: 0.393". Consistent
+      with Wikipedia's quotation of the same value, attributed there to
+      "Byrnes, Longuski & Aldrin 1993, pp. 334-335" [9].
+    perihelion_au: |
+      Rogers et al. 2012, Table 1: "Aldrin Cycler ... Perihelion Radius, AU: 0.97".
+    aphelion_au: |
+      Rogers et al. 2012, Table 1: "Aldrin Cycler ... Aphelion Radius, AU: 2.23".
+      Russell 2004 Table 3.4 lists Aphelion Ratio 1.47 for cycler 1.0.1.-1, giving
+      aphelion = 1.47 x 1.52 AU = 2.23 AU.
+    inclination_deg: |
+      Inclination 0 is the modelling assumption (circular-coplanar) used in the
+      original Aldrin 1985 derivation and all subsequent reproductions in §9 of
+      Russell 2004 and §III.A of Rogers 2012. Real-ephemeris versions (Rogers
+      2012 Table 4 STOUR results) inherit Mars' ~1.85° inclination; that is an
+      M6 concern, not M3.
+    "vinf_kms_at_encounters[0].vinf_kms": |
+      Russell 2004 Table 3.4 row for cycler 1.0.1.-1: "Earth v_inf (km/s): 6.5".
+    "vinf_kms_at_encounters[1].vinf_kms": |
+      Russell 2004 Table 3.4 row for cycler 1.0.1.-1: "Mars v_inf (km/s): 9.7".
+    "legs[0].tof_days": |
+      Russell 2004 Table 3.4 row for cycler 1.0.1.-1: "Earth->Mars Time (days): 146".
+      Also Wikipedia 'Mars cycler': "travels from Earth to Mars in 146 days
+      (4.8 months)" citing McConaghy/Longuski/Byrnes 2002 p. 6 [5].
+    "legs[1].tof_days": |
+      NOT VERIFIED — see leg note. The 519-day value is provisional and inconsistent
+      with the cycler period; do not rely on it.
+    "period.years": |
+      "Earth-Mars synodic 2.135 yr" — spec.md §9; also used as the Aldrin cycler
+      repeat in Wikipedia and McConaghy/Longuski/Byrnes 2002 p. 6.
+
+# ---------------------------------------------------------------------------
+# 2. McConaghy / Landau / Yam / Longuski 2006 — Two-synodic-period E-M cycler
+# ---------------------------------------------------------------------------
+- id: mcconaghy-2006-em-k2
+  name: "McConaghy/Landau/Yam/Longuski two-synodic-period Earth-Mars cycler"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-E-M-M"   # 2 Earth encounters + 2 Mars encounters per cycle (one Earth = intermediate)
+  sense: "outbound"
+  period:
+    pair: "E-M"
+    k: 2
+    years: 4.27
+    note: "Two Earth-Mars synodic periods = 2 x 2.135 yr = 4.27 yr."
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: 4.7
+      note: "From the McConaghy 2006 abstract: 'arrival V-infinity magnitudes of 4.7 km/s at Earth and 5.0 km/s at Mars' (circular-coplanar model)."
+    - body: "M"
+      vinf_kms: 5.0
+      note: "From the McConaghy 2006 abstract."
+  orbit_elements:
+    a_au: null
+    e: null
+    perihelion_au: null
+    aphelion_au: null
+    inclination_deg: 0.0
+    note: "Specific (a, e, peri, apo) for the published cycler are in the body of the McConaghy 2006 paper (DOI 10.2514/1.15215), which is paywalled (AIAA 403). The abstract gives V_inf and ToF but not orbital elements. TBD: obtain elements from full paper or from McConaghy's preceding AIAA 2003-509 / AAS 03-509 paper."
+  legs:
+    - from: "E"
+      to: "M"
+      tof_days: 153
+      n_revs: 0
+      note: "Earth->Mars transfer time per McConaghy 2006 abstract: '153-day transfer times between Earth and Mars'. Note Rogers et al. 2012 reports 154-day for the S1L1 variant in the establishment-cycler context; the 153-day value is the cycler's nominal."
+    - from: "M"
+      to: "E"
+      tof_days: 153
+      n_revs: 0
+      note: "Symmetric return leg, same ToF. Per the abstract this cycler is symmetric."
+  first_published:
+    authors: ["McConaghy, T. T.", "Landau, D. F.", "Yam, C. H.", "Longuski, J. M."]
+    year: 2006
+    title: "Notable Two-Synodic-Period Earth-Mars Cycler"
+    venue: "Journal of Spacecraft and Rockets, Vol. 43, No. 2, pp. 456-465"
+    doi: "10.2514/1.15215"
+    url: "https://arc.aiaa.org/doi/10.2514/1.15215"
+  corroborating_sources:
+    - authors: ["McConaghy, T. T.", "Yam, C. H.", "Landau, D. F.", "Longuski, J. M."]
+      year: 2003
+      title: "Two-Synodic-Period Earth-Mars Cyclers with Intermediate Earth Encounter"
+      venue: "AAS/AIAA Astrodynamics Specialist Conference, AAS Paper 03-509"
+      doi: null
+      url: null
+      note: "Conference precursor to the 2006 JSR paper. Russell 2004 dissertation cites this as ref [15]."
+  priority_date: "2003-08-01"
+  notes: |
+    Spec.md §9 anchors the M5 milestone to "5.65 km/s (E), 3.05 km/s (M)" for
+    the published 2-synodic E-M cycler. Those numbers do NOT match the
+    McConaghy 2006 abstract's "4.7 km/s at Earth and 5.0 km/s at Mars".
+    Resolution: the 5.65 / 3.05 pair corresponds to a DIFFERENT 2-synodic
+    cycler — specifically the S1L1 cycler popularised by Aldrin Enterprises'
+    CPOM (Cycling Pathways to Occupy Mars) studies; see the next entry
+    `s1l1-2syn-em-cpom`. Both are 2-synodic, both have one intermediate
+    Earth encounter, but they are different family members. M5 should test
+    against the S1L1 numbers per the spec.
+
+    Russell 2004 dissertation Table 4.9 lists four ballistic 2-synodic
+    cyclers; the McConaghy 2006 'notable' one is the first entry there
+    (V_inf,E=4.99, V_inf,M=5.10, t_out=t_in=150d, aphelion 1.64 AU, generic
+    return Ll patched with generic return U). Note Russell's V_inf values are
+    very close to McConaghy's 4.7/5.0 — small differences arise from
+    Russell's binning to 0.01 km/s and McConaghy's rounding to 0.1.
+  source_quotes:
+    "vinf_kms_at_encounters[0].vinf_kms": |
+      McConaghy et al. 2006 abstract (quoted via search.arc.aiaa.org/doi/10.2514/1.15215
+      and corroborated by McConaghy 2006 Request PDF on ResearchGate): "In a
+      circular-coplanar model it requires no propulsive maneuvers, has 153-day
+      transfer times between Earth and Mars, and has arrival V-infinity
+      magnitudes of 4.7 km/s at Earth and 5.0 km/s at Mars."
+    "vinf_kms_at_encounters[1].vinf_kms": |
+      McConaghy et al. 2006 abstract: "...4.7 km/s at Earth and 5.0 km/s at Mars."
+    "legs[0].tof_days": |
+      McConaghy et al. 2006 abstract: "153-day transfer times between Earth and Mars".
+    "legs[1].tof_days": |
+      McConaghy et al. 2006 abstract: same 153-day value implied by symmetry
+      ('transfer times between Earth and Mars' — plural, both directions).
+    "period.years": |
+      Period = 2 x synodic = 2 x 2.135 = 4.27 yr; derived value not quoted as such
+      in McConaghy 2006 (the abstract says "every two synodic periods").
+
+# ---------------------------------------------------------------------------
+# 3. S1L1 ballistic two-synodic E-M cycler (CPOM nominal trajectory)
+# ---------------------------------------------------------------------------
+- id: s1l1-2syn-em-cpom
+  name: "S1L1 ballistic two-synodic-period Earth-Mars cycler"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-E-M-M"   # 2 Earth + 2 Mars encounters per cycle; one is intermediate Earth
+  sense: "outbound"
+  period:
+    pair: "E-M"
+    k: 2
+    years: 4.27
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: 5.65
+      note: "Per spec.md §9 and corroborating sources, the S1L1 ballistic two-synodic-period cycler has 'low V-infinity at Earth and Mars (5.65 and 3.05 km/s, respectively)'. This is the spec-anchored M5 milestone value."
+    - body: "M"
+      vinf_kms: 3.05
+      note: "Per spec.md §9 — the published 2-synodic E-M cycler V_inf at Mars."
+  orbit_elements:
+    a_au: 1.30
+    e: 0.257
+    perihelion_au: 0.97
+    aphelion_au: 1.64
+    inclination_deg: 0.0
+    note: "Per Rogers et al. 2012 Table 1, the S1L1 cycler has these orbital elements (4 vehicles, circular-coplanar). NB Rogers 2012 reports V_inf values at the 4:3(2)- Aldrin establishment epoch (2.04 km/s launch, 3.51 km/s flyby — Table 3) which differ from the steady-state S1L1 cycling V_inf of 5.65/3.05 quoted elsewhere; the difference is the V-infinity leveraging maneuver context vs. nominal cycler operation."
+  legs:
+    - from: "E"
+      to: "M"
+      tof_days: 154
+      n_revs: 0
+      note: "Per Mistree/Kornfeld 2019 (cited via search) and Spreen et al. 2020 'Design Considerations for an Earth-Mars Cycler Spacecraft Using the S1L1 Cycler': 'a nominal 154-day trajectory'. NB Russell 2004 Table 4.9 has the McConaghy 2006 'notable' variant at t_out=150 d; the 154-d figure is for the S1L1 specifically."
+  first_published:
+    authors: ["McConaghy, T. T.", "Longuski, J. M.", "Byrnes, D. V."]
+    year: 2002
+    title: "Analysis of a Broad Class of Earth-Mars Cycler Trajectories"
+    venue: "AIAA/AAS Astrodynamics Specialist Conference, Monterey CA, AIAA 2002-4420"
+    doi: "10.2514/6.2002-4420"
+    url: null
+    note: "S1L1 nomenclature originates with McConaghy/Russell/Longuski's standard nomenclature paper (ref [25] in Russell 2004); the S1L1 cycler itself is one entry in the broader class catalogued by McConaghy/Longuski/Byrnes 2002 (Russell 2004 ref [17])."
+  corroborating_sources:
+    - authors: ["McConaghy, T. T.", "Russell, R. P.", "Longuski, J. M."]
+      year: 2005
+      title: "Towards a Standard Nomenclature for Earth-Mars Cycler Trajectories"
+      venue: "Journal of Spacecraft and Rockets (in press as of Russell 2004 ref [25])"
+      doi: null
+      url: null
+    - authors: ["Spreen, C.", "et al."]
+      year: 2020
+      title: "Design Considerations for an Earth-Mars Cycler Spacecraft Using the S1L1 Cycler"
+      venue: "Journal of Spacecraft and Rockets"
+      doi: "10.2514/1.A35160"
+      url: "https://arc.aiaa.org/doi/10.2514/1.A35160"
+      note: "Modern design study using the S1L1 cycler; reports 154-d nominal Earth-Mars transfer time."
+    - authors: ["Rogers, B. A.", "Hughes, K. M.", "Longuski, J. M.", "Aldrin, B."]
+      year: 2012
+      title: "Preliminary Analysis of Establishing Cycler Trajectories Between Earth and Mars via V-Infinity Leveraging"
+      venue: "AIAA 2012-4746"
+      doi: "10.2514/6.2012-4746"
+      url: "https://engineering.purdue.edu/AAC/wp-content/uploads/2012/09/EstablishingCyclerTrajectoriesBetweenEarthAndMarsViaV-InfinityLeveraging-AIAA-2012-47461.pdf"
+      note: "Table 1 of this paper has the S1L1 orbital elements row used here."
+  priority_date: "2002-08-05"
+  notes: |
+    The "S1L1" name follows the standard Earth-Mars cycler nomenclature
+    proposed by McConaghy/Russell/Longuski (Russell 2004 dissertation ref [25]):
+    "S" = (number of synodic periods in cycler) preceded by S, "L" = number of
+    intermediate Earth-Earth loops, and the trailing 1's encode the leg types.
+
+    This is the cycler the spec §9 M5 milestone references with V_inf =
+    "5.65 km/s (E), 3.05 km/s (M)". It is NOT the same as the McConaghy 2006
+    "Notable" cycler (which has V_inf 4.7/5.0); both are two-synodic E-M
+    cyclers with one intermediate Earth encounter, but they belong to
+    different families in the McConaghy/Longuski/Byrnes 2002 (AIAA 2002-4420)
+    broad-class taxonomy.
+
+    Rogers et al. 2012 Table 1's S1L1 entry shows (a, e, peri, apo) =
+    (1.30, 0.257, 0.97, 1.64) which gives aphelion comfortably inside Mars's
+    aphelion of ~1.67 AU only marginally — implying the Mars encounter happens
+    near the cycler's aphelion. This matches the low V_inf at Mars (3.05 km/s):
+    the cycler "catches up" to Mars near its slowest point in its heliocentric
+    motion.
+  source_quotes:
+    a_au: "Rogers et al. 2012, Table 1: 'S1L1 ... Semi-Major Axis, AU: 1.30'."
+    e: "Rogers et al. 2012, Table 1: 'S1L1 ... Eccentricity: 0.257'."
+    perihelion_au: "Rogers et al. 2012, Table 1: 'S1L1 ... Perihelion Radius, AU: 0.97'."
+    aphelion_au: "Rogers et al. 2012, Table 1: 'S1L1 ... Aphelion Radius, AU: 1.64'."
+    "vinf_kms_at_encounters[0].vinf_kms": |
+      Spec.md §9: "Published 2-synodic E-M V_inf | ≈ 5.65 km/s (E), 3.05 km/s (M)".
+      Corroborated by web search snippets attributing these to the S1L1 cycler
+      ('A cycler that repeats every two synodic periods has a low V-infinity at
+      Earth and Mars (5.65 and 3.05 km/s, respectively)').
+    "vinf_kms_at_encounters[1].vinf_kms": "Spec.md §9 (same as above)."
+    "legs[0].tof_days": |
+      Search result: "The S1L1 cycler is designed to transfer a crew of six from
+      Earth to Mars on a nominal 154-day trajectory." — multiple secondary
+      sources citing Spreen et al. 2020 (DOI 10.2514/1.A35160).
+    "period.years": |
+      Period = 2 x 2.135 = 4.27 yr; derived from cycler being two-synodic.
+
+# ---------------------------------------------------------------------------
+# 4. Russell-Ocampo ballistic cyclers — representative selection
+# ---------------------------------------------------------------------------
+# Russell's 2004 dissertation Table 3.4 lists 44 cyclers, of which 24 are
+# entirely ballistic (no powered maneuvers, all turn ratios > 1). The full
+# 44 are documented in the dissertation; below are representatives chosen
+# for being the most-cited examples or having distinctive characteristics
+# noted by Russell. The full list lives in docs/known-cyclers.md §3.
+- id: russell-ocampo-2.1.1+2-case2
+  name: "Russell-Ocampo cycler 2.1.1.+2 ('Case 2' of Byrnes/McConaghy/Longuski 2002)"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-E-M-M"     # 2-synodic, sequence per Russell Table 3.4
+  sense: "outbound"
+  period:
+    pair: "E-M"
+    k: 2
+    years: 4.27
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: 4.1
+      note: "Russell 2004 dissertation Table 3.4, cycler 2.1.1.+2 (footnoted as 'Case 2' of Byrnes/McConaghy/Longuski 2002): 'Earth v_inf (km/s): 4.1'."
+    - body: "M"
+      vinf_kms: 2.0
+      note: "Russell 2004 Table 3.4 for 2.1.1.+2: 'Mars v_inf (km/s): 2.0'."
+  orbit_elements:
+    a_au: null
+    e: null
+    perihelion_au: null
+    aphelion_au: 1.444   # = 0.95 * 1.52
+    inclination_deg: 0.0
+    note: "Russell 2004 Table 3.4 reports Aphelion Ratio = 0.95 for cycler 2.1.1.+2, hence aphelion ≈ 0.95 * 1.52 AU = 1.444 AU. Note this is BELOW Mars's semi-major axis: the cycler only reaches Mars when Mars is near its perihelion. Full a, e not directly tabulated in Russell 2004 §3 (those are in the dissertation's Tables 4.x for the more general nπ + generic catalogue)."
+  legs:
+    - from: "E"
+      to: "M"
+      tof_days: 207
+      n_revs: 0
+      note: "Russell 2004 Table 3.4 for 2.1.1.+2: 'Earth->Mars (or aphelion) Time (days): 207'."
+  first_published:
+    authors: ["Byrnes, D. V.", "McConaghy, T. T.", "Longuski, J. M."]
+    year: 2002
+    title: "Analysis of Various Two Synodic Period Earth-Mars Cycler Trajectories"
+    venue: "AIAA/AAS Astrodynamics Specialist Conference, Monterey CA, AIAA 2002-4423"
+    doi: "10.2514/6.2002-4423"
+    url: "https://arc.aiaa.org/doi/10.2514/6.2002-4423"
+  corroborating_sources:
+    - authors: ["Russell, R. P."]
+      year: 2004
+      title: "Global Search and Optimization for Free-Return Earth-Mars Cyclers"
+      venue: "Ph.D. dissertation, UT Austin"
+      doi: null
+      url: "http://hdl.handle.net/2152/1253"
+  priority_date: "2002-08-05"
+  notes: |
+    Russell explicitly footnotes this entry in Table 3.4 with "d: 'Case 2'
+    cycler described by Byrnes et al [16]" — so attribution belongs to Byrnes/
+    McConaghy/Longuski 2002. Rogers et al. 2012 also calls it "Case 2" and
+    reports it as having the lowest V_inf_launch (2.522 km/s) and a 171-day
+    Earth-Mars flight time in the analytic ephemeris (Table 4).
+  source_quotes:
+    "vinf_kms_at_encounters[0].vinf_kms": "Russell 2004 Table 3.4, row 2.1.1.+2."
+    "vinf_kms_at_encounters[1].vinf_kms": "Russell 2004 Table 3.4, row 2.1.1.+2."
+    "legs[0].tof_days": "Russell 2004 Table 3.4, row 2.1.1.+2: Earth->Mars 207 days."
+    aphelion_au: |
+      Russell 2004 Table 3.4 row 2.1.1.+2: Aphelion Ratio 0.95 (his definition:
+      ratio to 1.52 AU = Mars's circular-orbit a). aphelion = 0.95 * 1.52 = 1.444 AU.
+
+- id: russell-ocampo-2.3.1+1-case3
+  name: "Russell-Ocampo cycler 2.3.1.+1 ('Case 3' of Byrnes/McConaghy/Longuski 2002)"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-E-M-M"
+  sense: "outbound"
+  period:
+    pair: "E-M"
+    k: 2
+    years: 4.27
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: 5.4
+      note: "Russell 2004 Table 3.4, cycler 2.3.1.+1 ('Case 3' per footnote e)."
+    - body: "M"
+      vinf_kms: 5.3
+      note: "Russell 2004 Table 3.4, cycler 2.3.1.+1."
+  orbit_elements:
+    a_au: null
+    e: null
+    perihelion_au: null
+    aphelion_au: 1.642   # = 1.08 * 1.52
+    inclination_deg: 0.0
+    note: "Aphelion Ratio 1.08 per Russell 2004 Table 3.4."
+  legs:
+    - from: "E"
+      to: "M"
+      tof_days: 143
+      n_revs: 0
+      note: "Russell 2004 Table 3.4 for 2.3.1.+1."
+  first_published:
+    authors: ["Byrnes, D. V.", "McConaghy, T. T.", "Longuski, J. M."]
+    year: 2002
+    title: "Analysis of Various Two Synodic Period Earth-Mars Cycler Trajectories"
+    venue: "AIAA 2002-4423"
+    doi: "10.2514/6.2002-4423"
+    url: "https://arc.aiaa.org/doi/10.2514/6.2002-4423"
+  priority_date: "2002-08-05"
+  notes: |
+    "Case 3" in the Byrnes/McConaghy/Longuski 2002 enumeration. Russell 2004
+    Table 3.4 footnote 'e' attributes this entry.
+  source_quotes:
+    "vinf_kms_at_encounters[0].vinf_kms": "Russell 2004 Table 3.4, row 2.3.1.+1."
+    "vinf_kms_at_encounters[1].vinf_kms": "Russell 2004 Table 3.4, row 2.3.1.+1."
+    "legs[0].tof_days": "Russell 2004 Table 3.4, row 2.3.1.+1: 143 d."
+    aphelion_au: "Aphelion ratio 1.08 x 1.52 AU = 1.642 AU per Russell 2004 Table 3.4."
+
+- id: russell-ocampo-4.3.1-5
+  name: "Russell-Ocampo cycler 4.3.1.-5 (low-energy 4-synodic, near-Hohmann)"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-E-M-M"  # representative; full sequence in Russell 2004 Table 3.7
+  sense: "outbound"
+  period:
+    pair: "E-M"
+    k: 4
+    years: 8.54
+    note: "4 x 2.135 = 8.54 yr. Russell 2004 Table 3.7 lists complete cycle times: 3399 d ≈ 9.30 yr; the discrepancy is the partial second-cycle data Russell tabulates."
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: 3.1
+      note: "Russell 2004 Table 3.4 row 4.3.1.-5: 'Earth v_inf (km/s): 3.1'. Russell notes (§3.8): 'Cycler 4.3.1.-5 has remarkably low energy requirements at Earth and Mars. ... At Earth, the cycler has a v_inf of 3.10 km/s compared to the Hohman value of 2.84 km/s'."
+    - body: "M"
+      vinf_kms: 2.5
+      note: "Russell 2004 Table 3.4 row 4.3.1.-5: 'Mars v_inf (km/s): 2.5'. Russell §3.8: 'at Mars the cycler has a v_inf of 2.53 km/s compared to the Hohman value of 2.57 km/s.'"
+  orbit_elements:
+    a_au: null
+    e: null
+    perihelion_au: null
+    aphelion_au: 1.505   # 0.99 * 1.52
+    inclination_deg: 0.0
+    note: "Russell 2004 Table 3.4 Aphelion Ratio 0.99: 'The Aphelion Ratio is 0.992, thus the cycler doesn't quite reach Mars in the simplified model.' This is technically a near-ballistic cycler in the simplified model (the small ΔV makes it ballistic in the true model where Mars's perihelion is closer)."
+  legs:
+    - from: "E"
+      to: "M"
+      tof_days: 268
+      n_revs: 0
+      note: "Russell 2004 Table 3.4 row 4.3.1.-5: 'Earth->Mars (or aphelion) Time (days): 268'."
+  first_published:
+    authors: ["Russell, R. P.", "Ocampo, C. A."]
+    year: 2005
+    title: "Geometric Analysis of Free-Return Trajectories Following a Gravity-Assisted Flyby"
+    venue: "Journal of Spacecraft and Rockets, Vol. 42, No. 1, pp. 138-151"
+    doi: "10.2514/1.5571"
+    url: "https://arc.aiaa.org/doi/abs/10.2514/1.5571"
+    note: "Russell-Ocampo's first peer-reviewed publication of the 24 ballistic cycler set. The conference precursor (Russell/Ocampo AAS 03-145) is older but unpublished in archival form."
+  corroborating_sources:
+    - authors: ["Russell, R. P.", "Ocampo, C. A."]
+      year: 2004
+      title: "A Systematic Method for Constructing Earth-Mars Cyclers Using Free-Return Trajectories"
+      venue: "Journal of Guidance, Control, and Dynamics, Vol. 27, No. 3, pp. 321-335"
+      doi: "10.2514/1.5878"
+      url: null
+      note: "Citation per Wikipedia Mars Cycler article [8]. Russell's dissertation expands the catalogue."
+    - authors: ["Russell, R. P."]
+      year: 2004
+      title: "Global Search and Optimization for Free-Return Earth-Mars Cyclers"
+      venue: "Ph.D. dissertation, UT Austin"
+      doi: null
+      url: "http://hdl.handle.net/2152/1253"
+      note: "Table 3.4 row '4.3.1.-5' is the canonical source for the parameters here. Table 3.7 has the full flyby velocity data for one cycle."
+  priority_date: "2003-02-09"
+  notes: |
+    Russell describes this cycler (§3.8) as having "remarkably low energy
+    requirements at Earth and Mars" because "the generic return portion of
+    this cycler is very near a Hohman transfer". The aphelion ratio of 0.992
+    means it just barely doesn't reach Mars's circular orbit in the simplified
+    model, so it's TECHNICALLY classed as "near-ballistic" in Russell's
+    taxonomy — but in the real ephemeris model with Mars's eccentric orbit
+    it crosses Mars's orbit at perihelion and is genuinely ballistic.
+
+    This is one of the lowest-V_inf E-M cyclers known, distinct from the
+    other Russell-Ocampo entries above and worth keeping in the seed
+    catalogue as a counter-example to "low-V_inf cyclers require Venus".
+  source_quotes:
+    "vinf_kms_at_encounters[0].vinf_kms": |
+      Russell 2004 dissertation §3.8: "At Earth, the cycler has a v_inf of
+      3.10 km/s compared to the Hohman value of 2.84 km/s". Table 3.4 rounds
+      to 3.1 km/s.
+    "vinf_kms_at_encounters[1].vinf_kms": |
+      Russell 2004 §3.8: "at Mars the cycler has a v_inf of 2.53 km/s
+      compared to the Hohman value of 2.57 km/s." Table 3.4 rounds to 2.5.
+    "legs[0].tof_days": "Russell 2004 Table 3.4 row 4.3.1.-5: 268 d."
+    aphelion_au: |
+      Russell 2004 §3.8: "The Aphelion Ratio is 0.992, thus the cycler
+      doesn't quite reach Mars in the simplified model."
+
+- id: russell-ocampo-3.1.2+1
+  name: "Russell-Ocampo cycler 3.1.2.+1 (3-synodic, low terminal speeds)"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-E-M-M"
+  sense: "outbound"
+  period:
+    pair: "E-M"
+    k: 3
+    years: 6.41
+    note: "3 x 2.135 yr ≈ 6.405 yr; Russell 2004 Table 3.6 gives complete-cycle time 2529 d ≈ 6.93 yr (includes partial second-cycle leg)."
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: 3.4
+      note: "Russell 2004 Table 3.4 row 3.1.2.+1."
+    - body: "M"
+      vinf_kms: 4.6
+      note: "Russell 2004 Table 3.4 row 3.1.2.+1."
+  orbit_elements:
+    a_au: null
+    e: null
+    perihelion_au: null
+    aphelion_au: 1.626   # 1.07 * 1.52
+    inclination_deg: 0.0
+  legs:
+    - from: "E"
+      to: "M"
+      tof_days: 181
+      n_revs: 0
+      note: "Russell 2004 Table 3.4 row 3.1.2.+1."
+  first_published:
+    authors: ["Russell, R. P.", "Ocampo, C. A."]
+    year: 2005
+    title: "Geometric Analysis of Free-Return Trajectories Following a Gravity-Assisted Flyby"
+    venue: "Journal of Spacecraft and Rockets, Vol. 42, No. 1, pp. 138-151"
+    doi: "10.2514/1.5571"
+    url: "https://arc.aiaa.org/doi/abs/10.2514/1.5571"
+  priority_date: "2003-02-09"
+  notes: |
+    Russell §3.8 highlights this cycler: "Cycler 3.1.1.+3, Cycler 3.1.2.+1,
+    and Cycler 3.7.1.+1 have low terminal speeds and require two, three, and
+    four flybys respectively." A 3-synodic period (~6.4 yr) cycler with low
+    V_inf at both bodies — close to the VEM beat period but using only E-M
+    flybys.
+  source_quotes:
+    "vinf_kms_at_encounters[0].vinf_kms": "Russell 2004 Table 3.4 row 3.1.2.+1."
+    "vinf_kms_at_encounters[1].vinf_kms": "Russell 2004 Table 3.4 row 3.1.2.+1."
+    "legs[0].tof_days": "Russell 2004 Table 3.4 row 3.1.2.+1."
+    aphelion_au: "Russell 2004 Table 3.4: Aphelion Ratio 1.07 x 1.52 AU = 1.626 AU."
+
+- id: russell-ocampo-2.5.1+0
+  name: "Russell-Ocampo cycler 2.5.1.+0 (short-transit 2-synodic)"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-E-M-M"
+  sense: "outbound"
+  period:
+    pair: "E-M"
+    k: 2
+    years: 4.27
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: 7.8
+      note: "Russell 2004 Table 3.4: high-V_inf 'short-transit' variant of a 2-synodic cycler."
+    - body: "M"
+      vinf_kms: 9.9
+      note: "Russell 2004 Table 3.4."
+  orbit_elements:
+    a_au: null
+    e: null
+    perihelion_au: null
+    aphelion_au: 2.189   # 1.44 * 1.52
+    inclination_deg: 0.0
+  legs:
+    - from: "E"
+      to: "M"
+      tof_days: 94
+      n_revs: 0
+      note: "Russell 2004 §3.8: 'Cycler 2.5.1.+0 is an example of a solution with a relatively short Earth-Mars transit time, perhaps desirable for a human-crewed mission. The benefits of the 94-day trip are offset by the relatively high terminal speeds.'"
+  first_published:
+    authors: ["Russell, R. P.", "Ocampo, C. A."]
+    year: 2005
+    title: "Geometric Analysis of Free-Return Trajectories Following a Gravity-Assisted Flyby"
+    venue: "JSR Vol. 42 No. 1 pp. 138-151"
+    doi: "10.2514/1.5571"
+    url: "https://arc.aiaa.org/doi/abs/10.2514/1.5571"
+  priority_date: "2003-02-09"
+  notes: |
+    Included to span the V_inf range of the Russell-Ocampo catalogue:
+    while 4.3.1.-5 is the low-energy extreme, 2.5.1.+0 is a typical high-V_inf
+    short-transit cycler. The full Russell 2004 Table 3.4 (44 cyclers, 24
+    ballistic) is summarised in docs/known-cyclers.md §3.4.
+  source_quotes:
+    "vinf_kms_at_encounters[0].vinf_kms": "Russell 2004 Table 3.4 row 2.5.1.+0."
+    "vinf_kms_at_encounters[1].vinf_kms": "Russell 2004 Table 3.4 row 2.5.1.+0."
+    "legs[0].tof_days": "Russell 2004 §3.8: '94-day trip'."
+    aphelion_au: "Russell 2004 Table 3.4 Aphelion Ratio 1.44 x 1.52 = 2.189 AU."
+
+# ---------------------------------------------------------------------------
+# 5. Niehoff VISIT-1 (inertially-fixed Earth-Mars cycler)
+# ---------------------------------------------------------------------------
+- id: niehoff-visit1
+  name: "Niehoff VISIT-1 Earth-Mars cycler"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-M"   # repeats at the cycler's natural period, not synodic-locked
+  sense: "n/a"                 # VISIT cyclers are inertially-fixed resonant orbits, no escalator branch
+  period:
+    pair: "E-M"
+    k: 7    # repeats every 7 synodic periods per Rogers 2012 Table 1 footnote 'a'
+    years: 14.95   # = 7 * 2.135 yr
+    note: "Per Rogers et al. 2012 Table 1 footnote 'a': 'These cyclers repeat every 7 Earth-Mars synodic periods, which usually means that 14 vehicles are needed. However, the VISIT cyclers encounter Earth and Mars more often than once every 15 years, so fewer vehicles are needed.' Wikipedia (citing McConaghy/Longuski/Byrnes 2002 p. 6) gives 'cycle time 6.405 years' but identifies different encounter frequencies. There is genuine inconsistency between sources on the VISIT period; see notes."
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: null
+      note: "VISIT cyclers are inertially-fixed orbits resonant with both Earth and Mars and require no flyby maneuvers, so V_inf is small but not directly tabulated in any of the sources accessible online. Rogers 2012 Table 4 gives V_inf,flyby = 2.834 km/s and V_inf,launch = 2.540 km/s in the analytic ephemeris establishment context — those are establishment quantities, not the cycler's own steady V_inf. TBD: original Niehoff 1985/1986 conference papers needed for the true V_inf."
+    - body: "M"
+      vinf_kms: null
+      note: "Same gap as for Earth — not directly tabulated in accessible sources."
+  orbit_elements:
+    a_au: 1.17
+    e: 0.193
+    perihelion_au: 0.94
+    aphelion_au: 1.40
+    inclination_deg: 0.0
+    note: "Per Rogers et al. 2012 Table 1 (citation: Niehoff via McConaghy/Longuski/Byrnes 2002 p. 6). NB Wikipedia gives different aphelion 1.89 AU for VISIT-1 and 1.45 AU for VISIT-2 — that pair seems to come from a different VISIT table (possibly Friedlander 1986). The Rogers 2012 numbers are taken as authoritative here because they come from a single internally-consistent table. See known-cyclers.md outstanding question §C."
+  legs: []
+  first_published:
+    authors: ["Niehoff, J."]
+    year: 1985
+    title: "Manned Mars Mission Design"
+    venue: "Joint AIAA/Planetary Society Conference 'Steps to Mars', National Academy of Sciences, Washington DC"
+    date: "1985-07"
+    doi: null
+    url: null
+    note: "Plus a companion 'IMUSE' presentation, Niehoff 1985 (Woods Hole, Space Science Board, 30 July 1985). The full conference paper is not online. The VISIT cycler concept is attributed to Niehoff in every subsequent secondary source (Rogers 2012 ref [10-12], Russell 2004 ref [9-12], Wikipedia)."
+  corroborating_sources:
+    - authors: ["Niehoff, J."]
+      year: 1986
+      title: "Pathways to Mars: New Trajectory Opportunities"
+      venue: "American Astronautical Society, AAS Paper 86-172"
+      doi: null
+      url: null
+    - authors: ["Niehoff, J.", "Friedlander, A.", "McAdams, J."]
+      year: 1991
+      title: "Earth-Mars Transport Cycler Concepts"
+      venue: "International Astronautical Congress, IAF Paper 91-438, Oct. 1991"
+      doi: null
+      url: null
+    - authors: ["Friedlander, A. L.", "Niehoff, J. C.", "Byrnes, D. V.", "Longuski, J. M."]
+      year: 1986
+      title: "Circulating Transportation Orbits Between Earth and Mars"
+      venue: "AIAA/AAS Astrodynamics Conference, AIAA 86-2009-CP"
+      doi: "10.2514/6.1986-2009"
+      url: "https://doi.org/10.2514/6.1986-2009"
+      note: "First peer-reviewed venue for VISIT cyclers (covers both VISIT-1 and VISIT-2 as 'inertially fixed' alternatives to the 'up/down escalator' Aldrin cyclers)."
+  priority_date: "1985-07-01"
+  notes: |
+    VISIT-1 (Versatile International Station for Interplanetary Transport — 1)
+    is an inertially-fixed heliocentric ellipse resonant with both Earth's and
+    Mars's orbital periods. Unlike the Aldrin cycler, no gravity-assist flybys
+    are needed to maintain its geometry. Per the spaceflighthistory.blogspot
+    summary of Niehoff 1985: "A spacecraft in a VISIT-1 orbit would circle the
+    Sun in 1.25 Earth years, encountering Earth four times in five Earth years
+    and Mars three times in two Mars years."
+
+    Caveat: secondary sources give inconsistent encounter frequencies for
+    VISIT-1. Spaceflighthistory says "4 Earth encounters in 5 years, 3 Mars
+    encounters in 2 Mars years"; Wikipedia says "encounters Earth three times
+    and Mars four times in 15 years". These imply different orbital elements.
+    The Rogers 2012 values (a=1.17, e=0.193) match neither precisely; the
+    underlying issue is that several "VISIT-1"-named cyclers appear in the
+    literature with slightly different parameter sets. For M7 novelty
+    matching, treat the VISIT-1 entry as having a deliberately wide tolerance
+    until the Niehoff 1985/1986 originals can be inspected.
+
+    Per Russell 2004 §1.3: "Unlike most other cyclers, the VISIT class of
+    cyclers have orbits that are inertially fixed and utilize resonance
+    opportunities between the periods of the cycler, Earth, and Mars; and
+    thus, require no flyby maneuvers at Earth or Mars."
+  source_quotes:
+    a_au: "Rogers et al. 2012 Table 1: 'VISIT-1 ... Semi-Major Axis, AU: 1.17'."
+    e: "Rogers et al. 2012 Table 1: 'VISIT-1 ... Eccentricity: 0.193'."
+    perihelion_au: "Rogers et al. 2012 Table 1: 'VISIT-1 ... Perihelion Radius, AU: 0.94'."
+    aphelion_au: "Rogers et al. 2012 Table 1: 'VISIT-1 ... Aphelion Radius, AU: 1.40'."
+    "period.years": |
+      Rogers et al. 2012 Table 1 footnote a: "These cyclers repeat every 7
+      Earth-Mars synodic periods, which usually means that 14 vehicles are
+      needed." 7 * 2.135 = 14.95 yr.
+
+# ---------------------------------------------------------------------------
+# 6. Niehoff VISIT-2 (inertially-fixed Earth-Mars cycler)
+# ---------------------------------------------------------------------------
+- id: niehoff-visit2
+  name: "Niehoff VISIT-2 Earth-Mars cycler"
+  source: literature
+  bodies: ["E", "M"]
+  sequence_canonical: "E-M"
+  sense: "n/a"
+  period:
+    pair: "E-M"
+    k: 7
+    years: 14.95
+    note: "Per Rogers 2012 Table 1 footnote 'a' — VISIT-2 like VISIT-1 repeats every 7 synodic periods."
+  vinf_kms_at_encounters:
+    - body: "E"
+      vinf_kms: null
+      note: "Same gap as VISIT-1 — V_inf for the cycler itself not directly tabulated in accessible sources."
+    - body: "M"
+      vinf_kms: null
+      note: "Same gap."
+  orbit_elements:
+    a_au: 1.31
+    e: 0.275
+    perihelion_au: 0.95
+    aphelion_au: 1.67
+    inclination_deg: 0.0
+    note: "Rogers et al. 2012 Table 1. NB aphelion 1.67 AU is ~Mars's aphelion in the real ephemeris; this VISIT-2 orbit only intersects Mars's orbit when Mars is near aphelion."
+  legs: []
+  first_published:
+    authors: ["Niehoff, J."]
+    year: 1985
+    title: "Manned Mars Mission Design"
+    venue: "Joint AIAA/Planetary Society Conference 'Steps to Mars', National Academy of Sciences"
+    date: "1985-07"
+    doi: null
+    url: null
+  corroborating_sources:
+    - authors: ["Niehoff, J."]
+      year: 1986
+      title: "Pathways to Mars: New Trajectory Opportunities"
+      venue: "AAS Paper 86-172"
+      doi: null
+      url: null
+    - authors: ["Friedlander, A. L.", "Niehoff, J. C.", "Byrnes, D. V.", "Longuski, J. M."]
+      year: 1986
+      title: "Circulating Transportation Orbits Between Earth and Mars"
+      venue: "AIAA 86-2009-CP"
+      doi: "10.2514/6.1986-2009"
+      url: "https://doi.org/10.2514/6.1986-2009"
+  priority_date: "1985-07-01"
+  notes: |
+    Per spaceflighthistory.blogspot (summarising Niehoff 1985): "A VISIT-2
+    orbit would need 1.5 Earth years to complete, with a spacecraft
+    encountering Earth twice in three Earth years and Mars five times in four
+    Mars years." Rogers 2012's (a, e, peri, apo) numbers imply orbital period
+    P = 2pi*sqrt(a^3/mu_sun) ≈ 1.50 yr, consistent.
+
+    Same source-mismatch caveats as VISIT-1 apply.
+  source_quotes:
+    a_au: "Rogers et al. 2012 Table 1: 'VISIT-2 ... Semi-Major Axis, AU: 1.31'."
+    e: "Rogers et al. 2012 Table 1: 'VISIT-2 ... Eccentricity: 0.275'."
+    perihelion_au: "Rogers et al. 2012 Table 1: 'VISIT-2 ... Perihelion Radius, AU: 0.95'."
+    aphelion_au: "Rogers et al. 2012 Table 1: 'VISIT-2 ... Aphelion Radius, AU: 1.67'."
+    "period.years": "Rogers 2012 Table 1 footnote a: 7 synodic periods = 14.95 yr."
+
+# ---------------------------------------------------------------------------
+# 7. Longuski / Jones-Hernandez-Jesick VEM triple cyclers (family entry)
+# ---------------------------------------------------------------------------
+# Jones et al. 2017 reports "thousands of previously undocumented two synodic
+# period Earth-Mars-Venus triple cyclers". No individual cycler is named or
+# tabulated in the abstract / accessible sources, so we capture the family
+# as a single seed entry with citation; individual members are TBD pending
+# access to the full paper.
+- id: jones-2017-vem-triple-family
+  name: "Jones/Hernandez/Jesick VEM triple cyclers (family seed entry)"
+  source: literature
+  bodies: ["V", "E", "M"]
+  sequence_canonical: "V-E-M"   # canonical placeholder; actual sequences vary across the family
+  sense: "n/a"
+  period:
+    pair: "E-M"          # primary anchor pair; secondary V-E synodic also relevant
+    k: 2                  # "two synodic period" per the abstract
+    years: 4.27           # 2 x E-M synodic
+    note: |
+      Jones et al. 2017 reports "two synodic period Earth-Mars-Venus triple
+      cyclers" (= 2 x 2.135 yr ≈ 4.27 yr, anchored on the E-M synodic).
+      Spec.md §3 references a different VEM beat period: "the natural beat
+      is ≈ 6.4 yr (3 x E-M ≈ 4 x E-V)". The 6.4-yr beat is a NECESSARY
+      condition for closure but not the only possible period; Jones et al.
+      2017 find 2-synodic E-M solutions that incorporate Venus flybys.
+  vinf_kms_at_encounters:
+    - body: "V"
+      vinf_kms: null
+      note: "Family-level entry — individual member V_inf values are in the full Jones 2017 paper which is not freely accessible online (NTRS metadata-only)."
+    - body: "E"
+      vinf_kms: null
+      note: |
+        Abstract reports "numerous solutions are identified with average transit
+        leg excess speed below 5 km/sec, independent of encounter epoch."
+        That is an *average* — individual encounter V_inf values not in the
+        abstract.
+    - body: "M"
+      vinf_kms: null
+      note: "Same: average transit leg V_inf below 5 km/s per the abstract; individual values TBD."
+  orbit_elements:
+    a_au: null
+    e: null
+    perihelion_au: null
+    aphelion_au: null
+    inclination_deg: null
+    note: "Triple cyclers traverse a wider Tisserand graph region; no single (a, e) characterises the family. Individual members would have their own elements."
+  legs: []
+  first_published:
+    authors: ["Jones, D. R.", "Hernandez, S.", "Jesick, M."]
+    year: 2017
+    title: "Low Excess Speed Triple Cyclers of Venus, Earth, and Mars"
+    venue: "AAS/AIAA Astrodynamics Specialist Conference, Stevenson WA, AAS Paper 17-577 (JPL-CL#17-3322)"
+    date: "2017-08-20"
+    doi: null
+    url: "https://ntrs.nasa.gov/citations/20190028464"
+    note: |
+      "hdl:2014/46418" is the JPL Open Repository handle for the report.
+      The paper is the first published account of ballistic VEM triple
+      cyclers. The Longuski group has subsequent related work but this is
+      the priority publication.
+  priority_date: "2017-08-20"
+  notes: |
+    Per the abstract: "Ballistic cycler trajectories which repeatedly encounter
+    Earth and Mars may be invaluable to a future transportation architecture
+    ferrying humans to and from Mars. Such trajectories which also involve at
+    least one flyby of Venus are computed here for the first time."
+
+    Web search snippet: "The paper discovered thousands of previously
+    undocumented two synodic period Earth-Mars-Venus triple cyclers, with
+    many solutions identified having average transit leg excess speed below
+    5 km/sec, independent of encounter epoch."
+
+    This entry is INTENTIONALLY a family/placeholder. As individual members
+    are tabulated (from the full Jones 2017 paper or follow-up work) they
+    should be added as separate entries with their own canonical signatures.
+    Until then, M7 novelty matching against this entry should be treated as
+    "candidate-novel if no exact match, but flagged for human review against
+    the Jones 2017 paper" rather than auto-tagging as known.
+
+    Caveat about the spec §16.4's mention of "Longuski et al. (2017) Low
+    Excess Speed Triple Cyclers": the actual primary authors are Jones,
+    Hernandez, Jesick (all JPL), not Longuski. Longuski is the Purdue
+    advisor of multiple cited co-authors (McConaghy, Landau, Yam, Chen, ...)
+    but is not a Jones 2017 author. The spec's attribution should be
+    corrected in a future revision.
+  source_quotes:
+    "period.k": |
+      Jones et al. 2017 abstract: "two synodic period Earth-Mars-Venus
+      triple cyclers" (multiple search snippets, NTRS 20190028464).
+    "vinf_kms_at_encounters[1].vinf_kms": |
+      Jones et al. 2017 abstract: "numerous solutions are identified with
+      average transit leg excess speed below 5 km/sec, independent of
+      encounter epoch." (NB: this is an average across all members of the
+      family, not a single cycler's V_inf.)

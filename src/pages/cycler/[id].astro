@@ -1,0 +1,151 @@
+---
+import Base from "../../layouts/Base.astro";
+import { loadCatalogue, fmt, fmtBodies } from "../../lib/catalogue";
+import type { CyclerEntry, Citation } from "../../lib/types";
+
+export function getStaticPaths() {
+  return loadCatalogue().map((entry) => ({
+    params: { id: entry.id },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: CyclerEntry;
+}
+
+const { entry } = Astro.props;
+
+const formatCite = (c: Citation): string => {
+  const authors =
+    c.authors.length === 1
+      ? c.authors[0]!
+      : c.authors.length === 2
+        ? `${c.authors[0]} & ${c.authors[1]}`
+        : `${c.authors[0]} et al.`;
+  return `${authors} (${c.year}). ${c.title}. ${c.venue}.`;
+};
+---
+<Base title={entry.name} description={`Cycler catalogue entry: ${entry.name}`}>
+  <p><a href="/catalogue/">&larr; Catalogue</a></p>
+
+  <h1>{entry.name}</h1>
+  <p class="muted">
+    <code>{entry.id}</code> &middot; source: <strong>{entry.source}</strong> &middot;
+    validation: <span class="vlevel">{entry.validation_level ?? "V0"}</span>
+  </p>
+
+  <h2>Signature</h2>
+  <dl class="cycler">
+    <dt>Bodies</dt><dd>{fmtBodies(entry.bodies)}</dd>
+    <dt>Sequence (canonical)</dt><dd><code>{entry.sequence_canonical}</code></dd>
+    <dt>Sense</dt><dd>{entry.sense}</dd>
+    <dt>Period</dt>
+    <dd>
+      {fmt(entry.period.years, 3)} yr ({entry.period.k} × {entry.period.pair} synodic)
+      {entry.period.note && <div class="muted">{entry.period.note}</div>}
+    </dd>
+    <dt>Priority date</dt><dd>{entry.priority_date}</dd>
+  </dl>
+
+  <h2>V∞ at encounters</h2>
+  {entry.vinf_kms_at_encounters.length === 0 ? (
+    <p class="muted">No encounter V∞ values published in accessible sources.</p>
+  ) : (
+    <dl class="cycler">
+      {entry.vinf_kms_at_encounters.map((v, i) => (
+        <>
+          <dt>{v.body} (#{i + 1})</dt>
+          <dd>
+            {v.vinf_kms === null ? <span class="muted">— (not published)</span> : <>{fmt(v.vinf_kms, 2)} km/s</>}
+            {v.note && <div class="muted">{v.note}</div>}
+          </dd>
+        </>
+      ))}
+    </dl>
+  )}
+
+  <h2>Orbit elements (heliocentric)</h2>
+  <dl class="cycler">
+    <dt>Semi-major axis a</dt><dd>{fmt(entry.orbit_elements.a_au, 3)} AU</dd>
+    <dt>Eccentricity e</dt><dd>{fmt(entry.orbit_elements.e, 3)}</dd>
+    <dt>Perihelion</dt><dd>{fmt(entry.orbit_elements.perihelion_au, 3)} AU</dd>
+    <dt>Aphelion</dt><dd>{fmt(entry.orbit_elements.aphelion_au, 3)} AU</dd>
+    <dt>Inclination</dt><dd>{fmt(entry.orbit_elements.inclination_deg, 2)}°</dd>
+  </dl>
+  {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
+
+  {entry.legs.length > 0 && (
+    <>
+      <h2>Legs</h2>
+      <ul class="bare">
+        {entry.legs.map((leg) => (
+          <li>
+            <code>{leg.from} → {leg.to}</code>:
+            {leg.tof_days === null ? " (TOF not published)" : ` ${leg.tof_days} d, ${leg.n_revs} revs`}
+            {leg.note && <div class="muted">{leg.note}</div>}
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+
+  <h2>Primary citation</h2>
+  <p>{formatCite(entry.first_published)}</p>
+  {entry.first_published.doi && (
+    <p>
+      DOI: <a href={`https://doi.org/${entry.first_published.doi}`} rel="noopener noreferrer">
+        {entry.first_published.doi}
+      </a>
+    </p>
+  )}
+  {entry.first_published.url && (
+    <p>URL: <a href={entry.first_published.url} rel="noopener noreferrer">{entry.first_published.url}</a></p>
+  )}
+  {entry.first_published.note && <p class="muted">{entry.first_published.note}</p>}
+
+  {entry.corroborating_sources && entry.corroborating_sources.length > 0 && (
+    <>
+      <h2>Corroborating sources</h2>
+      <ul>
+        {entry.corroborating_sources.map((c) => (
+          <li>
+            {formatCite(c)}
+            {c.doi && (
+              <> DOI: <a href={`https://doi.org/${c.doi}`} rel="noopener noreferrer">{c.doi}</a></>
+            )}
+            {!c.doi && c.url && (
+              <> &middot; <a href={c.url} rel="noopener noreferrer">link</a></>
+            )}
+            {c.note && <div class="muted">{c.note}</div>}
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+
+  {entry.notes && (
+    <>
+      <h2>Notes</h2>
+      <p style="white-space: pre-wrap;">{entry.notes}</p>
+    </>
+  )}
+
+  {entry.source_quotes && Object.keys(entry.source_quotes).length > 0 && (
+    <>
+      <h2>Source quotes (per-field provenance)</h2>
+      <p class="muted">
+        Every numerical value in this entry traces to a verbatim or paraphrased quote
+        from a cited source.
+      </p>
+      <dl class="cycler">
+        {Object.entries(entry.source_quotes).map(([field, quote]) => (
+          <>
+            <dt><code>{field}</code></dt>
+            <dd><blockquote class="quote" style="white-space: pre-wrap;">{quote}</blockquote></dd>
+          </>
+        ))}
+      </dl>
+    </>
+  )}
+</Base>
