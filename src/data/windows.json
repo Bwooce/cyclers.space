@@ -1,203 +1,426 @@
 {
-  "generated_at": "2026-05-31T15:46:58.401000Z",
-  "method": "synodic-cadence-preview",
-  "reference_epoch": "2026-01-01",
+  "generated_at": "2026-05-31T00:00:00Z",
+  "method": "ephemeris-geometric-match",
+  "horizon_start": "2026-05-31",
+  "horizon_end": "2036-05-30",
+  "horizon_years": 10,
   "n_per_cycler": 5,
-  "disclaimer": "Preview: cadence-only schedule using cycler period.years from the seed catalogue. Real phase-matched launch windows require M6 phase-matching in the cyclerfinder package; this script will switch to that when available.",
+  "step_days": 10.0,
+  "mismatch_cap_kms": 3.0,
+  "disclaimer": "Geometric-match launch windows from real JPL DE440 ephemeris (via astropy). Dates are real and verifiable; the V_inf at departure column is the actual Lambert output at the matched date. C_3, time-of-flight, and TCM-budget cost columns are NOT computed - those require multi-lap propagation + ephemeris-mode optimisation (full M6 in cyclerfinder).",
   "entries": [
     {
       "id": "aldrin-classic-em-k1-outbound",
       "name": "Aldrin classic Earth-Mars cycler (outbound / up-escalator, 1 synodic)",
       "period_years": 2.135,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2028-02-19",
-        "2030-04-09",
-        "2032-05-28",
-        "2034-07-17"
-      ]
+        "2033-02-23",
+        "2026-11-27",
+        "2035-04-04",
+        "2028-12-26",
+        "2031-01-25"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.576,
+          9.759
+        ],
+        [
+          5.306,
+          9.719
+        ],
+        [
+          7.913,
+          9.223
+        ],
+        [
+          4.766,
+          10.21
+        ],
+        [
+          4.418,
+          10.058
+        ]
+      ],
+      "mismatch_kms": [
+        0.9831,
+        1.2125,
+        1.8903,
+        2.244,
+        2.44
+      ],
+      "status": "ok"
     },
     {
       "id": "mcconaghy-2006-em-k2",
       "name": "McConaghy/Landau/Yam/Longuski two-synodic-period Earth-Mars cycler",
       "period_years": 4.27,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2030-04-09",
-        "2034-07-17",
-        "2038-10-23",
-        "2043-01-30"
-      ]
+        "2035-05-24",
+        "2031-03-06",
+        "2033-05-14",
+        "2033-04-14",
+        "2035-07-23"
+      ],
+      "vinf_actual_kms": [
+        [
+          4.589,
+          5.385
+        ],
+        [
+          4.872,
+          5.643
+        ],
+        [
+          4.523,
+          3.83
+        ],
+        [
+          3.136,
+          4.894
+        ],
+        [
+          4.358,
+          3.132
+        ]
+      ],
+      "mismatch_kms": [
+        0.4953,
+        0.8158,
+        1.3475,
+        1.6698,
+        2.2094
+      ],
+      "status": "ok"
     },
     {
       "id": "s1l1-2syn-em-cpom",
       "name": "S1L1 ballistic two-synodic-period Earth-Mars cycler",
       "period_years": 4.27,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2030-04-09",
-        "2034-07-17",
-        "2038-10-23",
-        "2043-01-30"
-      ]
+        "2035-08-12",
+        "2033-05-24",
+        "2031-03-16"
+      ],
+      "vinf_actual_kms": [
+        [
+          6.084,
+          3.092
+        ],
+        [
+          5.202,
+          3.861
+        ],
+        [
+          5.765,
+          5.023
+        ]
+      ],
+      "mismatch_kms": [
+        0.4765,
+        1.2592,
+        2.0878
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-2.1.1+2-case2",
       "name": "Russell-Ocampo cycler 2.1.1.+2 ('Case 2' of Byrnes/McConaghy/Longuski 2002)",
       "period_years": 4.27,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2030-04-09",
-        "2034-07-17",
-        "2038-10-23",
-        "2043-01-30"
-      ]
+        "2035-07-23",
+        "2035-05-14",
+        "2031-02-24",
+        "2033-05-24",
+        "2033-03-25"
+      ],
+      "vinf_actual_kms": [
+        [
+          4.038,
+          2.689
+        ],
+        [
+          4.11,
+          3.012
+        ],
+        [
+          3.971,
+          3.817
+        ],
+        [
+          4.121,
+          3.961
+        ],
+        [
+          3.65,
+          3.803
+        ]
+      ],
+      "mismatch_kms": [
+        0.7503,
+        1.0219,
+        1.9456,
+        1.9819,
+        2.2533
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-2.3.1+1-case3",
       "name": "Russell-Ocampo cycler 2.3.1.+1 ('Case 3' of Byrnes/McConaghy/Longuski 2002)",
       "period_years": 4.27,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2030-04-09",
-        "2034-07-17",
-        "2038-10-23",
-        "2043-01-30"
-      ]
+        "2031-03-16",
+        "2033-05-24",
+        "2035-06-03",
+        "2035-08-02",
+        "2033-04-24"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.897,
+          5.738
+        ],
+        [
+          5.432,
+          4.064
+        ],
+        [
+          4.416,
+          5.665
+        ],
+        [
+          5.232,
+          3.293
+        ],
+        [
+          3.517,
+          4.975
+        ]
+      ],
+      "mismatch_kms": [
+        0.9349,
+        1.2686,
+        1.3485,
+        2.175,
+        2.2073
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.3.1-5",
       "name": "Russell-Ocampo cycler 4.3.1.-5 (low-energy 4-synodic, near-Hohmann)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2026-11-17",
+        "2028-11-26",
+        "2030-12-16",
+        "2031-01-05",
+        "2033-03-25"
+      ],
+      "vinf_actual_kms": [
+        [
+          3.428,
+          2.933
+        ],
+        [
+          3.4,
+          3.44
+        ],
+        [
+          3.583,
+          3.63
+        ],
+        [
+          3.58,
+          3.714
+        ],
+        [
+          3.151,
+          4.216
+        ]
+      ],
+      "mismatch_kms": [
+        0.7612,
+        1.2402,
+        1.6137,
+        1.6941,
+        1.7676
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-3.1.2+1",
       "name": "Russell-Ocampo cycler 3.1.2.+1 (3-synodic, low terminal speeds)",
       "period_years": 6.41,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2032-05-30",
-        "2038-10-27",
-        "2045-03-25",
-        "2051-08-23"
-      ]
+        "2033-03-15",
+        "2031-02-14",
+        "2033-05-04",
+        "2035-06-03",
+        "2029-01-05"
+      ],
+      "vinf_actual_kms": [
+        [
+          3.348,
+          4.903
+        ],
+        [
+          3.397,
+          5.046
+        ],
+        [
+          3.58,
+          3.412
+        ],
+        [
+          3.594,
+          3.382
+        ],
+        [
+          4.065,
+          5.894
+        ]
+      ],
+      "mismatch_kms": [
+        0.3547,
+        0.4489,
+        1.3683,
+        1.4121,
+        1.9592
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-2.5.1+0",
       "name": "Russell-Ocampo cycler 2.5.1.+0 (short-transit 2-synodic)",
       "period_years": 4.27,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2030-04-09",
-        "2034-07-17",
-        "2038-10-23",
-        "2043-01-30"
-      ]
+        "2031-03-26",
+        "2035-06-23",
+        "2033-05-04"
+      ],
+      "vinf_actual_kms": [
+        [
+          8.432,
+          10.542
+        ],
+        [
+          6.277,
+          9.965
+        ],
+        [
+          5.478,
+          9.494
+        ]
+      ],
+      "mismatch_kms": [
+        1.2739,
+        1.5878,
+        2.7281
+      ],
+      "status": "ok"
     },
     {
       "id": "niehoff-visit1",
       "name": "Niehoff VISIT-1 Earth-Mars cycler",
       "period_years": 14.95,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
-      "next_encounters_iso": [
-        "2026-01-01",
-        "2040-12-13",
-        "2055-11-25",
-        "2070-11-07",
-        "2085-10-19"
-      ]
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'niehoff-visit1' has 0 legs; need 1"
     },
     {
       "id": "niehoff-visit2",
       "name": "Niehoff VISIT-2 Earth-Mars cycler",
       "period_years": 14.95,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
-      "next_encounters_iso": [
-        "2026-01-01",
-        "2040-12-13",
-        "2055-11-25",
-        "2070-11-07",
-        "2085-10-19"
-      ]
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'niehoff-visit2' has 0 legs; need 1"
     },
     {
       "id": "jones-2017-vem-triple-family",
       "name": "Jones/Hernandez/Jesick VEM triple cyclers (family seed entry)",
       "period_years": 4.27,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "V",
         "E",
         "M"
       ],
-      "next_encounters_iso": [
-        "2026-01-01",
-        "2030-04-09",
-        "2034-07-17",
-        "2038-10-23",
-        "2043-01-30"
-      ]
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'jones-2017-vem-triple-family' has 0 legs; need 2"
     },
     {
       "id": "vem-emeeve-3syn",
       "name": "EMEEVE VEM Triple Cycler (3-synodic beat archetype)",
       "period_years": 6.41,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M",
@@ -206,502 +429,1157 @@
         "V",
         "E"
       ],
-      "next_encounters_iso": [
-        "2026-01-01",
-        "2032-05-30",
-        "2038-10-27",
-        "2045-03-25",
-        "2051-08-23"
-      ]
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'vem-emeeve-3syn' has 0 legs; need 5"
     },
     {
       "id": "aldrin-classic-em-k1-inbound",
       "name": "Aldrin classic Earth-Mars cycler (inbound / down-escalator, 1 synodic)",
       "period_years": 2.135,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "M",
         "E"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2028-02-19",
-        "2030-04-09",
-        "2032-05-28",
-        "2034-07-17"
-      ]
+        "2035-09-11",
+        "2029-02-04",
+        "2026-12-27",
+        "2031-04-05",
+        "2033-06-13"
+      ],
+      "vinf_actual_kms": [
+        [
+          9.557,
+          6.575
+        ],
+        [
+          9.523,
+          6.018
+        ],
+        [
+          10.219,
+          5.582
+        ],
+        [
+          8.541,
+          6.933
+        ],
+        [
+          6.996,
+          6.514
+        ]
+      ],
+      "mismatch_kms": [
+        0.2183,
+        0.6597,
+        1.4362,
+        1.5914,
+        2.7186
+      ],
+      "status": "ok"
     },
     {
       "id": "aldrin-4-3-2-establishment",
       "name": "Aldrin 4:3(2)- Variant (Analytic Ephemeris Establishment)",
       "period_years": 4.27,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
-      "next_encounters_iso": [
-        "2026-01-01",
-        "2030-04-09",
-        "2034-07-17",
-        "2038-10-23",
-        "2043-01-30"
-      ]
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'aldrin-4-3-2-establishment' leg {'from': 'E', 'to': 'M', 'tof_days': None, 'n_revs': 0, 'note': 'Rogers 2012 notes ToF ranges 161-172 d in the analytic ephemeris model; exact value for the 4:3(2) variant is not explicitly paired in the aggregated text.'} has null tof_days"
     },
     {
       "id": "aldrin-3-2-1-establishment",
       "name": "Aldrin 3:2(1)- Variant (Analytic Ephemeris Establishment)",
       "period_years": 2.135,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
-      "next_encounters_iso": [
-        "2026-01-01",
-        "2028-02-19",
-        "2030-04-09",
-        "2032-05-28",
-        "2034-07-17"
-      ]
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'aldrin-3-2-1-establishment' has 0 legs; need 1"
     },
     {
       "id": "russell-ocampo-3.1.1+3",
       "name": "Russell-Ocampo cycler 3.1.1.+3 (low-V_inf 3-synodic)",
       "period_years": 6.405,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2032-05-28",
-        "2038-10-23",
-        "2045-03-20",
-        "2051-08-15"
-      ]
+        "2031-02-24",
+        "2033-03-25",
+        "2035-06-03",
+        "2033-05-04",
+        "2035-07-13"
+      ],
+      "vinf_actual_kms": [
+        [
+          3.982,
+          4.884
+        ],
+        [
+          3.032,
+          4.73
+        ],
+        [
+          3.679,
+          3.672
+        ],
+        [
+          3.658,
+          3.475
+        ],
+        [
+          3.661,
+          2.787
+        ]
+      ],
+      "mismatch_kms": [
+        0.6657,
+        0.6987,
+        1.0068,
+        1.1835,
+        1.8738
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-3.3.1+2",
       "name": "Russell-Ocampo cycler 3.3.1.+2 (3-synodic)",
       "period_years": 6.405,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2032-05-28",
-        "2038-10-23",
-        "2045-03-20",
-        "2051-08-15"
-      ]
+        "2031-02-24",
+        "2035-05-24",
+        "2033-04-04",
+        "2029-01-25"
+      ],
+      "vinf_actual_kms": [
+        [
+          4.242,
+          7.566
+        ],
+        [
+          5.051,
+          6.439
+        ],
+        [
+          3.348,
+          6.634
+        ],
+        [
+          6.139,
+          7.755
+        ]
+      ],
+      "mismatch_kms": [
+        0.8239,
+        1.1125,
+        1.118,
+        2.7942
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-3.5.1+1",
       "name": "Russell-Ocampo cycler 3.5.1.+1 (high-V_inf, short-transit, 3-synodic)",
       "period_years": 6.405,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2032-05-28",
-        "2038-10-23",
-        "2045-03-20",
-        "2051-08-15"
-      ]
+        "2031-03-06",
+        "2035-06-03",
+        "2033-04-04"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.569,
+          9.739
+        ],
+        [
+          5.909,
+          8.706
+        ],
+        [
+          4.602,
+          9.916
+        ]
+      ],
+      "mismatch_kms": [
+        0.7088,
+        1.0031,
+        1.5137
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-3.5.2+0",
       "name": "Russell-Ocampo cycler 3.5.2.+0 (high-V_inf, short-transit, 3-synodic)",
       "period_years": 6.405,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2032-05-28",
-        "2038-10-23",
-        "2045-03-20",
-        "2051-08-15"
-      ]
+        "2031-03-06",
+        "2033-04-04",
+        "2035-05-24",
+        "2029-01-25"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.364,
+          8.897
+        ],
+        [
+          4.205,
+          9.027
+        ],
+        [
+          6.215,
+          8.732
+        ],
+        [
+          6.583,
+          10.218
+        ]
+      ],
+      "mismatch_kms": [
+        0.4663,
+        1.1684,
+        1.4823,
+        2.401
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-3.7.1+1",
       "name": "Russell-Ocampo cycler 3.7.1.+1 (low-V_inf 3-synodic)",
       "period_years": 6.405,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2032-05-28",
-        "2038-10-23",
-        "2045-03-20",
-        "2051-08-15"
-      ]
+        "2031-02-24",
+        "2033-03-25",
+        "2035-06-03",
+        "2033-05-04",
+        "2035-07-13"
+      ],
+      "vinf_actual_kms": [
+        [
+          3.979,
+          4.828
+        ],
+        [
+          3.029,
+          4.673
+        ],
+        [
+          3.665,
+          3.627
+        ],
+        [
+          3.647,
+          3.463
+        ],
+        [
+          3.656,
+          2.771
+        ]
+      ],
+      "mismatch_kms": [
+        0.6072,
+        0.6438,
+        1.038,
+        1.1841,
+        1.8847
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-3.9.1+0",
       "name": "Russell-Ocampo cycler 3.9.1.+0 (high-V_inf, short-transit, 3-synodic)",
       "period_years": 6.405,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2032-05-28",
-        "2038-10-23",
-        "2045-03-20",
-        "2051-08-15"
-      ]
+        "2031-03-06",
+        "2035-06-03",
+        "2033-04-04",
+        "2029-02-04"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.531,
+          9.593
+        ],
+        [
+          5.836,
+          8.571
+        ],
+        [
+          4.53,
+          9.761
+        ],
+        [
+          7.846,
+          9.743
+        ]
+      ],
+      "mismatch_kms": [
+        0.5238,
+        1.0646,
+        1.4309,
+        2.9885
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.0.3+1",
       "name": "Russell-Ocampo cycler 4.0.3.+1 (good terminal speeds, generic returns only)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2035-05-24",
+        "2031-03-06",
+        "2033-05-14",
+        "2033-04-04",
+        "2035-07-23"
+      ],
+      "vinf_actual_kms": [
+        [
+          4.382,
+          4.863
+        ],
+        [
+          4.821,
+          5.165
+        ],
+        [
+          4.411,
+          3.686
+        ],
+        [
+          2.989,
+          5.031
+        ],
+        [
+          4.296,
+          2.959
+        ]
+      ],
+      "mismatch_kms": [
+        0.1184,
+        0.7867,
+        1.3256,
+        1.4417,
+        1.9451
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.1.1-5",
       "name": "Russell-Ocampo cycler 4.1.1.-5 (4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2033-03-05",
+        "2029-01-05",
+        "2026-12-07",
+        "2031-02-04",
+        "2035-05-24"
+      ],
+      "vinf_actual_kms": [
+        [
+          3.807,
+          6.078
+        ],
+        [
+          4.118,
+          6.51
+        ],
+        [
+          4.995,
+          6.299
+        ],
+        [
+          3.15,
+          6.288
+        ],
+        [
+          4.093,
+          4.059
+        ]
+      ],
+      "mismatch_kms": [
+        0.3145,
+        0.4288,
+        1.0941,
+        1.1377,
+        2.0479
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.3.1-4",
       "name": "Russell-Ocampo cycler 4.3.1.-4 (4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2029-01-15",
+        "2033-03-05",
+        "2026-12-07",
+        "2031-02-14",
+        "2035-04-14"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.0,
+          7.37
+        ],
+        [
+          4.337,
+          7.866
+        ],
+        [
+          5.231,
+          7.955
+        ],
+        [
+          3.598,
+          7.167
+        ],
+        [
+          6.791,
+          7.588
+        ]
+      ],
+      "mismatch_kms": [
+        0.5294,
+        0.6283,
+        0.8863,
+        1.5353,
+        2.1027
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.5.1-4",
       "name": "Russell-Ocampo cycler 4.5.1.-4 (promising energy)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2033-03-15",
+        "2031-02-14",
+        "2029-01-05",
+        "2026-11-27",
+        "2033-05-14"
+      ],
+      "vinf_actual_kms": [
+        [
+          3.645,
+          4.319
+        ],
+        [
+          3.437,
+          4.327
+        ],
+        [
+          4.02,
+          4.93
+        ],
+        [
+          4.216,
+          5.348
+        ],
+        [
+          3.842,
+          3.601
+        ]
+      ],
+      "mismatch_kms": [
+        0.4255,
+        0.5367,
+        0.6495,
+        1.2637,
+        1.3418
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.5.1-3",
       "name": "Russell-Ocampo cycler 4.5.1.-3 (high-V_inf, 4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2029-01-15",
+        "2026-12-07",
+        "2033-03-05",
+        "2031-02-14",
+        "2035-04-24"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.304,
+          9.231
+        ],
+        [
+          5.725,
+          9.846
+        ],
+        [
+          5.334,
+          10.016
+        ],
+        [
+          4.064,
+          9.082
+        ],
+        [
+          7.206,
+          8.945
+        ]
+      ],
+      "mismatch_kms": [
+        0.2645,
+        0.7714,
+        0.8818,
+        1.6541,
+        2.0613
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.5.2-2",
       "name": "Russell-Ocampo cycler 4.5.2.-2 (promising energy)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2031-02-14",
+        "2033-03-15",
+        "2029-01-05",
+        "2033-05-04",
+        "2035-06-03"
+      ],
+      "vinf_actual_kms": [
+        [
+          3.413,
+          4.529
+        ],
+        [
+          3.487,
+          4.454
+        ],
+        [
+          4.029,
+          5.224
+        ],
+        [
+          3.472,
+          3.393
+        ],
+        [
+          3.511,
+          3.062
+        ]
+      ],
+      "mismatch_kms": [
+        0.0845,
+        0.2332,
+        1.2533,
+        1.2791,
+        1.6485
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.5.3-1",
       "name": "Russell-Ocampo cycler 4.5.3.-1 (high-V_inf, 4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2033-03-15",
+        "2031-02-24",
+        "2029-01-15",
+        "2026-12-17",
+        "2035-05-04"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.011,
+          9.965
+        ],
+        [
+          4.503,
+          8.863
+        ],
+        [
+          5.532,
+          10.144
+        ],
+        [
+          6.542,
+          9.692
+        ],
+        [
+          7.006,
+          9.12
+        ]
+      ],
+      "mismatch_kms": [
+        0.8532,
+        0.9338,
+        1.3757,
+        1.9334,
+        1.9858
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.7.1-3",
       "name": "Russell-Ocampo cycler 4.7.1.-3 (4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2033-03-05",
+        "2029-01-05",
+        "2026-12-07",
+        "2031-02-14",
+        "2035-05-24"
+      ],
+      "vinf_actual_kms": [
+        [
+          4.01,
+          6.941
+        ],
+        [
+          4.233,
+          7.388
+        ],
+        [
+          5.091,
+          7.118
+        ],
+        [
+          3.48,
+          6.342
+        ],
+        [
+          4.305,
+          4.659
+        ]
+      ],
+      "mismatch_kms": [
+        0.4308,
+        0.6547,
+        1.1087,
+        1.2784,
+        2.1453
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.9.1-2",
       "name": "Russell-Ocampo cycler 4.9.1.-2 (high-V_inf, 4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2029-01-15",
+        "2026-12-07",
+        "2033-03-05",
+        "2031-02-14",
+        "2035-04-24"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.304,
+          9.231
+        ],
+        [
+          5.725,
+          9.846
+        ],
+        [
+          5.334,
+          10.016
+        ],
+        [
+          4.064,
+          9.082
+        ],
+        [
+          7.206,
+          8.945
+        ]
+      ],
+      "mismatch_kms": [
+        0.2645,
+        0.7714,
+        0.8818,
+        1.6541,
+        2.0613
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.9.2-1",
       "name": "Russell-Ocampo cycler 4.9.2.-1 (turn-angle showcase)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2033-03-15",
+        "2029-01-15",
+        "2031-02-24",
+        "2026-12-17",
+        "2035-05-04"
+      ],
+      "vinf_actual_kms": [
+        [
+          4.867,
+          9.675
+        ],
+        [
+          5.459,
+          9.873
+        ],
+        [
+          4.444,
+          8.61
+        ],
+        [
+          6.48,
+          9.44
+        ],
+        [
+          6.859,
+          8.851
+        ]
+      ],
+      "mismatch_kms": [
+        0.8079,
+        0.9321,
+        1.346,
+        1.5205,
+        2.0073
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.10.1+2",
       "name": "Russell-Ocampo cycler 4.10.1.+2 (high-V_inf, 4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2033-06-23",
+        "2035-09-01",
+        "2031-04-05",
+        "2029-02-14",
+        "2027-01-06"
+      ],
+      "vinf_actual_kms": [
+        [
+          8.623,
+          5.161
+        ],
+        [
+          8.966,
+          3.966
+        ],
+        [
+          8.416,
+          5.696
+        ],
+        [
+          8.946,
+          7.069
+        ],
+        [
+          9.053,
+          7.658
+        ]
+      ],
+      "mismatch_kms": [
+        0.4374,
+        1.1003,
+        1.18,
+        2.1157,
+        2.8113
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.11.1-2",
       "name": "Russell-Ocampo cycler 4.11.1.-2 (promising energy)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2033-03-15",
+        "2031-02-14",
+        "2029-01-05",
+        "2026-11-27",
+        "2033-05-14"
+      ],
+      "vinf_actual_kms": [
+        [
+          3.607,
+          4.34
+        ],
+        [
+          3.431,
+          4.364
+        ],
+        [
+          4.021,
+          4.987
+        ],
+        [
+          4.223,
+          5.411
+        ],
+        [
+          3.858,
+          3.594
+        ]
+      ],
+      "mismatch_kms": [
+        0.3667,
+        0.5052,
+        0.7077,
+        1.333,
+        1.3642
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.12.1+1",
       "name": "Russell-Ocampo cycler 4.12.1.+1 (high-V_inf, short-transit, 4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2031-04-15",
+        "2033-06-23"
+      ],
+      "vinf_actual_kms": [
+        [
+          11.357,
+          8.839
+        ],
+        [
+          10.465,
+          6.606
+        ]
+      ],
+      "mismatch_kms": [
+        1.1958,
+        1.929
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.13.1-1",
       "name": "Russell-Ocampo cycler 4.13.1.-1 (high-V_inf, 4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2029-01-15",
+        "2026-12-07",
+        "2033-03-05",
+        "2031-02-14",
+        "2035-04-24"
+      ],
+      "vinf_actual_kms": [
+        [
+          5.304,
+          9.231
+        ],
+        [
+          5.725,
+          9.846
+        ],
+        [
+          5.334,
+          10.016
+        ],
+        [
+          4.064,
+          9.082
+        ],
+        [
+          7.206,
+          8.945
+        ]
+      ],
+      "mismatch_kms": [
+        0.2645,
+        0.7714,
+        0.8818,
+        1.6541,
+        2.0613
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.14.1-1",
       "name": "Russell-Ocampo cycler 4.14.1.-1 (high-V_inf, 4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2026-06-10",
+        "2029-04-25",
+        "2033-09-11",
+        "2028-07-19",
+        "2031-07-14"
+      ],
+      "vinf_actual_kms": [
+        [
+          14.786,
+          9.273
+        ],
+        [
+          14.785,
+          9.677
+        ],
+        [
+          14.567,
+          8.884
+        ],
+        [
+          14.701,
+          10.778
+        ],
+        [
+          14.638,
+          11.021
+        ]
+      ],
+      "mismatch_kms": [
+        0.2131,
+        0.3619,
+        0.6494,
+        1.3786,
+        1.6826
+      ],
+      "status": "ok"
     },
     {
       "id": "russell-ocampo-4.14.1+0",
       "name": "Russell-Ocampo cycler 4.14.1.+0 (high-V_inf, short-transit, 4-synodic)",
       "period_years": 8.54,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
       "next_encounters_iso": [
-        "2026-01-01",
-        "2034-07-17",
-        "2043-01-30",
-        "2051-08-15",
-        "2060-02-28"
-      ]
+        "2031-04-15"
+      ],
+      "vinf_actual_kms": [
+        [
+          14.058,
+          14.085
+        ]
+      ],
+      "mismatch_kms": [
+        1.4266
+      ],
+      "status": "ok"
     },
     {
       "id": "arenstorf-em-figure8-1963",
       "name": "Arenstorf periodic Earth-Moon free-return orbit (CR3BP)",
       "period_years": null,
       "primary": "Earth",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "Moon"
       ],
-      "next_encounters_iso": []
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: non-heliocentric primary=Earth"
     },
     {
       "id": "genova-aldrin-2015-em-3petal-cycler",
       "name": "Genova/Aldrin free-return Earth-Moon cycler (interplanetary cruise ship, 3:1 lunar resonant)",
       "period_years": null,
       "primary": "Earth",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "Moon"
       ],
-      "next_encounters_iso": []
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: non-heliocentric primary=Earth"
     },
     {
       "id": "wittal-2022-em-cycler-family",
       "name": "Wittal/Miaule/Asher Earth-Moon cycler family for lunar logistics (family seed)",
       "period_years": null,
       "primary": "Earth",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "Moon"
       ],
-      "next_encounters_iso": []
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: non-heliocentric primary=Earth"
     },
     {
       "id": "hernandez-2017-jovian-ieg-triple-family",
       "name": "Hernandez/Jones/Jesick Io-Europa-Ganymede triple cyclers (Jovian family seed)",
       "period_years": null,
       "primary": "Jupiter",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "Io",
         "Europa",
         "Ganymede"
       ],
-      "next_encounters_iso": []
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: non-heliocentric primary=Jupiter"
     },
     {
       "id": "russell-strange-2009-jovian-multimoon-family",
       "name": "Russell/Strange Jovian moon cycler family (family seed)",
       "period_years": null,
       "primary": "Jupiter",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "Io",
         "Europa",
         "Ganymede",
         "Callisto"
       ],
-      "next_encounters_iso": []
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: non-heliocentric primary=Jupiter"
     },
     {
       "id": "russell-strange-2009-saturnian-multimoon-family",
       "name": "Russell/Strange Saturnian moon cycler family (family seed, Titan-Enceladus focus)",
       "period_years": null,
       "primary": "Saturn",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "Mimas",
         "Enceladus",
@@ -710,63 +1588,70 @@
         "Rhea",
         "Titan"
       ],
-      "next_encounters_iso": []
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: non-heliocentric primary=Saturn"
     },
     {
       "id": "hollister-menning-1970-ev-periodic",
       "name": "Hollister & Menning periodic Earth-Venus swing-by cycler",
       "period_years": null,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "V"
       ],
-      "next_encounters_iso": []
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'hollister-menning-1970-ev-periodic' has 0 legs; need 1"
     },
     {
       "id": "mcconaghy-2005-em-case1",
       "name": "Case 1 ballistic two-synodic-period Earth-Mars cycler (S2L1 family)",
       "period_years": 4.27,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
-      "next_encounters_iso": [
-        "2026-01-01",
-        "2030-04-09",
-        "2034-07-17",
-        "2038-10-23",
-        "2043-01-30"
-      ]
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'mcconaghy-2005-em-case1' V\u221e entry {'body': 'E', 'vinf_kms': None, 'note': 'Steady-state cycling V_inf at Earth not in Rogers 2012 Table 1 (Table 1\\ngives orbital elements only). Rogers 2012 Table 3 reports the\\n4:3(2)- establishment-cycler V_inf,flyby = 3.378 km/s (the post-Earth\\nflyby V_inf for the establishment trajectory matching Case 1\\'s\\norbital elements). McConaghy/Longuski/Byrnes 2002 AIAA 2002-4420\\n(paywalled at AIAA) is the originating source for the steady-state\\ncycler V_inf; Russell 2004 Table 3.4 does not pair \"Case 1\" to a\\nRussell-numbered row (only Case 2 = 2.1.1.+2 and Case 3 = 2.3.1.+1\\nare footnoted).\\n'} has null vinf_kms"
     },
     {
       "id": "mcconaghy-2005-em-u0l1",
       "name": "U0L1 high-energy zero-loop one-synodic Earth-Mars cycler",
       "period_years": 2.14,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
-      "next_encounters_iso": [
-        "2026-01-01",
-        "2028-02-21",
-        "2030-04-13",
-        "2032-06-02",
-        "2034-07-24"
-      ]
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'mcconaghy-2005-em-u0l1' V\u221e entry {'body': 'E', 'vinf_kms': None, 'note': \"Steady-state V_inf at Earth not in Rogers 2012 Table 1. Rogers\\nTable 3 gives V_inf,flyby = 9.801-12.634 km/s for the\\nestablishment-cycler 4:3(2)-, 3:2(1)- and 2:1(1)- variants\\ntargeting U0L1's orbital elements \u2014 substantially higher than\\nthe Aldrin cycler's ~5.7 km/s at Earth, reflecting U0L1's\\nhigh-energy aphelion-3.2-AU orbit (well beyond Mars).\\n\"} has null vinf_kms"
     },
     {
       "id": "mcconaghy-2005-em-snlm-broadclass-family",
       "name": "McConaghy 2005 dissertation SnLm Earth-Mars broad-class cycler family seed",
       "period_years": null,
       "primary": "Sun",
+      "trajectory_regime": "ballistic",
       "bodies": [
         "E",
         "M"
       ],
-      "next_encounters_iso": []
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "mismatch_kms": [],
+      "status": "skipped: entry 'mcconaghy-2005-em-snlm-broadclass-family' has 0 legs; need 1"
     }
   ]
 }
