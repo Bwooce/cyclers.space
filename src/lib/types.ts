@@ -3,7 +3,12 @@
 // a subset of the full §16.1 record, with full source attribution. Fields
 // that the seed file leaves as `null` are typed as nullable here.
 
-export type Body = "V" | "E" | "M";
+export type Body = "V" | "E" | "M" | "Moon" | "Io" | "Europa" | "Ganymede" | "Callisto" | string;
+
+// Schema v2 (2026-06-01): the trajectory class and modeling assumption are
+// now explicit fields. See upstream data/README.md "Schema v2".
+export type TrajectoryRegime = "ballistic" | "low-thrust" | "manifold";
+export type ModelAssumption = "circular-coplanar" | "analytic-ephemeris" | "cr3bp";
 
 export interface Citation {
   authors: string[];
@@ -50,6 +55,15 @@ export interface CyclerEntry {
   id: string;
   name: string;
   source: "literature" | "this-project" | "both";
+  // Non-heliocentric extension (2026-05-31). Defaults to "Sun" when absent.
+  primary?: string;
+  // Schema v2 (2026-06-01). Defaults: trajectory_regime "ballistic",
+  // model_assumption "circular-coplanar".
+  trajectory_regime?: TrajectoryRegime;
+  model_assumption?: ModelAssumption;
+  delta_v_kms?: number | null;
+  v_infinity_leveraging_dv_kms?: number | null;
+  fleet_size?: number | null;
   bodies: Body[];
   sequence_canonical: string;
   sense: "outbound" | "inbound" | "n/a" | string;
