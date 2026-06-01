@@ -51,6 +51,64 @@ export interface Leg {
   note?: string;
 }
 
+// Schema v3 (2026-06-01): OCM-aligned trajectory{} (TRAJ segments + MAN
+// maneuvers), family{} linkage, and the data_gaps[] known-unknown register.
+// See upstream docs/spec.md §16.6 and data/README.md "Schema v3". All three
+// are additive-optional; legs[] above remains valid for un-migrated entries.
+export type TrajType = "keplerian-arc" | "cartesian-state";
+export type LambertBranch = "single" | "low" | "high";
+
+export interface Segment {
+  id: string;
+  from: Body;
+  to: Body;
+  traj_type?: TrajType;
+  tof_days: number | null;
+  n_revs: number | null;
+  branch?: LambertBranch | null;
+  a_au?: number | null;
+  e?: number | null;
+  note?: string;
+}
+
+export type ManeuverType = "flyby-ballistic" | "flyby-powered" | "launch" | "arrival";
+
+export interface Maneuver {
+  at_segment_boundary: string[];
+  body: Body;
+  type: ManeuverType;
+  dv_kms: number | null;
+  turning_angle_deg?: number | null;
+  periapsis_alt_km?: number | null;
+  note?: string;
+}
+
+export interface Trajectory {
+  center?: string;
+  ref_frame?: string;
+  time_system?: string | null;
+  epoch_tzero?: string | null;
+  segments: Segment[];
+  maneuvers?: Maneuver[];
+}
+
+export interface Family {
+  id: string;
+  name?: string;
+  nomenclature?: string;
+  continuation_param?: { name: string; value: number | string };
+}
+
+export type DataGapKind = "unknown" | "uncertain" | "derive";
+
+export interface DataGap {
+  path: string;
+  kind: DataGapKind;
+  note?: string;
+  source_hint?: string | null;
+  todo_ref?: string | null;
+}
+
 export interface CyclerEntry {
   id: string;
   name: string;
@@ -70,7 +128,13 @@ export interface CyclerEntry {
   period: PeriodInfo;
   vinf_kms_at_encounters: VinfEncounter[];
   orbit_elements: OrbitElements;
-  legs: Leg[];
+  // Legacy flat legs[]; optional since schema v3 supersedes it with
+  // trajectory.segments. Read both via legsOf() in lib/catalogue.
+  legs?: Leg[];
+  // Schema v3 (2026-06-01) — additive optional.
+  trajectory?: Trajectory;
+  family?: Family | null;
+  data_gaps?: DataGap[];
   first_published: Citation;
   corroborating_sources?: Citation[];
   priority_date: string;

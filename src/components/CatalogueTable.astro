@@ -1,5 +1,5 @@
 ---
-import { fmt, fmtBodies, fmtVinfMultiset } from "../lib/catalogue";
+import { fmt, fmtBodies, fmtVinfMultiset, isFullyDefined } from "../lib/catalogue";
 import type { CyclerEntry } from "../lib/types";
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
 }
 
 const { entries } = Astro.props;
+const definedCount = entries.filter(isFullyDefined).length;
 
 const completeness = (e: CyclerEntry): number => {
   // 0..1, fraction of "key" numerical fields that are non-null.
@@ -30,6 +31,9 @@ const completeness = (e: CyclerEntry): number => {
     <label><input type="checkbox" class="planet-filter" value="M" checked /> Mars</label>
   </div>
   <span class="count" id="filter-count" aria-live="polite">{entries.length} entries</span>
+  <span class="count" title="Orbits with all core fields present and no tracked known-unknowns">
+    {definedCount} / {entries.length} fully defined
+  </span>
 </div>
 
 <div style="overflow-x:auto;">
@@ -43,6 +47,7 @@ const completeness = (e: CyclerEntry): number => {
         <th data-sort="e" scope="col">e</th>
         <th data-sort="vinf" scope="col">V∞ (km/s)</th>
         <th data-sort="completeness" scope="col">Data</th>
+        <th data-sort="defined" scope="col">Defined</th>
         <th data-sort="validation" scope="col">Validation</th>
         <th data-sort="citation" scope="col">Source</th>
       </tr>
@@ -54,6 +59,7 @@ const completeness = (e: CyclerEntry): number => {
         .map((e) => {
           const cite = e.first_published;
           const completePct = Math.round(completeness(e) * 100);
+          const defined = isFullyDefined(e);
           return (
             <tr
               data-bodies={e.bodies.join(",")}
@@ -68,6 +74,7 @@ const completeness = (e: CyclerEntry): number => {
                 0,
               )}
               data-completeness={completePct}
+              data-defined={defined ? 1 : 0}
               data-validation={e.validation_level ?? "V0"}
               data-citation={`${cite.authors[0] ?? "?"} ${cite.year}`}
             >
@@ -78,6 +85,7 @@ const completeness = (e: CyclerEntry): number => {
               <td class="right">{fmt(e.orbit_elements.e, 3)}</td>
               <td>{fmtVinfMultiset(e.vinf_kms_at_encounters)}</td>
               <td class="right">{completePct}%</td>
+              <td>{defined ? "yes" : <span class="muted">no</span>}</td>
               <td><span class="vlevel">{e.validation_level ?? "V0"}</span></td>
               <td>
                 {cite.doi ? (
@@ -109,6 +117,7 @@ const completeness = (e: CyclerEntry): number => {
     | "e"
     | "vinf"
     | "completeness"
+    | "defined"
     | "validation"
     | "citation";
 
@@ -152,7 +161,7 @@ const completeness = (e: CyclerEntry): number => {
       const sortValue = (row: HTMLTableRowElement, key: SortKey): string | number => {
         const raw = row.dataset[key] ?? "";
         // Numeric columns
-        if (["period", "a", "e", "vinf", "completeness"].includes(key)) {
+        if (["period", "a", "e", "vinf", "completeness", "defined"].includes(key)) {
           const n = parseFloat(raw);
           return Number.isFinite(n) ? n : -Infinity;
         }

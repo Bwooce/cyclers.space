@@ -1,6 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { loadCatalogue, fmt, fmtBodies } from "../../lib/catalogue";
+import { loadCatalogue, fmt, fmtBodies, legsOf, isFullyDefined } from "../../lib/catalogue";
 import type { CyclerEntry, Citation } from "../../lib/types";
 
 export function getStaticPaths() {
@@ -15,6 +15,9 @@ interface Props {
 }
 
 const { entry } = Astro.props;
+const legs = legsOf(entry);
+const fullyDefined = isFullyDefined(entry);
+const dataGaps = entry.data_gaps ?? [];
 
 const formatCite = (c: Citation): string => {
   const authors =
@@ -116,15 +119,49 @@ const formatCite = (c: Citation): string => {
   </dl>
   {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
 
-  {entry.legs.length > 0 && (
+  {legs.length > 0 && (
     <>
-      <h2>Legs</h2>
+      <h2>Legs{entry.trajectory ? " (trajectory segments)" : ""}</h2>
       <ul class="bare">
-        {entry.legs.map((leg) => (
+        {legs.map((leg) => (
           <li>
             <code>{leg.from} → {leg.to}</code>:
             {leg.tof_days === null ? " (TOF not published)" : ` ${leg.tof_days} d, ${leg.n_revs} revs`}
             {leg.note && <div class="muted">{leg.note}</div>}
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+
+  <h2>Definition status</h2>
+  <p>
+    <span class={fullyDefined ? "vlevel" : "vlevel muted"}>
+      {fullyDefined ? "fully defined" : "incomplete"}
+    </span>
+    {!fullyDefined && (
+      <span class="muted"> — core fields missing or known-unknowns tracked below</span>
+    )}
+  </p>
+  {entry.family && (
+    <p class="muted">
+      Family: <strong>{entry.family.name ?? entry.family.id}</strong>
+      {entry.family.nomenclature && <> &middot; {entry.family.nomenclature}</>}
+    </p>
+  )}
+  {dataGaps.length > 0 && (
+    <>
+      <h3>Known-unknowns ({dataGaps.length})</h3>
+      <p class="muted">
+        Values we expect to exist but have not yet filled (distinct from "not
+        applicable"). Tracked per upstream docs/spec.md §16.6.4.
+      </p>
+      <ul class="bare">
+        {dataGaps.map((g) => (
+          <li>
+            <code>{g.path}</code> <span class="muted">[{g.kind}]</span>
+            {g.note && <div class="muted">{g.note}</div>}
+            {g.source_hint && <div class="muted">source: {g.source_hint}</div>}
           </li>
         ))}
       </ul>
