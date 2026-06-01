@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write           # needs to commit the regenerated JSON
   pull-requests: write      # falls back to PR if direct push fails
+  actions: write            # needs to trigger deploy.yml after auto-commit
 
 concurrency:
   group: refresh-windows
@@ -44,6 +45,7 @@ jobs:
         # with real JPL DE440 dates + actual Lambert V_inf per window.
         run: python scripts/compute_windows.py
       - name: Commit if changed
+        id: commit
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
             git config user.name "github-actions[bot]"
@@ -51,6 +53,18 @@ jobs:
             git add src/data/seed_cyclers.yaml src/data/windows.json
             git commit -m "refresh: synced catalogue + recomputed encounter schedules (auto)"
             git push
+            echo "committed=true" >> $GITHUB_OUTPUT
           else
             echo "No catalogue or window changes; nothing to commit."
+            echo "committed=false" >> $GITHUB_OUTPUT
           fi
+      - name: Trigger deploy
+        # Auto-commits made with the default GITHUB_TOKEN do not trigger
+        # downstream push-listening workflows (GitHub Actions
+        # loop-prevention). Without this step the catalogue auto-syncs
+        # every Monday but the site never redeploys. Explicit
+        # workflow_dispatch on deploy.yml bypasses the loop-prevention.
+        if: steps.commit.outputs.committed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --ref main
