@@ -1,5 +1,5 @@
 import yaml from "js-yaml";
-import type { CyclerEntry } from "./types";
+import type { CyclerEntry, Leg } from "./types";
 // Vite raw-import: at build time the YAML file's contents are inlined as a
 // string into the bundle. This is robust against Astro's prerender file
 // layout (no filesystem reads at runtime) and works in both dev and
@@ -20,6 +20,42 @@ export function loadCatalogue(): CyclerEntry[] {
 
 export function getEntryById(id: string): CyclerEntry | undefined {
   return loadCatalogue().find((e) => e.id === id);
+}
+
+/**
+ * Schema-v3 leg source: prefer trajectory.segments, fall back to legacy legs[].
+ * Mirrors cyclerfinder.data.catalog._segments_as_legs. Segments reuse the
+ * tof_days / n_revs keys, so consumers get a uniform Leg[] either way.
+ */
+export function legsOf(entry: CyclerEntry): Leg[] {
+  const segs = entry.trajectory?.segments;
+  if (segs && segs.length > 0) {
+    return segs.map((s) => ({
+      from: s.from,
+      to: s.to,
+      tof_days: s.tof_days,
+      n_revs: s.n_revs ?? 0,
+      note: s.note,
+    }));
+  }
+  return entry.legs ?? [];
+}
+
+/**
+ * Derived progress flag mirroring CyclerEntry.fully_defined in the upstream
+ * library (spec §16.6.4): the orbit is completely specified — all core fields
+ * present AND no acknowledged known-unknown (data_gaps[]).
+ */
+export function isFullyDefined(entry: CyclerEntry): boolean {
+  if (entry.data_gaps && entry.data_gaps.length > 0) return false;
+  const oe = entry.orbit_elements;
+  if (oe.a_au === null || oe.a_au === undefined) return false;
+  if (oe.e === null || oe.e === undefined) return false;
+  const vinfs = entry.vinf_kms_at_encounters;
+  if (!vinfs.length || vinfs.some((v) => v.vinf_kms === null)) return false;
+  const legs = legsOf(entry);
+  if (!legs.length || legs.some((l) => l.tof_days === null)) return false;
+  return true;
 }
 
 /**
