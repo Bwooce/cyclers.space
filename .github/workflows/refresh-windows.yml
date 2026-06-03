@@ -37,8 +37,8 @@ jobs:
           # is needed; if it ever moves private again the curl below will
           # 404 and the workflow will fail loud rather than silently using
           # stale data.
-          curl -fsSL https://raw.githubusercontent.com/Bwooce/cyclers/main/data/seed_cyclers.yaml \
-            -o src/data/seed_cyclers.yaml
+          curl -fsSL https://raw.githubusercontent.com/Bwooce/cyclers/main/data/catalogue.yaml \
+            -o src/data/catalogue.yaml
       - name: Recompute windows (real ephemeris via phase_match)
         # Reads seed_cyclers.yaml, calls cyclerfinder.search.phase_match
         # for each ballistic Earth-touching cycler, writes windows.json
@@ -50,7 +50,7 @@ jobs:
           if [[ -n "$(git status --porcelain)" ]]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add src/data/seed_cyclers.yaml src/data/windows.json
+            git add src/data/windows.json
             git commit -m "refresh: synced catalogue + recomputed encounter schedules (auto)"
             git push
             echo "committed=true" >> $GITHUB_OUTPUT

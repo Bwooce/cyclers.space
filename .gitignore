@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# canonical catalogue is fetched at build time (single source of truth: Bwooce/cyclers), never committed
+src/data/catalogue.yaml
