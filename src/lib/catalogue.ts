@@ -46,14 +46,48 @@ export function legsOf(entry: CyclerEntry): Leg[] {
 
 /**
  * Derived progress flag mirroring CyclerEntry.fully_defined in the upstream
- * library (spec §16.6.4): the orbit is completely specified — all core fields
- * present AND no acknowledged known-unknown (data_gaps[]).
+ * library (spec §16.6.4 / §16.7.5): the orbit is completely specified — all
+ * core fields present AND no acknowledged known-unknown (data_gaps[]).
+ *
+ * Dispatches by cycler_class (spec §16.7.5):
+ * - single-ellipse: a/e + V∞ + legs present.
+ * - multi-arc:      invariants block present with at least one non-null value +
+ *                   V∞ + legs present (no a/e check — no single conic).
+ * - non-keplerian:  cr3bp identity triple (jacobi_constant/period_nd/
+ *                   stability_index) all non-null; V∞/legs guard not applied.
  */
 export function isFullyDefined(entry: CyclerEntry): boolean {
   if (entry.data_gaps && entry.data_gaps.length > 0) return false;
-  const oe = entry.orbit_elements;
-  if (oe.a_au === null || oe.a_au === undefined) return false;
-  if (oe.e === null || oe.e === undefined) return false;
+  const cls = entry.cycler_class ?? "single-ellipse";
+
+  if (cls === "non-keplerian") {
+    const cr = entry.orbit_elements.cr3bp;
+    if (!cr) return false;
+    return (
+      cr.jacobi_constant !== null &&
+      cr.jacobi_constant !== undefined &&
+      cr.period_nd !== null &&
+      cr.period_nd !== undefined &&
+      cr.stability_index !== null &&
+      cr.stability_index !== undefined
+    );
+  }
+
+  let coreOk: boolean;
+  if (cls === "multi-arc") {
+    const inv = entry.invariants;
+    coreOk =
+      inv != null &&
+      (inv.aphelion_ratio !== null ||
+        inv.turn_ratio !== null ||
+        (inv.transit_times_days !== null && (inv.transit_times_days?.length ?? 0) > 0));
+  } else {
+    // single-ellipse
+    const oe = entry.orbit_elements;
+    coreOk = oe.a_au !== null && oe.a_au !== undefined && oe.e !== null && oe.e !== undefined;
+  }
+  if (!coreOk) return false;
+
   const vinfs = entry.vinf_kms_at_encounters;
   if (!vinfs.length || vinfs.some((v) => v.vinf_kms === null)) return false;
   const legs = legsOf(entry);
@@ -75,6 +109,47 @@ export function fmt(value: number | null | undefined, digits = 2): string {
  */
 export function fmtBodies(bodies: readonly string[]): string {
   return bodies.join("-");
+}
+
+/**
+ * Format the per-class orbital identity column (spec §16.7.5).
+ *
+ * single-ellipse → "a=X.XX, e=Y.YYY"
+ * multi-arc      → aphelion_ratio if present, else transit times
+ * non-keplerian  → Jacobi / period_nd / stability summary, or family name
+ */
+export function fmtIdentity(entry: CyclerEntry): string {
+  const cls = entry.cycler_class ?? "single-ellipse";
+  if (cls === "single-ellipse") {
+    const a = entry.orbit_elements.a_au;
+    const e = entry.orbit_elements.e;
+    if (a === null || a === undefined || e === null || e === undefined) return "—";
+    return `a=${a.toFixed(2)} AU, e=${e.toFixed(3)}`;
+  }
+  if (cls === "multi-arc") {
+    const inv = entry.invariants;
+    if (!inv) return "—";
+    const parts: string[] = [];
+    if (inv.aphelion_ratio !== null && inv.aphelion_ratio !== undefined)
+      parts.push(`AR=${inv.aphelion_ratio.toFixed(2)}`);
+    if (inv.turn_ratio !== null && inv.turn_ratio !== undefined)
+      parts.push(`TR=${inv.turn_ratio.toFixed(2)}`);
+    if (inv.transit_times_days && inv.transit_times_days.length > 0)
+      parts.push(`t=[${inv.transit_times_days.map((t) => t.toFixed(0)).join(",")}] d`);
+    return parts.length > 0 ? parts.join(", ") : "—";
+  }
+  // non-keplerian
+  const cr = entry.orbit_elements.cr3bp;
+  if (!cr) return "—";
+  const parts: string[] = [];
+  if (cr.family) parts.push(cr.family);
+  if (cr.jacobi_constant !== null && cr.jacobi_constant !== undefined)
+    parts.push(`C=${cr.jacobi_constant.toFixed(4)}`);
+  if (cr.period_nd !== null && cr.period_nd !== undefined)
+    parts.push(`T=${cr.period_nd.toFixed(4)}`);
+  if (cr.stability_index !== null && cr.stability_index !== undefined)
+    parts.push(`s=${cr.stability_index.toFixed(3)}`);
+  return parts.length > 0 ? parts.join(", ") : "—";
 }
 
 /**

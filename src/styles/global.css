@@ -169,7 +169,25 @@ table.catalogue tr:hover td { background: var(--bg-alt); }
 
 table.catalogue td.right { text-align: right; font-variant-numeric: tabular-nums; }
 
+table.catalogue td.identity { font-family: var(--font-mono); font-size: 0.8rem; white-space: nowrap; }
+
 table.catalogue tr.hidden { display: none; }
+
+/* Cycler-class badge (schema v4): SE / MA / NK */
+.cls-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  cursor: default;
+}
+.cls-badge.cls-singleellipse { color: var(--fg); }
+.cls-badge.cls-multiarc { color: #4a7fa5; }
+.cls-badge.cls-nonkeplerian { color: #7a5fa5; }
 
 /* Validation level pill */
 .vlevel {
