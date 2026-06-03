@@ -21,17 +21,47 @@ export interface Citation {
   note?: string | null;
 }
 
+export interface PeriodBasisItem {
+  pair: string;
+  k: number;
+}
+
 export interface PeriodInfo {
   pair: string;
   k: number;
   years: number;
   note?: string;
+  // Schema v4 (2026-06-03): beat-period basis for n-body (VEM) cyclers.
+  basis?: PeriodBasisItem[] | null;
 }
 
 export interface VinfEncounter {
   body: Body;
   vinf_kms: number | null;
   note?: string;
+}
+
+// Schema v4 (2026-06-03): cycler structural class, invariants, and CR3BP identity.
+export type CyclerClass = "single-ellipse" | "multi-arc" | "non-keplerian";
+
+// Cycle-level identity descriptors for multi-arc cyclers (spec §16.7.4).
+export interface Invariants {
+  aphelion_ratio: number | null;
+  turn_ratio: number | null;
+  transit_times_days: number[] | null;
+}
+
+// CR3BP identity tuple for non-keplerian orbits (spec §16.7.4).
+export interface Cr3bp {
+  family: string | null;
+  mass_ratio: number | null;
+  libration_point: string | null;
+  jacobi_constant: number | null;
+  period_nd: number | null;
+  stability_index: number | null;
+  state_nd: number[] | null;
+  lunit_km: number | null;
+  tunit_s: number | null;
 }
 
 export interface OrbitElements {
@@ -41,6 +71,10 @@ export interface OrbitElements {
   aphelion_au: number | null;
   inclination_deg: number | null;
   note?: string;
+  // Schema v4 (2026-06-03): frame/center tags and CR3BP identity block.
+  reference_frame?: string | null;
+  center?: string | null;
+  cr3bp?: Cr3bp | null;
 }
 
 export interface Leg {
@@ -119,6 +153,10 @@ export interface CyclerEntry {
   // model_assumption "circular-coplanar".
   trajectory_regime?: TrajectoryRegime;
   model_assumption?: ModelAssumption;
+  // Schema v4 (2026-06-03). Defaults: cycler_class "single-ellipse".
+  cycler_class?: CyclerClass;
+  // Cycle-level identity for multi-arc entries (spec §16.7.4).
+  invariants?: Invariants | null;
   delta_v_kms?: number | null;
   v_infinity_leveraging_dv_kms?: number | null;
   fleet_size?: number | null;

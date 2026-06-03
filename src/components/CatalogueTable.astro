@@ -1,5 +1,5 @@
 ---
-import { fmt, fmtBodies, fmtVinfMultiset, isFullyDefined } from "../lib/catalogue";
+import { fmt, fmtBodies, fmtIdentity, fmtVinfMultiset, isFullyDefined } from "../lib/catalogue";
 import type { CyclerEntry } from "../lib/types";
 
 interface Props {
@@ -11,14 +11,21 @@ const definedCount = entries.filter(isFullyDefined).length;
 
 const completeness = (e: CyclerEntry): number => {
   // 0..1, fraction of "key" numerical fields that are non-null.
+  // For multi-arc/non-keplerian, a/e are structurally absent — don't penalise.
+  const cls = e.cycler_class ?? "single-ellipse";
   const keys: Array<number | null> = [
-    e.orbit_elements.a_au,
-    e.orbit_elements.e,
-    e.orbit_elements.perihelion_au,
-    e.orbit_elements.aphelion_au,
     e.period.years,
     ...e.vinf_kms_at_encounters.map((v) => v.vinf_kms),
   ];
+  if (cls === "single-ellipse") {
+    keys.push(e.orbit_elements.a_au, e.orbit_elements.e, e.orbit_elements.perihelion_au, e.orbit_elements.aphelion_au);
+  } else if (cls === "multi-arc") {
+    const inv = e.invariants;
+    keys.push(inv?.aphelion_ratio ?? null, inv?.turn_ratio ?? null);
+  } else if (cls === "non-keplerian") {
+    const cr = e.orbit_elements.cr3bp;
+    keys.push(cr?.jacobi_constant ?? null, cr?.period_nd ?? null, cr?.stability_index ?? null);
+  }
   const present = keys.filter((v) => v !== null && v !== undefined).length;
   return keys.length === 0 ? 0 : present / keys.length;
 };
@@ -42,9 +49,9 @@ const completeness = (e: CyclerEntry): number => {
       <tr>
         <th data-sort="name" scope="col">Name</th>
         <th data-sort="bodies" scope="col">Bodies</th>
+        <th data-sort="class" scope="col">Class</th>
         <th data-sort="period" scope="col" aria-sort="ascending">Period (yr)</th>
-        <th data-sort="a" scope="col">a (AU)</th>
-        <th data-sort="e" scope="col">e</th>
+        <th data-sort="identity" scope="col">Identity</th>
         <th data-sort="vinf" scope="col">V∞ (km/s)</th>
         <th data-sort="completeness" scope="col">Data</th>
         <th data-sort="defined" scope="col">Defined</th>
@@ -60,13 +67,16 @@ const completeness = (e: CyclerEntry): number => {
           const cite = e.first_published;
           const completePct = Math.round(completeness(e) * 100);
           const defined = isFullyDefined(e);
+          const cls = e.cycler_class ?? "single-ellipse";
+          const clsShort = cls === "single-ellipse" ? "SE" : cls === "multi-arc" ? "MA" : "NK";
+          const identity = fmtIdentity(e);
           return (
             <tr
               data-bodies={e.bodies.join(",")}
               data-name={e.name}
+              data-class={cls}
               data-period={e.period.years}
-              data-a={e.orbit_elements.a_au ?? ""}
-              data-e={e.orbit_elements.e ?? ""}
+              data-identity={identity}
               data-vinf={Math.max(
                 ...e.vinf_kms_at_encounters
                   .map((v) => v.vinf_kms)
@@ -80,9 +90,9 @@ const completeness = (e: CyclerEntry): number => {
             >
               <td><a href={`/cycler/${e.id}/`}>{e.name}</a></td>
               <td>{fmtBodies(e.bodies)}</td>
+              <td><span class={`cls-badge cls-${cls.replace("-", "")}`} title={cls}>{clsShort}</span></td>
               <td class="right">{fmt(e.period.years, 2)}</td>
-              <td class="right">{fmt(e.orbit_elements.a_au, 2)}</td>
-              <td class="right">{fmt(e.orbit_elements.e, 3)}</td>
+              <td class="identity">{identity}</td>
               <td>{fmtVinfMultiset(e.vinf_kms_at_encounters)}</td>
               <td class="right">{completePct}%</td>
               <td>{defined ? "yes" : <span class="muted">no</span>}</td>
@@ -112,9 +122,9 @@ const completeness = (e: CyclerEntry): number => {
   type SortKey =
     | "name"
     | "bodies"
+    | "class"
     | "period"
-    | "a"
-    | "e"
+    | "identity"
     | "vinf"
     | "completeness"
     | "defined"
@@ -161,7 +171,7 @@ const completeness = (e: CyclerEntry): number => {
       const sortValue = (row: HTMLTableRowElement, key: SortKey): string | number => {
         const raw = row.dataset[key] ?? "";
         // Numeric columns
-        if (["period", "a", "e", "vinf", "completeness", "defined"].includes(key)) {
+        if (["period", "vinf", "completeness", "defined"].includes(key)) {
           const n = parseFloat(raw);
           return Number.isFinite(n) ? n : -Infinity;
         }

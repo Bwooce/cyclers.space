@@ -3,6 +3,12 @@ import Base from "../../layouts/Base.astro";
 import { loadCatalogue, fmt, fmtBodies, legsOf, isFullyDefined } from "../../lib/catalogue";
 import type { CyclerEntry, Citation } from "../../lib/types";
 
+const CLS_LABEL: Record<string, string> = {
+  "single-ellipse": "single-ellipse",
+  "multi-arc": "multi-arc",
+  "non-keplerian": "non-keplerian (CR3BP)",
+};
+
 export function getStaticPaths() {
   return loadCatalogue().map((entry) => ({
     params: { id: entry.id },
@@ -48,6 +54,12 @@ const formatCite = (c: Citation): string => {
     </dd>
     <dt>Sequence (canonical)</dt><dd><code>{entry.sequence_canonical}</code></dd>
     <dt>Sense</dt><dd>{entry.sense}</dd>
+    <dt>Cycler class</dt>
+    <dd>
+      <span class={`cls-badge cls-${(entry.cycler_class ?? "single-ellipse").replace("-", "")}`}>
+        {CLS_LABEL[entry.cycler_class ?? "single-ellipse"] ?? (entry.cycler_class ?? "single-ellipse")}
+      </span>
+    </dd>
     <dt>Trajectory regime</dt>
     <dd>
       {entry.trajectory_regime ?? "ballistic"}
@@ -109,15 +121,71 @@ const formatCite = (c: Citation): string => {
     </dl>
   )}
 
-  <h2>Orbit elements (heliocentric)</h2>
-  <dl class="cycler">
-    <dt>Semi-major axis a</dt><dd>{fmt(entry.orbit_elements.a_au, 3)} AU</dd>
-    <dt>Eccentricity e</dt><dd>{fmt(entry.orbit_elements.e, 3)}</dd>
-    <dt>Perihelion</dt><dd>{fmt(entry.orbit_elements.perihelion_au, 3)} AU</dd>
-    <dt>Aphelion</dt><dd>{fmt(entry.orbit_elements.aphelion_au, 3)} AU</dd>
-    <dt>Inclination</dt><dd>{fmt(entry.orbit_elements.inclination_deg, 2)}°</dd>
-  </dl>
-  {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
+  {(entry.cycler_class ?? "single-ellipse") === "single-ellipse" && (
+    <>
+      <h2>Orbit elements (heliocentric)</h2>
+      <dl class="cycler">
+        <dt>Semi-major axis a</dt><dd>{fmt(entry.orbit_elements.a_au, 3)} AU</dd>
+        <dt>Eccentricity e</dt><dd>{fmt(entry.orbit_elements.e, 3)}</dd>
+        <dt>Perihelion</dt><dd>{fmt(entry.orbit_elements.perihelion_au, 3)} AU</dd>
+        <dt>Aphelion</dt><dd>{fmt(entry.orbit_elements.aphelion_au, 3)} AU</dd>
+        <dt>Inclination</dt><dd>{fmt(entry.orbit_elements.inclination_deg, 2)}°</dd>
+      </dl>
+      {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
+    </>
+  )}
+
+  {(entry.cycler_class === "multi-arc") && (
+    <>
+      <h2>Cycle-level identity (multi-arc invariants)</h2>
+      {entry.invariants ? (
+        <dl class="cycler">
+          <dt>Aphelion ratio (AR)</dt>
+          <dd>{fmt(entry.invariants.aphelion_ratio, 2)}</dd>
+          <dt>Turn ratio (TR)</dt>
+          <dd>{fmt(entry.invariants.turn_ratio, 2)}</dd>
+          <dt>Transit times (days)</dt>
+          <dd>
+            {entry.invariants.transit_times_days && entry.invariants.transit_times_days.length > 0
+              ? entry.invariants.transit_times_days.map((t) => `${t} d`).join(", ")
+              : <span class="muted">—</span>
+            }
+          </dd>
+        </dl>
+      ) : (
+        <p class="muted">No invariants block recorded for this entry.</p>
+      )}
+      {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
+    </>
+  )}
+
+  {(entry.cycler_class === "non-keplerian") && (
+    <>
+      <h2>CR3BP orbit identity</h2>
+      {entry.orbit_elements.cr3bp ? (
+        <dl class="cycler">
+          {entry.orbit_elements.cr3bp.family && (
+            <><dt>Family</dt><dd>{entry.orbit_elements.cr3bp.family}</dd></>
+          )}
+          {entry.orbit_elements.cr3bp.mass_ratio !== null && entry.orbit_elements.cr3bp.mass_ratio !== undefined && (
+            <><dt>Mass ratio (μ)</dt><dd>{entry.orbit_elements.cr3bp.mass_ratio}</dd></>
+          )}
+          {entry.orbit_elements.cr3bp.libration_point && (
+            <><dt>Libration point</dt><dd>{entry.orbit_elements.cr3bp.libration_point}</dd></>
+          )}
+          <dt>Jacobi constant</dt>
+          <dd>{fmt(entry.orbit_elements.cr3bp.jacobi_constant, 4)}</dd>
+          <dt>Period (non-dim)</dt>
+          <dd>{fmt(entry.orbit_elements.cr3bp.period_nd, 4)}</dd>
+          <dt>Stability index</dt>
+          <dd>{fmt(entry.orbit_elements.cr3bp.stability_index, 3)}</dd>
+        </dl>
+      ) : (
+        <p class="muted">No CR3BP identity block recorded for this entry.</p>
+      )}
+      {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
+    </>
+  )}
 
   {legs.length > 0 && (
     <>
