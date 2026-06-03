@@ -28,7 +28,7 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CATALOGUE = REPO_ROOT / "src" / "data" / "seed_cyclers.yaml"
+CATALOGUE = REPO_ROOT / "src" / "data" / "catalogue.yaml"
 OUTPUT = REPO_ROOT / "src" / "data" / "windows.json"
 
 # Search horizon: 10 years from "now" (the date this script runs).

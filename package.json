@@ -6,6 +6,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "sync:catalogue": "node scripts/sync-catalogue.mjs",
+    "predev": "node scripts/sync-catalogue.mjs",
+    "prebuild": "node scripts/sync-catalogue.mjs",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",

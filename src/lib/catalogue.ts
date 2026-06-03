@@ -4,7 +4,10 @@ import type { CyclerEntry, Leg } from "./types";
 // string into the bundle. This is robust against Astro's prerender file
 // layout (no filesystem reads at runtime) and works in both dev and
 // production builds.
-import rawYaml from "../data/seed_cyclers.yaml?raw";
+// src/data/catalogue.yaml is NOT committed — it is fetched from the single
+// source of truth (Bwooce/cyclers) by the `prebuild`/`predev` sync step
+// (scripts/sync-catalogue.mjs). This repo keeps no duplicate of the catalogue.
+import rawYaml from "../data/catalogue.yaml?raw";
 
 let cache: CyclerEntry[] | null = null;
 
