@@ -14,15 +14,34 @@ let cache: CyclerEntry[] | null = null;
 export function loadCatalogue(): CyclerEntry[] {
   if (cache) return cache;
   const parsed = yaml.load(rawYaml) as CyclerEntry[];
-  // Tag every literature-seed entry as V0 — none of these have been
-  // independently re-computed by this project yet. The validation level
-  // will be promoted as the M3+ pipeline starts producing its own checks.
-  cache = parsed.map((entry) => ({ ...entry, validation_level: "V0" as const }));
+  // Read the validation level straight from the catalogue (schema v4.5,
+  // spec §16.7.12): it is now back-filled mechanically upstream from recorded
+  // test evidence. An absent tag is the explicit V0 internal-consistency floor,
+  // so default to V0 when a row carries no validation_level.
+  cache = parsed.map((entry) => ({
+    ...entry,
+    validation_level: entry.validation_level ?? ("V0" as const),
+  }));
   return cache;
 }
 
 export function getEntryById(id: string): CyclerEntry | undefined {
   return loadCatalogue().find((e) => e.id === id);
+}
+
+/**
+ * Tally the catalogue's validation levels (V0..V5), reading the back-filled
+ * level from each row (absent ⇒ V0 floor). Drives the data-driven validation
+ * prose on the home and about pages so the site never hard-codes "every entry
+ * is V0".
+ */
+export function validationLevelCounts(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const entry of loadCatalogue()) {
+    const level = entry.validation_level ?? "V0";
+    counts[level] = (counts[level] ?? 0) + 1;
+  }
+  return counts;
 }
 
 /**
