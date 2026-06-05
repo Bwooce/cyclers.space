@@ -20,7 +20,7 @@ const entries = loadCatalogue();
     cited paper. Every entry is currently <span class="vlevel">V0</span> — literature-sourced,
     not yet independently re-derived by the upstream
     <a href="https://github.com/Bwooce/cyclers">cyclerfinder</a>; higher levels will populate as the
-    finder's verification gauntlet (M5–M9) closes loops on each entry.
+    finder's cross-validation gauntlet (the Forge pipeline) closes loops on each entry.
   </p>
 
   <h2>Catalogue ({entries.length} entries)</h2>
@@ -33,20 +33,23 @@ const entries = loadCatalogue();
   <h2>What's here, what isn't</h2>
   <ul>
     <li>
-      <strong>Here:</strong> {entries.length} entries. The bulk (~195) come from Russell 2004's
+      <strong>Here:</strong> {entries.length} entries. The bulk (~199) come from Russell 2004's
       strict- and near-ballistic E-M Tables (3.9–3.11 and 4.9–4.13). Plus the Aldrin classic
       E-M cycler, Niehoff VISIT-1/2, the McConaghy SnLm two-synodic taxonomy, the Jones 2017
-      V-E-M triples, the Hollister-Menning 1970 Earth-Venus periodic swing-by, and six
-      non-heliocentric entries (Earth-Moon, Jovian-moon, Saturnian). All currently strict- or
-      near-ballistic; low-thrust and manifold regimes are scheduled for the v2 pass.
+      V-E-M triples (incl. two fully-tabulated 12.8-yr members), the Sanchez Net 2022
+      "Pony Express" near-ballistic pair, the Hollister-Menning 1970 Earth-Venus periodic
+      swing-by, and six non-heliocentric entries (Earth-Moon, Jovian-moon, Saturnian). All
+      currently strict- or near-ballistic; low-thrust and manifold regimes are scheduled
+      for the v2 pass.
     </li>
     <li>
       <strong>Now live:</strong> real-ephemeris geometric-match
       <a href="/launch-windows/">launch windows</a>
       for each ballistic, Earth-touching cycler — astropy + JPL DE440 + Lambert solve at
       each grid date. Dates are real and verifiable; C<sub>3</sub>, time-of-flight, and
-      TCM-budget cost columns are still pending the full M6 milestone in the upstream
-      <a href="https://github.com/Bwooce/cyclers">cyclerfinder</a> project.
+      TCM-budget cost columns await wiring the upstream
+      <a href="https://github.com/Bwooce/cyclers">cyclerfinder</a>'s M6a/M6b machinery
+      (landed June 2026) into the weekly windows export.
     </li>
     <li>
       <strong>Out of scope (for now):</strong> interactive Tisserand exploration,

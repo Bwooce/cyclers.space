@@ -45,6 +45,14 @@ function formatVinf(vinf: number[]): string {
   return vinf.map((v) => v.toFixed(2)).join(" / ");
 }
 
+// Windows are stored best-match-first; show them earliest-date first while
+// keeping each date's V∞ aligned. ISO YYYY-MM-DD sorts correctly as a string.
+function sortedWindows(e: WindowEntry) {
+  return e.next_encounters_iso
+    .map((iso, i) => ({ iso, vinf: e.vinf_actual_kms[i] }))
+    .sort((a, b) => a.iso.localeCompare(b.iso));
+}
+
 const nWithWindows = withWindows.length;
 const nTotal = data.entries.length;
 ---
@@ -56,10 +64,11 @@ const nTotal = data.entries.length;
     they come from astropy + JPL DE440 + a Lambert solve at each candidate date,
     keeping the dates whose V<sub>∞</sub> at injection matches the cycler's signature.
     <strong>Not yet shown:</strong> C<sub>3</sub> at departure, time-of-flight to first
-    encounter, or TCM-budget cost over the cycler's lifetime — those require multi-lap
-    propagation and ephemeris-mode optimisation that remains in
-    <a href="https://github.com/Bwooce/cyclers">full M6 of the upstream cyclers project</a>.
-    The dates here are honest; the cost columns will populate when full M6 ships.
+    encounter, or TCM-budget cost over the cycler's lifetime. The upstream machinery for
+    those (multi-lap propagation, ephemeris-mode TCM optimisation — milestones M6a/M6b)
+    has <a href="https://github.com/Bwooce/cyclers">shipped</a>; the weekly windows export
+    does not yet emit the columns. The dates here are honest; the cost columns will
+    populate when the exporter is extended.
   </div>
 
   <p>
@@ -84,8 +93,7 @@ const nTotal = data.entries.length;
         <th scope="col">Cycler</th>
         <th scope="col">Bodies</th>
         <th scope="col">Period (yr)</th>
-        <th scope="col">Next windows</th>
-        <th scope="col">V<sub>∞</sub> (km/s, per encounter)</th>
+        <th scope="col">Next windows (date · V<sub>∞</sub> km/s per encounter)</th>
         <th scope="col">Mismatch</th>
       </tr>
     </thead>
@@ -97,16 +105,17 @@ const nTotal = data.entries.length;
           <td class="right">{e.period_years?.toFixed(2) ?? "—"}</td>
           <td>
             <ul class="window-dates">
-              {e.next_encounters_iso.map((d, i) => (
+              {sortedWindows(e).map((w) => (
                 <li>
-                  <strong>{d}</strong>
-                  <span class="muted"> · V<sub>∞</sub> {formatVinf(e.vinf_actual_kms[i])}</span>
+                  <strong>{w.iso}</strong>
+                  <span class="muted"> · V<sub>∞</sub> {formatVinf(w.vinf)}</span>
                 </li>
               ))}
             </ul>
           </td>
-          <td class="muted"></td>
-          <td class="right muted">{e.mismatch_kms[0]?.toFixed(2) ?? "—"}</td>
+          <td class="right muted">
+            {e.mismatch_kms.length > 0 ? Math.min(...e.mismatch_kms).toFixed(2) : "—"}
+          </td>
         </tr>
       ))}
     </tbody>
@@ -136,14 +145,15 @@ const nTotal = data.entries.length;
 
   <h2>What's missing (and what brings it in)</h2>
   <p>
-    The columns currently blank or absent — <strong>C<sub>3</sub></strong>, <strong>TOF
+    The columns currently absent — <strong>C<sub>3</sub></strong>, <strong>TOF
     to first encounter</strong>, <strong>maintenance-ΔV budget</strong>, <strong>validation
-    level (V0–V5)</strong> — require milestones M6a (multi-lap propagation in the rotating
-    frame, with bounded closure-drift check) and M6b (ephemeris-mode TCM minimisation over
-    a 3–5 lap horizon) in the
-    <a href="https://github.com/Bwooce/cyclers">upstream cyclerfinder</a>. When those land,
-    this page's JSON schema is already shaped for them (see
-    <code>src/data/windows.json</code>) and the cells will populate without further site
+    tier</strong> — no longer wait on upstream physics: milestones M6a (multi-lap
+    propagation with bounded closure-drift check) and M6b (ephemeris-mode maintenance-ΔV
+    optimisation) landed in the
+    <a href="https://github.com/Bwooce/cyclers">upstream cyclerfinder</a> in June 2026,
+    and a provenance/validation-tier layer followed. What remains is wiring those outputs
+    into the weekly windows export (<code>src/data/windows.json</code>); the page's JSON
+    schema is already shaped for them, so the cells will populate without further site
     changes.
   </p>
 
@@ -157,7 +167,7 @@ const nTotal = data.entries.length;
     Earth's actual position and Mars's (or the relevant body's) actual position at the
     cycler's leg ToF. The candidate's "mismatch" is the sum of <em>|V<sub>∞</sub><sub>,actual</sub>
     − V<sub>∞</sub><sub>,target</sub>|</em> across encounters. The N lowest-mismatch dates
-    below the {data.mismatch_cap_kms} km/s cap are kept, sorted best-match first.
+    below the {data.mismatch_cap_kms} km/s cap are kept, shown earliest-date first.
   </p>
 
   <p class="muted">
@@ -172,5 +182,10 @@ const nTotal = data.entries.length;
     margin: 0;
     padding-left: 1em;
     font-size: 0.92em;
+  }
+  /* Keep each "date · V∞ …" entry on one line so the column takes its
+     natural width (the table scrolls horizontally on narrow screens). */
+  ul.window-dates li {
+    white-space: nowrap;
   }
 </style>

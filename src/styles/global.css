@@ -143,6 +143,21 @@ table.catalogue {
   font-family: var(--font-mono);
 }
 
+/* Mobile: let wide tables scroll horizontally at their natural column widths
+   instead of crushing columns (display:block makes the table itself the
+   scroll container while rows keep table layout). */
+@media (max-width: 700px) {
+  table.catalogue {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+  table.catalogue th, table.catalogue td {
+    white-space: nowrap;
+  }
+}
+
 table.catalogue th, table.catalogue td {
   border-bottom: 1px solid var(--border);
   padding: 0.5rem 0.6rem;
