@@ -1,9 +1,15 @@
 ---
 import Base from "../layouts/Base.astro";
 import CatalogueTable from "../components/CatalogueTable.astro";
-import { loadCatalogue } from "../lib/catalogue";
+import { loadCatalogue, validationLevelCounts } from "../lib/catalogue";
 
 const entries = loadCatalogue();
+const levelCounts = validationLevelCounts();
+const v0 = levelCounts["V0"] ?? 0;
+// Levels above the V0 floor, in descending order, rendered as "N at Vk".
+const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
+  .filter((lvl) => (levelCounts[lvl] ?? 0) > 0)
+  .map((lvl) => `${levelCounts[lvl]} at ${lvl}`);
 ---
 <Base title="Home" description="cyclers.space — an open, validated catalogue of planetary cycler trajectories.">
   <h1>cyclers.space</h1>
@@ -17,10 +23,13 @@ const entries = loadCatalogue();
     Each entry is sourced from the published literature and shown with its
     <a href="/about/#validation-levels">validation level</a>, V∞ signature, orbital elements, and
     primary citation. All numerical values trace back to a specific table, page, or equation in a
-    cited paper. Every entry is currently <span class="vlevel">V0</span> — literature-sourced,
-    not yet independently re-derived by the upstream
-    <a href="https://github.com/Bwooce/cyclers">cyclerfinder</a>; higher levels will populate as the
-    finder's cross-validation gauntlet (the Forge pipeline) closes loops on each entry.
+    cited paper. Most entries are <span class="vlevel">V0</span> — literature-sourced, not yet
+    independently re-derived by the upstream
+    <a href="https://github.com/Bwooce/cyclers">cyclerfinder</a> ({v0} at V0{aboveV0.length > 0
+      ? `, ${aboveV0.join(", ")}`
+      : ""}). Higher levels populate as the finder's cross-validation gauntlet (the Forge pipeline)
+    closes loops on each entry — a level is assigned only when recorded, mechanical test evidence
+    earns it.
   </p>
 
   <h2>Catalogue ({entries.length} entries)</h2>

@@ -1,5 +1,12 @@
 ---
 import Base from "../../layouts/Base.astro";
+import { validationLevelCounts } from "../../lib/catalogue";
+
+const levelCounts = validationLevelCounts();
+const v0 = levelCounts["V0"] ?? 0;
+const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
+  .filter((lvl) => (levelCounts[lvl] ?? 0) > 0)
+  .map((lvl) => `${levelCounts[lvl]} at ${lvl}`);
 ---
 <Base title="About" description="What cyclers.space is, how it's built, and how to contribute.">
   <h1>About</h1>
@@ -21,22 +28,25 @@ import Base from "../../layouts/Base.astro";
 
   <h2 id="validation-levels">Validation levels (V0–V5)</h2>
   <p>
-    Each entry carries a validation level, drawn from the design spec of the upstream
-    <a href="https://github.com/Bwooce/cyclers">cyclers</a> project. Currently every entry is
-    <strong>V0</strong> — literature-sourced but not independently re-derived by this project.
-    Higher levels are populated as the upstream finder and validation gauntlet produce them.
+    Each entry carries a validation level, drawn from the §14 gauntlet of the upstream
+    <a href="https://github.com/Bwooce/cyclers">cyclers</a> project — the highest gate it has
+    <em>mechanically</em> passed. The level is back-filled upstream from recorded test evidence,
+    never aspirationally: a row is promoted off V0 only when an in-repo, teeth-bearing test earns
+    it. Most entries are <strong>V0</strong> (literature-sourced, not yet independently re-derived):
+    {v0} at V0{aboveV0.length > 0 ? `, ${aboveV0.join(", ")}` : ""}. Higher levels populate as the
+    finder's cross-validation gauntlet (the Forge pipeline) closes loops on each entry.
   </p>
   <table class="catalogue" style="margin-top:0.5rem;">
     <thead>
       <tr><th scope="col">Level</th><th scope="col">Meaning</th></tr>
     </thead>
     <tbody>
-      <tr><td><span class="vlevel">V0</span></td><td>Literature: a cycler reported in a published source. Not independently re-derived.</td></tr>
-      <tr><td><span class="vlevel">V1</span></td><td>Reproduced in a circular-coplanar model; signature matches the literature within binning tolerance.</td></tr>
-      <tr><td><span class="vlevel">V2</span></td><td>Reproduced in a real ephemeris model; closes the loop for at least one full cycle within drift tolerance.</td></tr>
-      <tr><td><span class="vlevel">V3</span></td><td>Holds over a multi-cycle horizon with bounded TCM ΔV budget.</td></tr>
-      <tr><td><span class="vlevel">V4</span></td><td>Cross-validated in an independent astrodynamics tool (e.g. GMAT).</td></tr>
-      <tr><td><span class="vlevel">V5</span></td><td>Published, peer-reviewed re-validation.</td></tr>
+      <tr><td><span class="vlevel">V0</span></td><td>Internal consistency: hard constraints met, V∞ preserved across each flyby, idealized closure residual within tolerance. (Literature-sourced rows that have not been re-derived also sit at this floor.)</td></tr>
+      <tr><td><span class="vlevel">V1</span></td><td>Solver cross-check: every leg re-solved with lamberthub (izzo + gooding) agreeing under 1e-3 m/s, and the full trajectory re-propagated with the Kepler propagator meeting planet positions.</td></tr>
+      <tr><td><span class="vlevel">V2</span></td><td>Multi-lap periodicity: ≥3 continuous laps with bounded drift in the dynamic rotating frame.</td></tr>
+      <tr><td><span class="vlevel">V3</span></td><td>Ephemeris realisation: phase-matched to a real launch window; multi-cycle horizon TCM bounded within ΔV budget.</td></tr>
+      <tr><td><span class="vlevel">V4</span></td><td>High-fidelity external: an independent codebase + ephemeris (e.g. GMAT) reproduces the trajectory and maintenance ΔV.</td></tr>
+      <tr><td><span class="vlevel">V5</span></td><td>Novelty + expert review: misses catalogue and literature, human-reviewed, ideally independently reproduced.</td></tr>
     </tbody>
   </table>
 
