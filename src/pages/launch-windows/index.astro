@@ -12,7 +12,10 @@ interface WindowEntry {
   bodies: string[];
   next_encounters_iso: string[];
   vinf_actual_kms: number[][];
+  c3_km2_s2: (number | null)[];
   mismatch_kms: number[];
+  tof_first_leg_days: number | null;
+  maintenance_dv_kms: number | null;
   status: string;
 }
 
@@ -25,6 +28,8 @@ interface WindowsData {
   n_per_cycler: number;
   step_days: number;
   mismatch_cap_kms: number;
+  maintenance_dv_computed?: boolean;
+  schema_note?: string;
   disclaimer: string;
   entries: WindowEntry[];
 }
@@ -46,10 +51,10 @@ function formatVinf(vinf: number[]): string {
 }
 
 // Windows are stored best-match-first; show them earliest-date first while
-// keeping each date's V∞ aligned. ISO YYYY-MM-DD sorts correctly as a string.
+// keeping each date's V∞ and C₃ aligned. ISO YYYY-MM-DD sorts as a string.
 function sortedWindows(e: WindowEntry) {
   return e.next_encounters_iso
-    .map((iso, i) => ({ iso, vinf: e.vinf_actual_kms[i] }))
+    .map((iso, i) => ({ iso, vinf: e.vinf_actual_kms[i], c3: e.c3_km2_s2?.[i] ?? null }))
     .sort((a, b) => a.iso.localeCompare(b.iso));
 }
 
@@ -63,12 +68,14 @@ const nTotal = data.entries.length;
     <strong>Real ephemeris, geometric match only.</strong> Dates below are real and verifiable —
     they come from astropy + JPL DE440 + a Lambert solve at each candidate date,
     keeping the dates whose V<sub>∞</sub> at injection matches the cycler's signature.
-    <strong>Not yet shown:</strong> C<sub>3</sub> at departure, time-of-flight to first
-    encounter, or TCM-budget cost over the cycler's lifetime. The upstream machinery for
-    those (multi-lap propagation, ephemeris-mode TCM optimisation — milestones M6a/M6b)
-    has <a href="https://github.com/Bwooce/cyclers">shipped</a>; the weekly windows export
-    does not yet emit the columns. The dates here are honest; the cost columns will
-    populate when the exporter is extended.
+    <strong>Now shown:</strong> C<sub>3</sub> at departure (= |V<sub>∞,depart</sub>|², per
+    window) and time-of-flight to the first encounter (per cycler) — both derived directly
+    from the same Lambert solve / phase signature the dates come from.
+    <strong>Still deferred:</strong> the maintenance-ΔV (TCM) budget. The upstream optimiser
+    (<a href="https://github.com/Bwooce/cyclers">M6b</a>) exists but is a global
+    differential-evolution + SLSQP run costing ~12 s per cycler on real ephemeris; running it
+    for the whole catalogue would blow the weekly CI budget, so that column is blank by default
+    and populated only by an opt-in export run.
   </div>
 
   <p>
@@ -93,7 +100,9 @@ const nTotal = data.entries.length;
         <th scope="col">Cycler</th>
         <th scope="col">Bodies</th>
         <th scope="col">Period (yr)</th>
-        <th scope="col">Next windows (date · V<sub>∞</sub> km/s per encounter)</th>
+        <th scope="col">TOF 1st leg (d)</th>
+        <th scope="col">Next windows (date · V<sub>∞</sub> km/s · C<sub>3</sub> km²/s²)</th>
+        <th scope="col">Maint. ΔV (km/s)</th>
         <th scope="col">Mismatch</th>
       </tr>
     </thead>
@@ -103,16 +112,19 @@ const nTotal = data.entries.length;
           <td><a href={`/cycler/${e.id}/`}>{e.name}</a></td>
           <td>{e.bodies.join(",")}</td>
           <td class="right">{e.period_years?.toFixed(2) ?? "—"}</td>
+          <td class="right">{e.tof_first_leg_days?.toFixed(0) ?? "—"}</td>
           <td>
             <ul class="window-dates">
               {sortedWindows(e).map((w) => (
                 <li>
                   <strong>{w.iso}</strong>
                   <span class="muted"> · V<sub>∞</sub> {formatVinf(w.vinf)}</span>
+                  <span class="muted"> · C<sub>3</sub> {w.c3 != null ? w.c3.toFixed(1) : "—"}</span>
                 </li>
               ))}
             </ul>
           </td>
+          <td class="right muted">{e.maintenance_dv_kms != null ? e.maintenance_dv_kms.toFixed(2) : "—"}</td>
           <td class="right muted">
             {e.mismatch_kms.length > 0 ? Math.min(...e.mismatch_kms).toFixed(2) : "—"}
           </td>
@@ -143,18 +155,24 @@ const nTotal = data.entries.length;
     </>
   )}
 
-  <h2>What's missing (and what brings it in)</h2>
+  <h2>What's shown now, and what's still deferred</h2>
   <p>
-    The columns currently absent — <strong>C<sub>3</sub></strong>, <strong>TOF
-    to first encounter</strong>, <strong>maintenance-ΔV budget</strong>, <strong>validation
-    tier</strong> — no longer wait on upstream physics: milestones M6a (multi-lap
-    propagation with bounded closure-drift check) and M6b (ephemeris-mode maintenance-ΔV
-    optimisation) landed in the
-    <a href="https://github.com/Bwooce/cyclers">upstream cyclerfinder</a> in June 2026,
-    and a provenance/validation-tier layer followed. What remains is wiring those outputs
-    into the weekly windows export (<code>src/data/windows.json</code>); the page's JSON
-    schema is already shaped for them, so the cells will populate without further site
-    changes.
+    <strong>C<sub>3</sub> at departure</strong> and <strong>TOF to first encounter</strong>
+    are now wired into the weekly export: both are cheap by-products of the existing
+    geometric-match Lambert solve (C<sub>3</sub> = |V<sub>∞</sub>|² at the departure body;
+    the first-leg ToF is read straight off the cycler's phase signature), so they add no
+    runtime to the cron job.
+  </p>
+  <p>
+    The <strong>maintenance-ΔV budget</strong> remains deferred. The upstream optimiser
+    (M6b, <code>cyclerfinder.search.maintain.optimise_maintenance_dv</code>) is a global
+    <code>differential_evolution</code> + multi-start SLSQP run over real DE440 states; one
+    closed E-M-E cycler measured ~12 s, and the catalogue carries ~229 ballistic
+    Earth-touching cyclers (≈46 min full-run) — over the weekly CI budget. It also needs a
+    closed encounter sequence plus per-cycler flyby-closure config that the open-chain
+    catalogue rows don't yet supply. The export emits a nullable <code>maintenance_dv_kms</code>
+    column (blank above) that an opt-in run (<code>--maintenance-dv</code>) populates; CI
+    leaves it null until a tractable batched optimisation lands.
   </p>
 
   <h2>How the dates are computed</h2>
