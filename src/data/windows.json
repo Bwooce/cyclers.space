@@ -7,7 +7,9 @@
   "n_per_cycler": 5,
   "step_days": 10.0,
   "mismatch_cap_kms": 3.0,
-  "disclaimer": "Geometric-match launch windows from real JPL DE440 ephemeris (via astropy). Dates are real and verifiable; the V_inf at departure column is the actual Lambert output at the matched date. C_3, time-of-flight, and TCM-budget cost columns are NOT computed - those require multi-lap propagation + ephemeris-mode optimisation (full M6 in cyclerfinder).",
+  "maintenance_dv_computed": false,
+  "schema_note": "Per-window c3_km2_s2 = |V_inf,depart|^2 (Lambert output). Per-cycler tof_first_leg_days is the cycler's first-leg ToF. Per-cycler maintenance_dv_kms is null unless this export ran with --maintenance-dv (deferred from weekly CI for runtime).",
+  "disclaimer": "Geometric-match launch windows from real JPL DE440 ephemeris (via astropy). Dates are real and verifiable; the V_inf at departure column is the actual Lambert output at the matched date. C_3 at departure and time-of-flight to the first encounter are now emitted (both derived from the same Lambert solve / phase signature). The maintenance-\u0394V (TCM-budget) column is deferred to an opt-in run: the upstream optimiser is too slow for the weekly CI job (~12 s/cycler), so it is null by default.",
   "entries": [
     {
       "id": "aldrin-classic-em-k1-outbound",
@@ -21,7 +23,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: non-ballistic trajectory_regime"
     },
     {
@@ -63,6 +68,13 @@
           3.072
         ]
       ],
+      "c3_km2_s2": [
+        18.847,
+        28.211,
+        23.608,
+        9.493,
+        22.142
+      ],
       "mismatch_kms": [
         0.4907,
         0.9445,
@@ -70,6 +82,8 @@
         1.8286,
         1.9332
       ],
+      "tof_first_leg_days": 153.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -101,11 +115,18 @@
           4.844
         ]
       ],
+      "c3_km2_s2": [
+        31.09,
+        31.318,
+        39.204
+      ],
       "mismatch_kms": [
         0.0842,
         0.9641,
         2.405
       ],
+      "tof_first_leg_days": 154.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -147,6 +168,13 @@
           4.048
         ]
       ],
+      "c3_km2_s2": [
+        14.401,
+        15.371,
+        17.951,
+        15.085,
+        15.791
+      ],
       "mismatch_kms": [
         0.9568,
         1.1241,
@@ -154,6 +182,8 @@
         2.0368,
         2.1746
       ],
+      "tof_first_leg_days": 207.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -195,6 +225,13 @@
           3.264
         ]
       ],
+      "c3_km2_s2": [
+        29.282,
+        17.429,
+        25.44,
+        11.324,
+        32.681
+      ],
       "mismatch_kms": [
         0.7859,
         1.3111,
@@ -202,6 +239,8 @@
         2.0396,
         2.353
       ],
+      "tof_first_leg_days": 143.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -243,6 +282,13 @@
           3.687
         ]
       ],
+      "c3_km2_s2": [
+        11.659,
+        10.566,
+        12.196,
+        9.489,
+        13.64
+      ],
       "mismatch_kms": [
         0.7356,
         1.1473,
@@ -250,6 +296,8 @@
         1.7784,
         1.78
       ],
+      "tof_first_leg_days": 268.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -291,6 +339,13 @@
           2.727
         ]
       ],
+      "c3_km2_s2": [
+        10.087,
+        13.321,
+        11.297,
+        11.845,
+        11.774
+      ],
       "mismatch_kms": [
         0.2455,
         0.4173,
@@ -298,6 +353,8 @@
         1.3872,
         1.9041
       ],
+      "tof_first_leg_days": 181.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -329,11 +386,18 @@
           10.148
         ]
       ],
+      "c3_km2_s2": [
+        82.541,
+        44.141,
+        28.88
+      ],
       "mismatch_kms": [
         1.3326,
         1.754,
         2.6743
       ],
+      "tof_first_leg_days": 94.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -348,7 +412,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'niehoff-visit1' has 0 legs; need 1"
     },
     {
@@ -363,7 +430,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'niehoff-visit2' has 0 legs; need 1"
     },
     {
@@ -379,7 +449,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'jones-2017-vem-triple-family' has 0 legs; need 2"
     },
     {
@@ -398,7 +471,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'vem-emeeve-3syn' has 0 legs; need 5"
     },
     {
@@ -414,7 +490,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": 309.0,
+      "maintenance_dv_kms": null,
       "status": "no-windows-found"
     },
     {
@@ -430,7 +509,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": 268.0,
+      "maintenance_dv_kms": null,
       "status": "no-windows-found"
     },
     {
@@ -445,7 +527,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: non-ballistic trajectory_regime"
     },
     {
@@ -460,7 +545,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'aldrin-4-3-2-establishment' V\u221e entry {'body': 'M', 'vinf_kms': None, 'note': 'Rogers 2012 Table 4 tabulates V\u221e launch and V\u221e flyby (both at the establishment Earth flyby), not a distinct V\u221e at Mars for this row; left null.'} has null vinf_kms"
     },
     {
@@ -475,7 +563,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'aldrin-3-2-1-establishment' V\u221e entry {'body': 'M', 'vinf_kms': None, 'note': 'Rogers 2012 Table 4 tabulates V\u221e launch and V\u221e flyby (both at the establishment Earth flyby), not a distinct V\u221e at Mars for this row; left null.'} has null vinf_kms"
     },
     {
@@ -517,6 +608,13 @@
           4.146
         ]
       ],
+      "c3_km2_s2": [
+        17.169,
+        23.268,
+        14.137,
+        9.808,
+        18.456
+      ],
       "mismatch_kms": [
         0.2689,
         0.6159,
@@ -524,6 +622,8 @@
         1.2989,
         2.0745
       ],
+      "tof_first_leg_days": 186.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -538,7 +638,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": 1447.0,
+      "maintenance_dv_kms": null,
       "status": "no-windows-found"
     },
     {
@@ -580,6 +683,13 @@
           2.845
         ]
       ],
+      "c3_km2_s2": [
+        13.396,
+        8.607,
+        14.998,
+        11.712,
+        11.993
+      ],
       "mismatch_kms": [
         0.6336,
         0.8062,
@@ -587,6 +697,8 @@
         1.2793,
         1.8916
       ],
+      "tof_first_leg_days": 174.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -628,6 +740,13 @@
           8.242
         ]
       ],
+      "c3_km2_s2": [
+        20.98,
+        28.487,
+        12.141,
+        19.147,
+        31.611
+      ],
       "mismatch_kms": [
         0.5705,
         1.0858,
@@ -635,6 +754,8 @@
         2.5048,
         2.7645
       ],
+      "tof_first_leg_days": 141.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -666,11 +787,18 @@
           9.315
         ]
       ],
+      "c3_km2_s2": [
+        35.312,
+        39.64,
+        18.963
+      ],
       "mismatch_kms": [
         0.6116,
         0.9568,
         1.16
       ],
+      "tof_first_leg_days": 115.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -707,12 +835,20 @@
           9.626
         ]
       ],
+      "c3_km2_s2": [
+        25.475,
+        20.169,
+        43.312,
+        50.352
+      ],
       "mismatch_kms": [
         0.4427,
         1.1082,
         1.4338,
         2.3222
       ],
+      "tof_first_leg_days": 121.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -754,6 +890,13 @@
           2.826
         ]
       ],
+      "c3_km2_s2": [
+        13.38,
+        10.068,
+        14.879,
+        11.651,
+        11.957
+      ],
       "mismatch_kms": [
         0.5691,
         0.7871,
@@ -761,6 +904,8 @@
         1.3054,
         1.9162
       ],
+      "tof_first_leg_days": 175.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -797,12 +942,20 @@
           10.338
         ]
       ],
+      "c3_km2_s2": [
+        34.933,
+        38.652,
+        18.425,
+        52.7
+      ],
       "mismatch_kms": [
         0.7177,
         1.0192,
         1.1396,
         2.9977
       ],
+      "tof_first_leg_days": 116.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -844,6 +997,13 @@
           3.02
         ]
       ],
+      "c3_km2_s2": [
+        17.232,
+        19.485,
+        16.869,
+        9.023,
+        16.02
+      ],
       "mismatch_kms": [
         0.41,
         0.6852,
@@ -851,6 +1011,8 @@
         1.465,
         2.1774
       ],
+      "tof_first_leg_days": 160.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -892,6 +1054,13 @@
           4.243
         ]
       ],
+      "c3_km2_s2": [
+        16.719,
+        19.808,
+        10.525,
+        21.764,
+        18.496
+      ],
       "mismatch_kms": [
         0.3459,
         0.3864,
@@ -899,6 +1068,8 @@
         1.1223,
         2.0574
       ],
+      "tof_first_leg_days": 173.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -940,6 +1111,13 @@
           7.274
         ]
       ],
+      "c3_km2_s2": [
+        21.467,
+        22.03,
+        31.339,
+        12.427,
+        42.237
+      ],
       "mismatch_kms": [
         0.2908,
         0.7071,
@@ -947,6 +1125,8 @@
         1.1987,
         2.1246
       ],
+      "tof_first_leg_days": 154.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -988,6 +1168,13 @@
           5.064
         ]
       ],
+      "c3_km2_s2": [
+        15.313,
+        10.608,
+        13.787,
+        13.125,
+        20.322
+      ],
       "mismatch_kms": [
         0.4126,
         0.494,
@@ -995,6 +1182,8 @@
         1.23,
         1.2716
       ],
+      "tof_first_leg_days": 196.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1036,6 +1225,13 @@
           9.321
         ]
       ],
+      "c3_km2_s2": [
+        35.476,
+        24.199,
+        32.427,
+        17.238,
+        56.873
+      ],
       "mismatch_kms": [
         0.4976,
         0.7799,
@@ -1043,6 +1239,8 @@
         1.6852,
         2.062
       ],
+      "tof_first_leg_days": 137.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1084,6 +1282,13 @@
           2.97
         ]
       ],
+      "c3_km2_s2": [
+        10.409,
+        13.8,
+        13.929,
+        10.754,
+        11.38
+      ],
       "mismatch_kms": [
         0.3528,
         0.4465,
@@ -1091,6 +1296,8 @@
         1.3748,
         1.6565
       ],
+      "tof_first_leg_days": 191.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1132,6 +1339,13 @@
           8.73
         ]
       ],
+      "c3_km2_s2": [
+        21.289,
+        19.038,
+        34.385,
+        49.244,
+        43.999
+      ],
       "mismatch_kms": [
         0.7057,
         0.9738,
@@ -1139,6 +1353,8 @@
         1.9479,
         2.0028
       ],
+      "tof_first_leg_days": 130.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1180,6 +1396,13 @@
           4.881
         ]
       ],
+      "c3_km2_s2": [
+        20.437,
+        18.696,
+        11.222,
+        23.169,
+        20.533
+      ],
       "mismatch_kms": [
         0.3869,
         0.5599,
@@ -1187,6 +1410,8 @@
         1.2274,
         2.1506
       ],
+      "tof_first_leg_days": 163.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1228,6 +1453,13 @@
           9.321
         ]
       ],
+      "c3_km2_s2": [
+        35.476,
+        24.199,
+        32.427,
+        17.238,
+        56.873
+      ],
       "mismatch_kms": [
         0.4976,
         0.7799,
@@ -1235,6 +1467,8 @@
         1.6852,
         2.062
       ],
+      "tof_first_leg_days": 137.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1276,6 +1510,13 @@
           8.471
         ]
       ],
+      "c3_km2_s2": [
+        33.745,
+        20.11,
+        18.357,
+        37.556,
+        42.169
+      ],
       "mismatch_kms": [
         0.7197,
         0.773,
@@ -1283,6 +1524,8 @@
         1.6926,
         2.0223
       ],
+      "tof_first_leg_days": 132.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1319,12 +1562,20 @@
           6.768
         ]
       ],
+      "c3_km2_s2": [
+        84.19,
+        81.365,
+        94.19,
+        94.674
+      ],
       "mismatch_kms": [
         0.7156,
         0.7684,
         1.6204,
         2.5981
       ],
+      "tof_first_leg_days": 131.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1366,6 +1617,13 @@
           5.123
         ]
       ],
+      "c3_km2_s2": [
+        14.94,
+        10.559,
+        13.811,
+        13.22,
+        20.356
+      ],
       "mismatch_kms": [
         0.3456,
         0.4587,
@@ -1373,6 +1631,8 @@
         1.2488,
         1.3349
       ],
+      "tof_first_leg_days": 195.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1404,11 +1664,18 @@
           5.645
         ]
       ],
+      "c3_km2_s2": [
+        111.97,
+        124.534,
+        122.996
+      ],
       "mismatch_kms": [
         1.1788,
         1.7836,
         2.845
       ],
+      "tof_first_leg_days": 93.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1450,6 +1717,13 @@
           9.321
         ]
       ],
+      "c3_km2_s2": [
+        35.476,
+        24.199,
+        32.427,
+        17.238,
+        56.873
+      ],
       "mismatch_kms": [
         0.4976,
         0.7799,
@@ -1457,6 +1731,8 @@
         1.6852,
         2.062
       ],
+      "tof_first_leg_days": 137.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1498,6 +1774,13 @@
           10.705
         ]
       ],
+      "c3_km2_s2": [
+        211.479,
+        204.977,
+        231.943,
+        225.279,
+        200.507
+      ],
       "mismatch_kms": [
         0.224,
         0.5876,
@@ -1505,6 +1788,8 @@
         1.6482,
         1.8454
       ],
+      "tof_first_leg_days": 199.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1526,9 +1811,14 @@
           13.572
         ]
       ],
+      "c3_km2_s2": [
+        222.945
+      ],
       "mismatch_kms": [
         1.7037
       ],
+      "tof_first_leg_days": 66.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1543,7 +1833,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: non-heliocentric primary=Earth"
     },
     {
@@ -1558,7 +1851,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: non-heliocentric primary=Earth"
     },
     {
@@ -1573,7 +1869,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: non-heliocentric primary=Earth"
     },
     {
@@ -1589,7 +1888,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: non-heliocentric primary=Jupiter"
     },
     {
@@ -1606,7 +1908,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: non-heliocentric primary=Jupiter"
     },
     {
@@ -1625,7 +1930,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: non-heliocentric primary=Saturn"
     },
     {
@@ -1640,7 +1948,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-01' has 0 legs; need 1"
     },
     {
@@ -1655,7 +1966,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-02' has 0 legs; need 1"
     },
     {
@@ -1670,7 +1984,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-03' has 0 legs; need 1"
     },
     {
@@ -1685,7 +2002,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-04' has 0 legs; need 1"
     },
     {
@@ -1700,7 +2020,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-05' has 0 legs; need 1"
     },
     {
@@ -1715,7 +2038,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-06' has 0 legs; need 1"
     },
     {
@@ -1730,7 +2056,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-07' has 0 legs; need 1"
     },
     {
@@ -1745,7 +2074,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-08' has 0 legs; need 1"
     },
     {
@@ -1760,7 +2092,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-09' has 0 legs; need 1"
     },
     {
@@ -1775,7 +2110,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-10' has 0 legs; need 1"
     },
     {
@@ -1790,7 +2128,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-11' has 0 legs; need 1"
     },
     {
@@ -1805,7 +2146,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-12' has 0 legs; need 1"
     },
     {
@@ -1820,7 +2164,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-13' has 0 legs; need 1"
     },
     {
@@ -1835,7 +2182,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-14' has 0 legs; need 1"
     },
     {
@@ -1850,7 +2200,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'hollister-menning-1970-ev-orbit-15' has 0 legs; need 1"
     },
     {
@@ -1865,7 +2218,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'mcconaghy-2005-em-case1' V\u221e entry {'body': 'E', 'vinf_kms': None, 'note': 'Steady-state cycling V_inf at Earth not in Rogers 2012 Table 1 (Table 1\\ngives orbital elements only). Rogers 2012 Table 3 reports the\\n4:3(2)- establishment-cycler V_inf,flyby = 3.378 km/s (the post-Earth\\nflyby V_inf for the establishment trajectory matching Case 1\\'s\\norbital elements). McConaghy/Longuski/Byrnes 2002 AIAA 2002-4420\\n(paywalled at AIAA) is the originating source for the steady-state\\ncycler V_inf; Russell 2004 Table 3.4 does not pair \"Case 1\" to a\\nRussell-numbered row (only Case 2 = 2.1.1.+2 and Case 3 = 2.3.1.+1\\nare footnoted).\\n'} has null vinf_kms"
     },
     {
@@ -1880,7 +2236,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'mcconaghy-2005-em-u0l1' V\u221e entry {'body': 'E', 'vinf_kms': None, 'note': \"Steady-state V_inf at Earth not in Rogers 2012 Table 1. Rogers\\nTable 3 gives V_inf,flyby = 9.801-12.634 km/s for the\\nestablishment-cycler 4:3(2)-, 3:2(1)- and 2:1(1)- variants\\ntargeting U0L1's orbital elements \u2014 substantially higher than\\nthe Aldrin cycler's ~5.7 km/s at Earth, reflecting U0L1's\\nhigh-energy aphelion-3.2-AU orbit (well beyond Mars).\\n\"} has null vinf_kms"
     },
     {
@@ -1895,7 +2254,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'mcconaghy-2005-em-snlm-broadclass-family' has 0 legs; need 1"
     },
     {
@@ -1937,6 +2299,13 @@
           3.597
         ]
       ],
+      "c3_km2_s2": [
+        25.642,
+        25.815,
+        20.283,
+        22.18,
+        26.448
+      ],
       "mismatch_kms": [
         0.2128,
         0.6298,
@@ -1944,6 +2313,8 @@
         0.7212,
         0.8455
       ],
+      "tof_first_leg_days": 229.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -1985,6 +2356,13 @@
           4.979
         ]
       ],
+      "c3_km2_s2": [
+        22.378,
+        17.489,
+        20.071,
+        10.498,
+        23.79
+      ],
       "mismatch_kms": [
         0.1023,
         0.6555,
@@ -1992,6 +2370,8 @@
         1.5797,
         2.1983
       ],
+      "tof_first_leg_days": 168.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2033,6 +2413,13 @@
           9.101
         ]
       ],
+      "c3_km2_s2": [
+        33.451,
+        27.092,
+        18.044,
+        37.097,
+        51.119
+      ],
       "mismatch_kms": [
         0.5991,
         0.8724,
@@ -2040,6 +2427,8 @@
         1.5268,
         2.0485
       ],
+      "tof_first_leg_days": 133.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2071,11 +2460,18 @@
           3.771
         ]
       ],
+      "c3_km2_s2": [
+        19.902,
+        18.753,
+        17.203
+      ],
       "mismatch_kms": [
         1.4406,
         2.5191,
         2.8235
       ],
+      "tof_first_leg_days": 182.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2112,12 +2508,20 @@
           4.719
         ]
       ],
+      "c3_km2_s2": [
+        29.245,
+        31.601,
+        13.451,
+        28.501
+      ],
       "mismatch_kms": [
         0.5826,
         0.8364,
         1.9862,
         2.5198
       ],
+      "tof_first_leg_days": 128.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2154,12 +2558,20 @@
           10.046
         ]
       ],
+      "c3_km2_s2": [
+        26.695,
+        36.784,
+        17.425,
+        51.687
+      ],
       "mismatch_kms": [
         0.8571,
         1.2427,
         1.4436,
         2.7356
       ],
+      "tof_first_leg_days": 118.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2201,6 +2613,13 @@
           3.857
         ]
       ],
+      "c3_km2_s2": [
+        13.812,
+        13.305,
+        20.366,
+        13.482,
+        14.102
+      ],
       "mismatch_kms": [
         1.6632,
         2.1525,
@@ -2208,6 +2627,8 @@
         2.3676,
         2.5019
       ],
+      "tof_first_leg_days": 270.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2249,6 +2670,13 @@
           4.084
         ]
       ],
+      "c3_km2_s2": [
+        35.497,
+        32.694,
+        49.138,
+        23.315,
+        29.492
+      ],
       "mismatch_kms": [
         0.4633,
         1.1389,
@@ -2256,6 +2684,8 @@
         1.6445,
         1.6851
       ],
+      "tof_first_leg_days": 205.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2297,6 +2727,13 @@
           5.123
         ]
       ],
+      "c3_km2_s2": [
+        14.94,
+        10.559,
+        13.811,
+        13.22,
+        20.356
+      ],
       "mismatch_kms": [
         0.3456,
         0.4587,
@@ -2304,6 +2741,8 @@
         1.2488,
         1.3349
       ],
+      "tof_first_leg_days": 195.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2340,12 +2779,20 @@
           3.758
         ]
       ],
+      "c3_km2_s2": [
+        26.974,
+        24.73,
+        22.978,
+        20.131
+      ],
       "mismatch_kms": [
         1.2275,
         2.1009,
         2.1871,
         2.2711
       ],
+      "tof_first_leg_days": 189.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2382,12 +2829,20 @@
           6.686
         ]
       ],
+      "c3_km2_s2": [
+        46.115,
+        54.692,
+        51.674,
+        21.093
+      ],
       "mismatch_kms": [
         1.1572,
         1.876,
         2.569,
         2.7933
       ],
+      "tof_first_leg_days": 122.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2429,6 +2884,13 @@
           2.811
         ]
       ],
+      "c3_km2_s2": [
+        19.04,
+        15.523,
+        8.695,
+        15.771,
+        15.453
+      ],
       "mismatch_kms": [
         0.7072,
         0.7994,
@@ -2436,6 +2898,8 @@
         1.3408,
         2.0205
       ],
+      "tof_first_leg_days": 170.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2477,6 +2941,13 @@
           3.75
         ]
       ],
+      "c3_km2_s2": [
+        20.61,
+        16.335,
+        11.225,
+        24.162,
+        18.792
+      ],
       "mismatch_kms": [
         1.0148,
         1.4676,
@@ -2484,6 +2955,8 @@
         1.5406,
         1.5845
       ],
+      "tof_first_leg_days": 279.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2525,6 +2998,13 @@
           4.73
         ]
       ],
+      "c3_km2_s2": [
+        32.185,
+        30.441,
+        45.443,
+        17.497,
+        39.353
+      ],
       "mismatch_kms": [
         0.6174,
         1.8589,
@@ -2532,6 +3012,8 @@
         2.0411,
         2.3427
       ],
+      "tof_first_leg_days": 186.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2573,6 +3055,13 @@
           12.315
         ]
       ],
+      "c3_km2_s2": [
+        83.202,
+        51.814,
+        58.625,
+        56.164,
+        54.267
+      ],
       "mismatch_kms": [
         1.387,
         1.4551,
@@ -2580,6 +3069,8 @@
         2.5749,
         2.6482
       ],
+      "tof_first_leg_days": 154.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2621,6 +3112,13 @@
           3.791
         ]
       ],
+      "c3_km2_s2": [
+        11.684,
+        11.34,
+        20.187,
+        10.485,
+        13.893
+      ],
       "mismatch_kms": [
         1.784,
         2.3764,
@@ -2628,6 +3126,8 @@
         2.7789,
         2.8181
       ],
+      "tof_first_leg_days": 262.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2669,6 +3169,13 @@
           10.065
         ]
       ],
+      "c3_km2_s2": [
+        29.589,
+        29.294,
+        24.018,
+        61.631,
+        18.771
+      ],
       "mismatch_kms": [
         0.6866,
         0.8068,
@@ -2676,6 +3183,8 @@
         2.0605,
         2.1324
       ],
+      "tof_first_leg_days": 142.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2717,6 +3226,13 @@
           8.967
         ]
       ],
+      "c3_km2_s2": [
+        33.173,
+        26.323,
+        36.661,
+        17.747,
+        50.072
+      ],
       "mismatch_kms": [
         0.6991,
         0.7915,
@@ -2724,6 +3240,8 @@
         1.4756,
         2.1094
       ],
+      "tof_first_leg_days": 134.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2765,6 +3283,13 @@
           4.437
         ]
       ],
+      "c3_km2_s2": [
+        26.106,
+        25.866,
+        30.837,
+        27.963,
+        28.814
+      ],
       "mismatch_kms": [
         0.4469,
         1.3801,
@@ -2772,6 +3297,8 @@
         1.5795,
         1.7692
       ],
+      "tof_first_leg_days": 198.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2803,11 +3330,18 @@
           7.617
         ]
       ],
+      "c3_km2_s2": [
+        72.137,
+        62.918,
+        24.828
+      ],
       "mismatch_kms": [
         1.2961,
         2.2959,
         2.7347
       ],
+      "tof_first_leg_days": 107.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2829,9 +3363,14 @@
           12.186
         ]
       ],
+      "c3_km2_s2": [
+        99.034
+      ],
       "mismatch_kms": [
         1.3372
       ],
+      "tof_first_leg_days": 82.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2868,12 +3407,20 @@
           4.111
         ]
       ],
+      "c3_km2_s2": [
+        11.269,
+        10.049,
+        15.343,
+        13.762
+      ],
       "mismatch_kms": [
         1.0955,
         1.8849,
         2.8,
         2.8209
       ],
+      "tof_first_leg_days": 219.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2905,11 +3452,18 @@
           9.783
         ]
       ],
+      "c3_km2_s2": [
+        41.394,
+        53.793,
+        22.588
+      ],
       "mismatch_kms": [
         0.3982,
         0.9717,
         1.9308
       ],
+      "tof_first_leg_days": 104.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2946,12 +3500,20 @@
           10.338
         ]
       ],
+      "c3_km2_s2": [
+        34.933,
+        38.652,
+        18.425,
+        52.7
+      ],
       "mismatch_kms": [
         0.7177,
         1.0192,
         1.1396,
         2.9977
       ],
+      "tof_first_leg_days": 116.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -2993,6 +3555,13 @@
           4.306
         ]
       ],
+      "c3_km2_s2": [
+        20.799,
+        23.966,
+        24.166,
+        24.431,
+        23.137
+      ],
       "mismatch_kms": [
         0.3695,
         0.4486,
@@ -3000,6 +3569,8 @@
         0.6571,
         0.7166
       ],
+      "tof_first_leg_days": 245.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3041,6 +3612,13 @@
           10.426
         ]
       ],
+      "c3_km2_s2": [
+        40.033,
+        52.322,
+        42.05,
+        49.853,
+        38.14
+      ],
       "mismatch_kms": [
         1.2923,
         1.6508,
@@ -3048,6 +3626,8 @@
         2.6089,
         2.7502
       ],
+      "tof_first_leg_days": 169.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3089,6 +3669,13 @@
           14.238
         ]
       ],
+      "c3_km2_s2": [
+        99.329,
+        78.455,
+        69.129,
+        77.824,
+        76.081
+      ],
       "mismatch_kms": [
         1.0523,
         1.6388,
@@ -3096,6 +3683,8 @@
         2.5892,
         2.7157
       ],
+      "tof_first_leg_days": 142.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3137,6 +3726,13 @@
           4.586
         ]
       ],
+      "c3_km2_s2": [
+        41.341,
+        39.204,
+        43.807,
+        43.529,
+        14.944
+      ],
       "mismatch_kms": [
         0.3506,
         0.705,
@@ -3144,6 +3740,8 @@
         2.3521,
         2.5202
       ],
+      "tof_first_leg_days": 154.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3175,11 +3773,18 @@
           9.446
         ]
       ],
+      "c3_km2_s2": [
+        82.541,
+        72.358,
+        35.458
+      ],
       "mismatch_kms": [
         1.3326,
         2.6529,
         2.9917
       ],
+      "tof_first_leg_days": 94.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3201,9 +3806,14 @@
           12.896
         ]
       ],
+      "c3_km2_s2": [
+        151.145
+      ],
       "mismatch_kms": [
         1.5897
       ],
+      "tof_first_leg_days": 73.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3245,6 +3855,13 @@
           6.744
         ]
       ],
+      "c3_km2_s2": [
+        32.842,
+        33.018,
+        50.694,
+        37.598,
+        23.566
+      ],
       "mismatch_kms": [
         0.2443,
         1.0698,
@@ -3252,6 +3869,8 @@
         1.7686,
         1.7894
       ],
+      "tof_first_leg_days": 204.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3293,6 +3912,13 @@
           12.315
         ]
       ],
+      "c3_km2_s2": [
+        83.202,
+        51.814,
+        58.625,
+        56.164,
+        54.267
+      ],
       "mismatch_kms": [
         1.387,
         1.4551,
@@ -3300,6 +3926,8 @@
         2.5749,
         2.6482
       ],
+      "tof_first_leg_days": 154.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3341,6 +3969,13 @@
           16.502
         ]
       ],
+      "c3_km2_s2": [
+        126.742,
+        107.102,
+        95.669,
+        109.317,
+        108.103
+      ],
       "mismatch_kms": [
         0.7642,
         1.6375,
@@ -3348,6 +3983,8 @@
         2.6224,
         2.805
       ],
+      "tof_first_leg_days": 130.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3389,6 +4026,13 @@
           4.081
         ]
       ],
+      "c3_km2_s2": [
+        16.192,
+        13.745,
+        20.259,
+        9.371,
+        13.511
+      ],
       "mismatch_kms": [
         0.3489,
         0.4872,
@@ -3396,6 +4040,8 @@
         1.0154,
         1.143
       ],
+      "tof_first_leg_days": 198.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3437,6 +4083,13 @@
           12.76
         ]
       ],
+      "c3_km2_s2": [
+        61.869,
+        51.171,
+        38.733,
+        89.311,
+        31.478
+      ],
       "mismatch_kms": [
         1.146,
         1.219,
@@ -3444,6 +4097,8 @@
         1.9238,
         2.4295
       ],
+      "tof_first_leg_days": 117.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3485,6 +4140,13 @@
           9.321
         ]
       ],
+      "c3_km2_s2": [
+        35.476,
+        24.199,
+        32.427,
+        17.238,
+        56.873
+      ],
       "mismatch_kms": [
         0.4976,
         0.7799,
@@ -3492,6 +4154,8 @@
         1.6852,
         2.062
       ],
+      "tof_first_leg_days": 137.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3528,12 +4192,20 @@
           6.582
         ]
       ],
+      "c3_km2_s2": [
+        45.824,
+        54.207,
+        51.373,
+        20.658
+      ],
       "mismatch_kms": [
         1.074,
         1.8773,
         2.5867,
         2.7372
       ],
+      "tof_first_leg_days": 123.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3555,9 +4227,14 @@
           12.186
         ]
       ],
+      "c3_km2_s2": [
+        99.034
+      ],
       "mismatch_kms": [
         1.4372
       ],
+      "tof_first_leg_days": 82.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3599,6 +4276,13 @@
           3.02
         ]
       ],
+      "c3_km2_s2": [
+        17.232,
+        19.485,
+        16.869,
+        9.023,
+        16.02
+      ],
       "mismatch_kms": [
         0.41,
         0.6852,
@@ -3606,6 +4290,8 @@
         1.465,
         2.1774
       ],
+      "tof_first_leg_days": 160.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3637,11 +4323,18 @@
           12.754
         ]
       ],
+      "c3_km2_s2": [
+        69.054,
+        80.852,
+        44.36
+      ],
       "mismatch_kms": [
         0.3901,
         1.3522,
         2.1854
       ],
+      "tof_first_leg_days": 81.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3673,11 +4366,18 @@
           9.77
         ]
       ],
+      "c3_km2_s2": [
+        36.577,
+        33.247,
+        20.744
+      ],
       "mismatch_kms": [
         0.6082,
         0.6824,
         1.6155
       ],
+      "tof_first_leg_days": 112.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3719,6 +4419,13 @@
           10.182
         ]
       ],
+      "c3_km2_s2": [
+        38.832,
+        35.83,
+        54.388,
+        41.324,
+        44.47
+      ],
       "mismatch_kms": [
         0.9743,
         1.8271,
@@ -3726,6 +4433,8 @@
         2.4507,
         2.4509
       ],
+      "tof_first_leg_days": 177.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3767,6 +4476,13 @@
           14.951
         ]
       ],
+      "c3_km2_s2": [
+        107.138,
+        86.847,
+        76.784,
+        87.027,
+        85.412
+      ],
       "mismatch_kms": [
         0.9847,
         1.6033,
@@ -3774,6 +4490,8 @@
         2.5645,
         2.7093
       ],
+      "tof_first_leg_days": 138.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3800,10 +4518,16 @@
           5.966
         ]
       ],
+      "c3_km2_s2": [
+        103.033,
+        87.756
+      ],
       "mismatch_kms": [
         1.1582,
         1.7662
       ],
+      "tof_first_leg_days": 101.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3835,11 +4559,18 @@
           8.405
         ]
       ],
+      "c3_km2_s2": [
+        76.301,
+        66.909,
+        28.988
+      ],
       "mismatch_kms": [
         1.225,
         2.4311,
         2.8209
       ],
+      "tof_first_leg_days": 101.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3861,9 +4592,14 @@
           13.639
         ]
       ],
+      "c3_km2_s2": [
+        160.834
+      ],
       "mismatch_kms": [
         1.6209
       ],
+      "tof_first_leg_days": 70.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3905,6 +4641,13 @@
           3.141
         ]
       ],
+      "c3_km2_s2": [
+        20.671,
+        11.219,
+        15.756,
+        18.75,
+        24.337
+      ],
       "mismatch_kms": [
         0.9316,
         1.356,
@@ -3912,6 +4655,8 @@
         1.4565,
         1.4739
       ],
+      "tof_first_leg_days": 280.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -3953,6 +4698,13 @@
           12.464
         ]
       ],
+      "c3_km2_s2": [
+        84.107,
+        52.971,
+        60.017,
+        57.68,
+        55.784
+      ],
       "mismatch_kms": [
         1.2139,
         1.6157,
@@ -3960,6 +4712,8 @@
         2.7172,
         2.7948
       ],
+      "tof_first_leg_days": 153.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4001,6 +4755,13 @@
           10.201
         ]
       ],
+      "c3_km2_s2": [
+        34.15,
+        30.079,
+        24.317,
+        62.8,
+        19.334
+      ],
       "mismatch_kms": [
         0.6815,
         0.8742,
@@ -4008,6 +4769,8 @@
         2.051,
         2.2043
       ],
+      "tof_first_leg_days": 141.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4049,6 +4812,13 @@
           4.375
         ]
       ],
+      "c3_km2_s2": [
+        26.291,
+        25.581,
+        28.049,
+        24.023,
+        27.984
+      ],
       "mismatch_kms": [
         0.4221,
         1.4711,
@@ -4056,6 +4826,8 @@
         1.6559,
         1.7852
       ],
+      "tof_first_leg_days": 196.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4077,9 +4849,14 @@
           12.186
         ]
       ],
+      "c3_km2_s2": [
+        99.034
+      ],
       "mismatch_kms": [
         1.4372
       ],
+      "tof_first_leg_days": 82.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4111,11 +4888,18 @@
           9.624
         ]
       ],
+      "c3_km2_s2": [
+        40.228,
+        53.193,
+        21.945
+      ],
       "mismatch_kms": [
         0.2649,
         1.0055,
         1.839
       ],
+      "tof_first_leg_days": 105.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4157,6 +4941,13 @@
           4.247
         ]
       ],
+      "c3_km2_s2": [
+        28.658,
+        33.674,
+        14.71,
+        24.109,
+        28.713
+      ],
       "mismatch_kms": [
         0.6165,
         1.2321,
@@ -4164,6 +4955,8 @@
         1.7784,
         1.7948
       ],
+      "tof_first_leg_days": 202.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4205,6 +4998,13 @@
           16.502
         ]
       ],
+      "c3_km2_s2": [
+        126.742,
+        107.102,
+        95.669,
+        109.317,
+        108.103
+      ],
       "mismatch_kms": [
         0.8517,
         1.5375,
@@ -4212,6 +5012,8 @@
         2.5224,
         2.705
       ],
+      "tof_first_leg_days": 130.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4253,6 +5055,13 @@
           6.002
         ]
       ],
+      "c3_km2_s2": [
+        45.002,
+        52.786,
+        50.5,
+        19.45,
+        16.156
+      ],
       "mismatch_kms": [
         0.9335,
         1.7744,
@@ -4260,6 +5069,8 @@
         2.6719,
         2.7822
       ],
+      "tof_first_leg_days": 126.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4281,9 +5092,14 @@
           15.324
         ]
       ],
+      "c3_km2_s2": [
+        185.576
+      ],
       "mismatch_kms": [
         1.7465
       ],
+      "tof_first_leg_days": 64.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4325,6 +5141,13 @@
           12.615
         ]
       ],
+      "c3_km2_s2": [
+        85.099,
+        54.178,
+        61.452,
+        59.244,
+        57.351
+      ],
       "mismatch_kms": [
         1.2418,
         1.5761,
@@ -4332,6 +5155,8 @@
         2.6596,
         2.7416
       ],
+      "tof_first_leg_days": 152.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4353,9 +5178,14 @@
           11.769
         ]
       ],
+      "c3_km2_s2": [
+        95.58
+      ],
       "mismatch_kms": [
         1.3458
       ],
+      "tof_first_leg_days": 84.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4382,10 +5212,16 @@
           3.38
         ]
       ],
+      "c3_km2_s2": [
+        10.797,
+        9.583
+      ],
       "mismatch_kms": [
         1.7538,
         2.2754
       ],
+      "tof_first_leg_days": 213.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4427,6 +5263,13 @@
           2.693
         ]
       ],
+      "c3_km2_s2": [
+        17.586,
+        14.819,
+        18.701,
+        8.513,
+        15.046
+      ],
       "mismatch_kms": [
         0.2118,
         0.5861,
@@ -4434,6 +5277,8 @@
         1.173,
         1.3285
       ],
+      "tof_first_leg_days": 179.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4475,6 +5320,13 @@
           3.761
         ]
       ],
+      "c3_km2_s2": [
+        26.378,
+        30.678,
+        12.367,
+        20.269,
+        24.411
+      ],
       "mismatch_kms": [
         0.3605,
         0.8269,
@@ -4482,6 +5334,8 @@
         2.3762,
         2.9987
       ],
+      "tof_first_leg_days": 133.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4513,11 +5367,18 @@
           8.723
         ]
       ],
+      "c3_km2_s2": [
+        34.13,
+        37.045,
+        18.712
+      ],
       "mismatch_kms": [
         0.2801,
         1.0951,
         1.6972
       ],
+      "tof_first_leg_days": 111.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4559,6 +5420,13 @@
           4.339
         ]
       ],
+      "c3_km2_s2": [
+        30.587,
+        15.673,
+        26.125,
+        23.831,
+        19.201
+      ],
       "mismatch_kms": [
         0.7299,
         1.1427,
@@ -4566,6 +5434,8 @@
         1.434,
         1.5791
       ],
+      "tof_first_leg_days": 203.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4607,6 +5477,13 @@
           4.081
         ]
       ],
+      "c3_km2_s2": [
+        11.661,
+        11.043,
+        20.339,
+        13.233,
+        11.52
+      ],
       "mismatch_kms": [
         1.6295,
         2.1569,
@@ -4614,6 +5491,8 @@
         2.5677,
         2.6748
       ],
+      "tof_first_leg_days": 264.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4655,6 +5534,13 @@
           3.735
         ]
       ],
+      "c3_km2_s2": [
+        15.728,
+        13.765,
+        13.482,
+        20.29,
+        16.483
+      ],
       "mismatch_kms": [
         0.3803,
         0.4437,
@@ -4662,6 +5548,8 @@
         0.9093,
         1.3249
       ],
+      "tof_first_leg_days": 197.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4703,6 +5591,13 @@
           8.834
         ]
       ],
+      "c3_km2_s2": [
+        32.91,
+        25.586,
+        36.246,
+        17.466,
+        49.059
+      ],
       "mismatch_kms": [
         0.6986,
         0.8207,
@@ -4710,6 +5605,8 @@
         1.7354,
         2.0698
       ],
+      "tof_first_leg_days": 135.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4746,12 +5643,20 @@
           3.895
         ]
       ],
+      "c3_km2_s2": [
+        11.374,
+        10.157,
+        13.787,
+        15.542
+      ],
       "mismatch_kms": [
         1.127,
         1.8834,
         2.7909,
         2.8372
       ],
+      "tof_first_leg_days": 220.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4793,6 +5698,13 @@
           3.073
         ]
       ],
+      "c3_km2_s2": [
+        17.653,
+        19.59,
+        9.138,
+        17.094,
+        16.15
+      ],
       "mismatch_kms": [
         0.3251,
         0.7406,
@@ -4800,6 +5712,8 @@
         1.4204,
         2.2083
       ],
+      "tof_first_leg_days": 158.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4836,12 +5750,20 @@
           5.018
         ]
       ],
+      "c3_km2_s2": [
+        25.48,
+        32.757,
+        14.569,
+        29.669
+      ],
       "mismatch_kms": [
         0.6443,
         0.8155,
         1.9916,
         2.6288
       ],
+      "tof_first_leg_days": 123.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4883,6 +5805,13 @@
           2.845
         ]
       ],
+      "c3_km2_s2": [
+        13.396,
+        8.607,
+        14.998,
+        11.712,
+        11.993
+      ],
       "mismatch_kms": [
         0.6336,
         0.8062,
@@ -4890,6 +5819,8 @@
         1.2793,
         1.8916
       ],
+      "tof_first_leg_days": 174.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4921,11 +5852,18 @@
           9.315
         ]
       ],
+      "c3_km2_s2": [
+        35.312,
+        39.64,
+        18.963
+      ],
       "mismatch_kms": [
         0.6116,
         0.9568,
         1.16
       ],
+      "tof_first_leg_days": 115.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4957,11 +5895,18 @@
           2.741
         ]
       ],
+      "c3_km2_s2": [
+        14.384,
+        10.271,
+        18.82
+      ],
       "mismatch_kms": [
         2.7543,
         2.8656,
         2.9792
       ],
+      "tof_first_leg_days": 235.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -4998,12 +5943,20 @@
           9.904
         ]
       ],
+      "c3_km2_s2": [
+        26.266,
+        21.462,
+        35.901,
+        51.219
+      ],
       "mismatch_kms": [
         0.6518,
         1.2675,
         1.4037,
         2.6606
       ],
+      "tof_first_leg_days": 119.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5045,6 +5998,13 @@
           2.727
         ]
       ],
+      "c3_km2_s2": [
+        10.087,
+        13.321,
+        11.297,
+        11.845,
+        11.774
+      ],
       "mismatch_kms": [
         0.2455,
         0.4173,
@@ -5052,6 +6012,8 @@
         1.3872,
         1.9041
       ],
+      "tof_first_leg_days": 181.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5088,12 +6050,20 @@
           9.358
         ]
       ],
+      "c3_km2_s2": [
+        24.768,
+        18.99,
+        41.321,
+        49.571
+      ],
       "mismatch_kms": [
         0.2358,
         0.9501,
         1.5568,
         2.1983
       ],
+      "tof_first_leg_days": 123.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5135,6 +6105,13 @@
           2.975
         ]
       ],
+      "c3_km2_s2": [
+        33.032,
+        34.057,
+        26.342,
+        34.231,
+        20.61
+      ],
       "mismatch_kms": [
         1.826,
         2.0199,
@@ -5142,6 +6119,8 @@
         2.3118,
         2.3351
       ],
+      "tof_first_leg_days": 279.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5183,6 +6162,13 @@
           3.004
         ]
       ],
+      "c3_km2_s2": [
+        18.106,
+        19.703,
+        9.268,
+        23.078,
+        21.867
+      ],
       "mismatch_kms": [
         0.332,
         0.8254,
@@ -5190,6 +6176,8 @@
         1.5289,
         2.1719
       ],
+      "tof_first_leg_days": 156.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5231,6 +6219,13 @@
           4.02
         ]
       ],
+      "c3_km2_s2": [
+        12.907,
+        18.03,
+        11.304,
+        14.074,
+        12.618
+      ],
       "mismatch_kms": [
         0.4639,
         1.0519,
@@ -5238,6 +6233,8 @@
         1.6369,
         1.6681
       ],
+      "tof_first_leg_days": 227.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5279,6 +6276,13 @@
           3.397
         ]
       ],
+      "c3_km2_s2": [
+        22.337,
+        29.403,
+        10.713,
+        19.017,
+        23.277
+      ],
       "mismatch_kms": [
         0.0686,
         0.8803,
@@ -5286,6 +6290,8 @@
         2.0171,
         2.728
       ],
+      "tof_first_leg_days": 142.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5322,12 +6328,20 @@
           5.763
         ]
       ],
+      "c3_km2_s2": [
+        32.398,
+        36.133,
+        17.837,
+        32.402
+      ],
       "mismatch_kms": [
         0.2556,
         1.0256,
         1.7326,
         2.945
       ],
+      "tof_first_leg_days": 113.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5359,11 +6373,18 @@
           11.176
         ]
       ],
+      "c3_km2_s2": [
+        52.662,
+        59.813,
+        29.135
+      ],
       "mismatch_kms": [
         0.8869,
         0.9794,
         2.1786
       ],
+      "tof_first_leg_days": 96.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5405,6 +6426,13 @@
           4.251
         ]
       ],
+      "c3_km2_s2": [
+        37.51,
+        38.514,
+        34.608,
+        35.833,
+        39.099
+      ],
       "mismatch_kms": [
         1.5036,
         1.5677,
@@ -5412,6 +6440,8 @@
         1.7963,
         1.9044
       ],
+      "tof_first_leg_days": 283.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5453,6 +6483,13 @@
           7.799
         ]
       ],
+      "c3_km2_s2": [
+        70.916,
+        72.152,
+        65.246,
+        77.506,
+        69.861
+      ],
       "mismatch_kms": [
         0.2714,
         0.2739,
@@ -5460,6 +6497,8 @@
         0.6924,
         1.2403
       ],
+      "tof_first_leg_days": 213.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5501,6 +6540,13 @@
           11.291
         ]
       ],
+      "c3_km2_s2": [
+        113.631,
+        103.98,
+        93.257,
+        117.241,
+        105.142
+      ],
       "mismatch_kms": [
         0.3272,
         0.4709,
@@ -5508,6 +6554,8 @@
         1.6315,
         1.6369
       ],
+      "tof_first_leg_days": 180.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5549,6 +6597,13 @@
           9.321
         ]
       ],
+      "c3_km2_s2": [
+        35.476,
+        24.199,
+        32.427,
+        17.238,
+        56.873
+      ],
       "mismatch_kms": [
         0.4976,
         0.7799,
@@ -5556,6 +6611,8 @@
         1.6852,
         2.062
       ],
+      "tof_first_leg_days": 137.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5597,6 +6654,13 @@
           5.052
         ]
       ],
+      "c3_km2_s2": [
+        16.47,
+        13.803,
+        14.699,
+        18.357,
+        19.369
+      ],
       "mismatch_kms": [
         0.1905,
         0.2228,
@@ -5604,6 +6668,8 @@
         0.9403,
         2.0529
       ],
+      "tof_first_leg_days": 189.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5640,12 +6706,20 @@
           4.719
         ]
       ],
+      "c3_km2_s2": [
+        29.245,
+        31.601,
+        13.451,
+        28.501
+      ],
       "mismatch_kms": [
         0.5826,
         0.8364,
         1.9862,
         2.5198
       ],
+      "tof_first_leg_days": 128.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5677,11 +6751,18 @@
           9.783
         ]
       ],
+      "c3_km2_s2": [
+        41.394,
+        53.793,
+        22.588
+      ],
       "mismatch_kms": [
         0.2982,
         0.9971,
         1.8308
       ],
+      "tof_first_leg_days": 104.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5713,11 +6794,18 @@
           12.584
         ]
       ],
+      "c3_km2_s2": [
+        52.008,
+        67.542,
+        37.643
+      ],
       "mismatch_kms": [
         0.7712,
         0.995,
         2.4484
       ],
+      "tof_first_leg_days": 89.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5759,6 +6847,13 @@
           8.242
         ]
       ],
+      "c3_km2_s2": [
+        20.98,
+        28.487,
+        12.141,
+        19.147,
+        31.611
+      ],
       "mismatch_kms": [
         0.5705,
         1.0858,
@@ -5766,6 +6861,8 @@
         2.5048,
         2.7645
       ],
+      "tof_first_leg_days": 141.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5797,11 +6894,18 @@
           12.045
         ]
       ],
+      "c3_km2_s2": [
+        45.164,
+        47.993,
+        32.378
+      ],
       "mismatch_kms": [
         0.5369,
         0.9338,
         1.6553
       ],
+      "tof_first_leg_days": 99.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5838,12 +6942,20 @@
           9.491
         ]
       ],
+      "c3_km2_s2": [
+        25.111,
+        19.566,
+        42.299,
+        49.952
+      ],
       "mismatch_kms": [
         0.239,
         0.929,
         1.5955,
         2.2585
       ],
+      "tof_first_leg_days": 122.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5885,6 +6997,13 @@
           4.425
         ]
       ],
+      "c3_km2_s2": [
+        43.246,
+        45.964,
+        45.081,
+        42.543,
+        46.479
+      ],
       "mismatch_kms": [
         0.887,
         1.0825,
@@ -5892,6 +7011,8 @@
         1.2253,
         1.4428
       ],
+      "tof_first_leg_days": 289.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5933,6 +7054,13 @@
           8.57
         ]
       ],
+      "c3_km2_s2": [
+        86.715,
+        76.685,
+        77.208,
+        83.942,
+        90.492
+      ],
       "mismatch_kms": [
         0.276,
         0.3507,
@@ -5940,6 +7068,8 @@
         1.0924,
         1.1825
       ],
+      "tof_first_leg_days": 199.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -5971,11 +7101,18 @@
           4.222
         ]
       ],
+      "c3_km2_s2": [
+        28.365,
+        25.893,
+        26.024
+      ],
       "mismatch_kms": [
         1.5701,
         2.4293,
         2.7235
       ],
+      "tof_first_leg_days": 176.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6017,6 +7154,13 @@
           3.848
         ]
       ],
+      "c3_km2_s2": [
+        13.727,
+        16.709,
+        20.229,
+        9.451,
+        18.072
+      ],
       "mismatch_kms": [
         0.4315,
         0.4432,
@@ -6024,6 +7168,8 @@
         1.0961,
         1.3031
       ],
+      "tof_first_leg_days": 199.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6055,11 +7201,18 @@
           9.312
         ]
       ],
+      "c3_km2_s2": [
+        38.032,
+        39.19,
+        20.755
+      ],
       "mismatch_kms": [
         0.0688,
         1.0897,
         1.6319
       ],
+      "tof_first_leg_days": 107.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6086,10 +7239,16 @@
           3.361
         ]
       ],
+      "c3_km2_s2": [
+        10.688,
+        9.479
+      ],
       "mismatch_kms": [
         2.0218,
         2.5398
       ],
+      "tof_first_leg_days": 211.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6131,6 +7290,13 @@
           3.073
         ]
       ],
+      "c3_km2_s2": [
+        17.653,
+        19.59,
+        9.138,
+        17.094,
+        16.15
+      ],
       "mismatch_kms": [
         0.3251,
         0.7406,
@@ -6138,6 +7304,8 @@
         1.4204,
         2.2083
       ],
+      "tof_first_leg_days": 158.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6174,12 +7342,20 @@
           5.518
         ]
       ],
+      "c3_km2_s2": [
+        30.039,
+        34.933,
+        16.68,
+        31.512
+      ],
       "mismatch_kms": [
         0.3664,
         0.9032,
         1.8719,
         2.8687
       ],
+      "tof_first_leg_days": 116.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6211,11 +7387,18 @@
           11.366
         ]
       ],
+      "c3_km2_s2": [
+        54.354,
+        60.751,
+        30.165
+      ],
       "mismatch_kms": [
         0.7882,
         0.8184,
         2.2736
       ],
+      "tof_first_leg_days": 95.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6247,11 +7430,18 @@
           12.754
         ]
       ],
+      "c3_km2_s2": [
+        69.054,
+        80.852,
+        44.36
+      ],
       "mismatch_kms": [
         0.2901,
         1.2522,
         2.2854
       ],
+      "tof_first_leg_days": 81.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6293,6 +7483,13 @@
           5.695
         ]
       ],
+      "c3_km2_s2": [
+        10.049,
+        13.334,
+        11.413,
+        11.974,
+        19.588
+      ],
       "mismatch_kms": [
         0.3575,
         0.5278,
@@ -6300,6 +7497,8 @@
         1.3358,
         2.121
       ],
+      "tof_first_leg_days": 179.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6341,6 +7540,13 @@
           5.688
         ]
       ],
+      "c3_km2_s2": [
+        50.841,
+        50.705,
+        51.758,
+        63.761,
+        51.378
+      ],
       "mismatch_kms": [
         0.1824,
         0.6201,
@@ -6348,6 +7554,8 @@
         1.2309,
         1.3203
       ],
+      "tof_first_leg_days": 248.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6389,6 +7597,13 @@
           9.819
         ]
       ],
+      "c3_km2_s2": [
+        97.538,
+        93.315,
+        109.473,
+        81.683,
+        81.039
+      ],
       "mismatch_kms": [
         0.3391,
         0.5218,
@@ -6396,6 +7611,8 @@
         1.4846,
         1.7167
       ],
+      "tof_first_leg_days": 186.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6437,6 +7654,13 @@
           14.645
         ]
       ],
+      "c3_km2_s2": [
+        144.603,
+        138.261,
+        166.024,
+        138.789,
+        160.32
+      ],
       "mismatch_kms": [
         0.9652,
         1.2286,
@@ -6444,6 +7668,8 @@
         2.278,
         2.5063
       ],
+      "tof_first_leg_days": 161.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6485,6 +7711,13 @@
           3.695
         ]
       ],
+      "c3_km2_s2": [
+        11.077,
+        12.091,
+        20.396,
+        13.295,
+        15.544
+      ],
       "mismatch_kms": [
         1.2749,
         1.5932,
@@ -6492,6 +7725,8 @@
         1.8219,
         1.8374
       ],
+      "tof_first_leg_days": 274.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6533,6 +7768,13 @@
           11.996
         ]
       ],
+      "c3_km2_s2": [
+        43.527,
+        74.585,
+        47.231,
+        44.816,
+        43.542
+      ],
       "mismatch_kms": [
         1.2171,
         1.6481,
@@ -6540,6 +7782,8 @@
         2.5867,
         2.597
       ],
+      "tof_first_leg_days": 150.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6581,6 +7825,13 @@
           9.051
         ]
       ],
+      "c3_km2_s2": [
+        34.779,
+        24.964,
+        31.745,
+        16.431,
+        54.679
+      ],
       "mismatch_kms": [
         0.4927,
         0.8255,
@@ -6588,6 +7839,8 @@
         1.6732,
         2.0433
       ],
+      "tof_first_leg_days": 139.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6624,12 +7877,20 @@
           4.111
         ]
       ],
+      "c3_km2_s2": [
+        11.269,
+        10.049,
+        15.343,
+        13.762
+      ],
       "mismatch_kms": [
         1.0955,
         1.8849,
         2.8,
         2.8209
       ],
+      "tof_first_leg_days": 219.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6671,6 +7932,13 @@
           3.587
         ]
       ],
+      "c3_km2_s2": [
+        24.424,
+        30.062,
+        11.54,
+        19.689,
+        23.879
+      ],
       "mismatch_kms": [
         0.1581,
         0.7839,
@@ -6678,6 +7946,8 @@
         2.2799,
         2.8265
       ],
+      "tof_first_leg_days": 137.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6709,11 +7979,18 @@
           9.783
         ]
       ],
+      "c3_km2_s2": [
+        41.394,
+        53.793,
+        22.588
+      ],
       "mismatch_kms": [
         0.2982,
         0.9971,
         1.8308
       ],
+      "tof_first_leg_days": 104.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6745,11 +8022,18 @@
           11.666
         ]
       ],
+      "c3_km2_s2": [
+        57.664,
+        71.855,
+        37.044
+      ],
       "mismatch_kms": [
         0.6912,
         0.9862,
         2.5472
       ],
+      "tof_first_leg_days": 86.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6781,11 +8065,18 @@
           2.759
         ]
       ],
+      "c3_km2_s2": [
+        13.523,
+        9.996,
+        18.472
+      ],
       "mismatch_kms": [
         2.4251,
         2.656,
         2.8566
       ],
+      "tof_first_leg_days": 231.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6817,11 +8108,18 @@
           9.315
         ]
       ],
+      "c3_km2_s2": [
+        35.312,
+        39.64,
+        18.963
+      ],
       "mismatch_kms": [
         0.6116,
         0.9568,
         1.16
       ],
+      "tof_first_leg_days": 115.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6858,12 +8156,20 @@
           9.626
         ]
       ],
+      "c3_km2_s2": [
+        25.475,
+        20.169,
+        43.312,
+        50.352
+      ],
       "mismatch_kms": [
         0.4427,
         1.1082,
         1.4338,
         2.3222
       ],
+      "tof_first_leg_days": 121.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6905,6 +8211,13 @@
           5.072
         ]
       ],
+      "c3_km2_s2": [
+        67.068,
+        73.603,
+        67.472,
+        53.632,
+        75.998
+      ],
       "mismatch_kms": [
         0.1776,
         0.4261,
@@ -6912,6 +8225,8 @@
         1.3125,
         1.6456
       ],
+      "tof_first_leg_days": 219.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -6953,6 +8268,13 @@
           9.319
         ]
       ],
+      "c3_km2_s2": [
+        119.84,
+        119.66,
+        121.28,
+        103.1,
+        108.326
+      ],
       "mismatch_kms": [
         0.227,
         0.9631,
@@ -6960,6 +8282,8 @@
         1.911,
         1.9732
       ],
+      "tof_first_leg_days": 173.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7001,6 +8325,13 @@
           4.742
         ]
       ],
+      "c3_km2_s2": [
+        37.07,
+        40.015,
+        32.204,
+        42.002,
+        37.496
+      ],
       "mismatch_kms": [
         0.186,
         1.4793,
@@ -7008,6 +8339,8 @@
         1.8183,
         1.8656
       ],
+      "tof_first_leg_days": 191.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7049,6 +8382,13 @@
           3.799
         ]
       ],
+      "c3_km2_s2": [
+        13.712,
+        18.563,
+        12.879,
+        14.567,
+        14.458
+      ],
       "mismatch_kms": [
         0.2768,
         0.6611,
@@ -7056,6 +8396,8 @@
         1.1798,
         1.2015
       ],
+      "tof_first_leg_days": 232.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7092,12 +8434,20 @@
           5.22
         ]
       ],
+      "c3_km2_s2": [
+        27.287,
+        33.597,
+        15.385,
+        30.424
+      ],
       "mismatch_kms": [
         0.4187,
         0.9606,
         1.8342,
         2.5955
       ],
+      "tof_first_leg_days": 120.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7129,11 +8479,18 @@
           11.957
         ]
       ],
+      "c3_km2_s2": [
+        47.078,
+        63.877,
+        33.603
+      ],
       "mismatch_kms": [
         0.7841,
         1.0749,
         2.4599
       ],
+      "tof_first_leg_days": 92.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7165,11 +8522,18 @@
           8.915
         ]
       ],
+      "c3_km2_s2": [
+        292.084,
+        286.777,
+        332.539
+      ],
       "mismatch_kms": [
         0.879,
         1.2017,
         2.3204
       ],
+      "tof_first_leg_days": 79.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7211,6 +8575,13 @@
           4.013
         ]
       ],
+      "c3_km2_s2": [
+        29.312,
+        29.103,
+        25.909,
+        21.58,
+        28.222
+      ],
       "mismatch_kms": [
         1.8795,
         2.1064,
@@ -7218,6 +8589,8 @@
         2.2342,
         2.6001
       ],
+      "tof_first_leg_days": 276.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7259,6 +8632,13 @@
           8.635
         ]
       ],
+      "c3_km2_s2": [
+        77.724,
+        68.095,
+        84.831,
+        91.718,
+        72.659
+      ],
       "mismatch_kms": [
         0.395,
         0.9881,
@@ -7266,6 +8646,8 @@
         1.1564,
         1.4111
       ],
+      "tof_first_leg_days": 198.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7307,6 +8689,13 @@
           14.206
         ]
       ],
+      "c3_km2_s2": [
+        140.411,
+        137.403,
+        170.428,
+        152.419,
+        141.309
+      ],
       "mismatch_kms": [
         1.1683,
         1.4753,
@@ -7314,6 +8703,8 @@
         2.1287,
         2.2185
       ],
+      "tof_first_leg_days": 160.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7355,6 +8746,13 @@
           4.383
         ]
       ],
+      "c3_km2_s2": [
+        28.658,
+        26.384,
+        15.734,
+        24.109,
+        19.211
+      ],
       "mismatch_kms": [
         0.3835,
         1.1285,
@@ -7362,6 +8760,8 @@
         1.5784,
         1.6344
       ],
+      "tof_first_leg_days": 202.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7403,6 +8803,13 @@
           9.93
         ]
       ],
+      "c3_km2_s2": [
+        29.123,
+        28.54,
+        23.735,
+        60.502,
+        18.233
+      ],
       "mismatch_kms": [
         0.7094,
         0.8396,
@@ -7410,6 +8817,8 @@
         2.0224,
         2.1604
       ],
+      "tof_first_leg_days": 143.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7451,6 +8860,13 @@
           3.073
         ]
       ],
+      "c3_km2_s2": [
+        17.653,
+        19.59,
+        9.138,
+        17.094,
+        16.15
+      ],
       "mismatch_kms": [
         0.2251,
         0.8406,
@@ -7458,6 +8874,8 @@
         1.3204,
         2.1083
       ],
+      "tof_first_leg_days": 158.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7489,11 +8907,18 @@
           9.783
         ]
       ],
+      "c3_km2_s2": [
+        41.394,
+        53.793,
+        22.588
+      ],
       "mismatch_kms": [
         0.2982,
         0.9971,
         1.8308
       ],
+      "tof_first_leg_days": 104.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7525,11 +8950,18 @@
           12.754
         ]
       ],
+      "c3_km2_s2": [
+        69.054,
+        80.852,
+        44.36
+      ],
       "mismatch_kms": [
         0.2901,
         1.2522,
         2.2854
       ],
+      "tof_first_leg_days": 81.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7571,6 +9003,13 @@
           2.826
         ]
       ],
+      "c3_km2_s2": [
+        13.38,
+        10.068,
+        14.879,
+        11.651,
+        11.957
+      ],
       "mismatch_kms": [
         0.5691,
         0.7871,
@@ -7578,6 +9017,8 @@
         1.3054,
         1.9162
       ],
+      "tof_first_leg_days": 175.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7609,11 +9050,18 @@
           13.74
         ]
       ],
+      "c3_km2_s2": [
+        54.457,
+        61.898,
+        44.353
+      ],
       "mismatch_kms": [
         0.6514,
         0.9725,
         1.7799
       ],
+      "tof_first_leg_days": 91.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7650,12 +9098,20 @@
           9.904
         ]
       ],
+      "c3_km2_s2": [
+        26.266,
+        21.462,
+        35.901,
+        51.219
+      ],
       "mismatch_kms": [
         0.6518,
         1.2675,
         1.4037,
         2.6606
       ],
+      "tof_first_leg_days": 119.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7687,11 +9143,18 @@
           9.458
         ]
       ],
+      "c3_km2_s2": [
+        314.979,
+        309.299,
+        353.196
+      ],
       "mismatch_kms": [
         0.8889,
         1.4445,
         2.5359
       ],
+      "tof_first_leg_days": 74.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7733,6 +9196,13 @@
           4.304
         ]
       ],
+      "c3_km2_s2": [
+        38.119,
+        38.886,
+        35.423,
+        35.181,
+        41.062
+      ],
       "mismatch_kms": [
         1.3984,
         1.4666,
@@ -7740,6 +9210,8 @@
         1.7492,
         1.8115
       ],
+      "tof_first_leg_days": 285.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7781,6 +9253,13 @@
           11.865
         ]
       ],
+      "c3_km2_s2": [
+        106.015,
+        116.997,
+        110.566,
+        86.02,
+        113.313
+      ],
       "mismatch_kms": [
         0.4104,
         1.3916,
@@ -7788,6 +9267,8 @@
         1.7626,
         2.0097
       ],
+      "tof_first_leg_days": 179.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7829,6 +9310,13 @@
           17.285
         ]
       ],
+      "c3_km2_s2": [
+        185.764,
+        209.771,
+        182.789,
+        196.109,
+        205.579
+      ],
       "mismatch_kms": [
         0.7415,
         0.8686,
@@ -7836,6 +9324,8 @@
         2.4602,
         2.523
       ],
+      "tof_first_leg_days": 147.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7867,11 +9357,18 @@
           4.133
         ]
       ],
+      "c3_km2_s2": [
+        66.747,
+        57.22,
+        53.266
+      ],
       "mismatch_kms": [
         1.0713,
         1.5214,
         2.669
       ],
+      "tof_first_leg_days": 117.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7908,12 +9405,20 @@
           4.719
         ]
       ],
+      "c3_km2_s2": [
+        29.245,
+        31.601,
+        13.451,
+        28.501
+      ],
       "mismatch_kms": [
         0.5826,
         0.8364,
         1.9862,
         2.5198
       ],
+      "tof_first_leg_days": 128.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7945,11 +9450,18 @@
           12.584
         ]
       ],
+      "c3_km2_s2": [
+        52.008,
+        67.542,
+        37.643
+      ],
       "mismatch_kms": [
         0.7712,
         0.995,
         2.4484
       ],
+      "tof_first_leg_days": 89.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -7981,11 +9493,18 @@
           10.1
         ]
       ],
+      "c3_km2_s2": [
+        341.88,
+        336.177,
+        377.486
+      ],
       "mismatch_kms": [
         0.6907,
         1.5224,
         2.7285
       ],
+      "tof_first_leg_days": 69.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8027,6 +9546,13 @@
           6.143
         ]
       ],
+      "c3_km2_s2": [
+        54.952,
+        53.08,
+        53.395,
+        48.363,
+        54.422
+      ],
       "mismatch_kms": [
         0.1683,
         0.2152,
@@ -8034,6 +9560,8 @@
         1.463,
         1.4663
       ],
+      "tof_first_leg_days": 241.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8075,6 +9603,13 @@
           14.206
         ]
       ],
+      "c3_km2_s2": [
+        140.411,
+        170.428,
+        137.403,
+        152.419,
+        141.309
+      ],
       "mismatch_kms": [
         1.1683,
         1.6455,
@@ -8082,6 +9617,8 @@
         2.1287,
         2.2185
       ],
+      "tof_first_leg_days": 160.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8123,6 +9660,13 @@
           12.145
         ]
       ],
+      "c3_km2_s2": [
+        44.575,
+        75.736,
+        48.422,
+        46.105,
+        44.842
+      ],
       "mismatch_kms": [
         1.2795,
         1.5819,
@@ -8130,6 +9674,8 @@
         2.6342,
         2.6483
       ],
+      "tof_first_leg_days": 149.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8166,12 +9712,20 @@
           4.111
         ]
       ],
+      "c3_km2_s2": [
+        11.269,
+        10.049,
+        15.343,
+        13.762
+      ],
       "mismatch_kms": [
         1.0955,
         1.8849,
         2.8,
         2.8209
       ],
+      "tof_first_leg_days": 219.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8203,11 +9757,18 @@
           9.783
         ]
       ],
+      "c3_km2_s2": [
+        41.394,
+        53.793,
+        22.588
+      ],
       "mismatch_kms": [
         0.3982,
         0.9717,
         1.9308
       ],
+      "tof_first_leg_days": 104.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8244,12 +9805,20 @@
           10.338
         ]
       ],
+      "c3_km2_s2": [
+        34.933,
+        38.652,
+        18.425,
+        52.7
+      ],
       "mismatch_kms": [
         0.7177,
         1.0192,
         1.1396,
         2.9977
       ],
+      "tof_first_leg_days": 116.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8281,11 +9850,18 @@
           10.867
         ]
       ],
+      "c3_km2_s2": [
+        374.03,
+        368.87,
+        406.531
+      ],
       "mismatch_kms": [
         0.8475,
         1.39,
         2.9959
       ],
+      "tof_first_leg_days": 64.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8327,6 +9903,13 @@
           6.887
         ]
       ],
+      "c3_km2_s2": [
+        86.682,
+        88.168,
+        84.176,
+        92.054,
+        85.346
+      ],
       "mismatch_kms": [
         0.3069,
         0.4305,
@@ -8334,6 +9917,8 @@
         1.3895,
         1.4746
       ],
+      "tof_first_leg_days": 195.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8355,9 +9940,14 @@
           11.574
         ]
       ],
+      "c3_km2_s2": [
+        135.607
+      ],
       "mismatch_kms": [
         1.5189
       ],
+      "tof_first_leg_days": 79.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8389,11 +9979,18 @@
           6.341
         ]
       ],
+      "c3_km2_s2": [
+        157.336,
+        143.249,
+        146.679
+      ],
       "mismatch_kms": [
         0.8389,
         0.9191,
         2.0295
       ],
+      "tof_first_leg_days": 183.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8435,6 +10032,13 @@
           3.02
         ]
       ],
+      "c3_km2_s2": [
+        17.232,
+        19.485,
+        16.869,
+        9.023,
+        16.02
+      ],
       "mismatch_kms": [
         0.41,
         0.6852,
@@ -8442,6 +10046,8 @@
         1.465,
         2.1774
       ],
+      "tof_first_leg_days": 160.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8473,11 +10079,18 @@
           12.754
         ]
       ],
+      "c3_km2_s2": [
+        69.054,
+        80.852,
+        44.36
+      ],
       "mismatch_kms": [
         0.3901,
         1.3522,
         2.1854
       ],
+      "tof_first_leg_days": 81.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8504,10 +10117,16 @@
           15.373
         ]
       ],
+      "c3_km2_s2": [
+        431.384,
+        428.62
+      ],
       "mismatch_kms": [
         1.2824,
         1.376
       ],
+      "tof_first_leg_days": 57.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8549,6 +10168,13 @@
           15.32
         ]
       ],
+      "c3_km2_s2": [
+        144.969,
+        180.179,
+        146.627,
+        145.746,
+        164.331
+      ],
       "mismatch_kms": [
         1.1457,
         1.9149,
@@ -8556,6 +10182,8 @@
         2.3547,
         2.539
       ],
+      "tof_first_leg_days": 158.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8587,11 +10215,18 @@
           9.624
         ]
       ],
+      "c3_km2_s2": [
+        40.228,
+        53.193,
+        21.945
+      ],
       "mismatch_kms": [
         0.2649,
         1.0055,
         1.839
       ],
+      "tof_first_leg_days": 105.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8633,6 +10268,13 @@
           3.149
         ]
       ],
+      "c3_km2_s2": [
+        28.513,
+        19.67,
+        24.146,
+        10.724,
+        22.43
+      ],
       "mismatch_kms": [
         0.788,
         0.8182,
@@ -8640,6 +10282,8 @@
         2.0171,
         2.2052
       ],
+      "tof_first_leg_days": 150.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8671,11 +10315,18 @@
           10.325
         ]
       ],
+      "c3_km2_s2": [
+        83.592,
+        45.577,
+        29.714
+      ],
       "mismatch_kms": [
         1.1849,
         1.9534,
         2.9036
       ],
+      "tof_first_leg_days": 93.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8702,10 +10353,16 @@
           10.855
         ]
       ],
+      "c3_km2_s2": [
+        84.69,
+        47.078
+      ],
       "mismatch_kms": [
         1.263,
         2.0932
       ],
+      "tof_first_leg_days": 92.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8732,10 +10389,16 @@
           11.02
         ]
       ],
+      "c3_km2_s2": [
+        93.978,
+        47.511
+      ],
       "mismatch_kms": [
         1.3924,
         2.9571
       ],
+      "tof_first_leg_days": 85.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8777,6 +10440,13 @@
           2.826
         ]
       ],
+      "c3_km2_s2": [
+        13.38,
+        10.068,
+        14.879,
+        11.651,
+        11.957
+      ],
       "mismatch_kms": [
         0.5391,
         0.8371,
@@ -8784,6 +10454,8 @@
         1.3354,
         1.9462
       ],
+      "tof_first_leg_days": 175.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8825,6 +10497,13 @@
           2.794
         ]
       ],
+      "c3_km2_s2": [
+        19.0,
+        15.384,
+        8.666,
+        15.664,
+        15.404
+      ],
       "mismatch_kms": [
         0.7481,
         0.795,
@@ -8832,6 +10511,8 @@
         1.2981,
         1.9904
       ],
+      "tof_first_leg_days": 171.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8873,6 +10554,13 @@
           2.794
         ]
       ],
+      "c3_km2_s2": [
+        19.0,
+        15.384,
+        8.666,
+        15.664,
+        15.404
+      ],
       "mismatch_kms": [
         0.7381,
         0.785,
@@ -8880,6 +10568,8 @@
         1.2881,
         1.9804
       ],
+      "tof_first_leg_days": 171.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8916,12 +10606,20 @@
           10.046
         ]
       ],
+      "c3_km2_s2": [
+        26.695,
+        36.784,
+        17.425,
+        51.687
+      ],
       "mismatch_kms": [
         0.8871,
         1.2127,
         1.4136,
         2.7656
       ],
+      "tof_first_leg_days": 118.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8953,11 +10651,18 @@
           9.616
         ]
       ],
+      "c3_km2_s2": [
+        36.133,
+        32.398,
+        20.121
+      ],
       "mismatch_kms": [
         0.5056,
         0.7444,
         1.5299
       ],
+      "tof_first_leg_days": 113.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -8979,9 +10684,14 @@
           12.186
         ]
       ],
+      "c3_km2_s2": [
+        99.034
+      ],
       "mismatch_kms": [
         1.4372
       ],
+      "tof_first_leg_days": 82.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -9023,6 +10733,13 @@
           2.866
         ]
       ],
+      "c3_km2_s2": [
+        13.414,
+        8.622,
+        15.122,
+        11.773,
+        12.03
+      ],
       "mismatch_kms": [
         0.5799,
         0.8697,
@@ -9030,6 +10747,8 @@
         1.3721,
         1.9859
       ],
+      "tof_first_leg_days": 173.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -9071,6 +10790,13 @@
           3.362
         ]
       ],
+      "c3_km2_s2": [
+        29.282,
+        21.961,
+        25.44,
+        11.324,
+        23.164
+      ],
       "mismatch_kms": [
         0.7459,
         1.126,
@@ -9078,6 +10804,8 @@
         2.0796,
         2.5652
       ],
+      "tof_first_leg_days": 143.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -9109,11 +10837,18 @@
           9.927
         ]
       ],
+      "c3_km2_s2": [
+        34.13,
+        37.045,
+        21.399
+      ],
       "mismatch_kms": [
         0.6299,
         0.6851,
         1.6913
       ],
+      "tof_first_leg_days": 111.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -9155,6 +10890,13 @@
           3.495
         ]
       ],
+      "c3_km2_s2": [
+        40.99,
+        38.02,
+        45.894,
+        41.634,
+        29.546
+      ],
       "mismatch_kms": [
         0.2091,
         0.3187,
@@ -9162,6 +10904,8 @@
         1.0125,
         1.2492
       ],
+      "tof_first_leg_days": 262.0,
+      "maintenance_dv_kms": null,
       "status": "ok"
     },
     {
@@ -9176,7 +10920,10 @@
       ],
       "next_encounters_iso": [],
       "vinf_actual_kms": [],
+      "c3_km2_s2": [],
       "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
       "status": "skipped: entry 'russell-2004-ch4-broadclass-family' has 0 legs; need 1"
     }
   ]
