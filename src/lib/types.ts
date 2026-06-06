@@ -103,6 +103,12 @@ export interface Segment {
   a_au?: number | null;
   e?: number | null;
   note?: string;
+  // Schema v4.2 (spec §16.7.9): the body this segment's conic/arc is centred
+  // on (absent ⇒ "Sun"), and a published [min, max] time-of-flight range in
+  // days (not required to contain tof_days — different model framings of one
+  // physical leg may both be sourced).
+  center?: string;
+  tof_days_bounds?: [number, number] | null;
 }
 
 export type ManeuverType = "flyby-ballistic" | "flyby-powered" | "launch" | "arrival";
@@ -133,6 +139,35 @@ export interface Family {
   continuation_param?: { name: string; value: number | string };
 }
 
+// Schema v4.1 (spec §16.7.7): Russell's Earth-to-Earth free-return arc
+// decomposition. Distinct from trajectory.segments (encounter legs). Only
+// meaningful for multi-arc cyclers.
+export type FreeReturnArcType = "generic" | "half-rev" | "full-rev";
+
+export interface FreeReturnArc {
+  arc_type: FreeReturnArcType;
+  resonance?: string | null;
+  tof_years?: number | null;
+  raw_descriptor?: string | null;
+}
+
+// Schema v4.4 (spec §16.7.11): per-field provenance vocabulary.
+export type ProvenanceSource =
+  | "rogers-2012-t1"
+  | "russell-2004-t34"
+  | "russell-2004-t39_311"
+  | "russell-2004-t49_413"
+  | "mcconaghy-2002"
+  | "mcconaghy-2006"
+  | "spec-9"
+  | "hollister-1970-t3"
+  | "friedlander-1986"
+  | "derived"
+  | "computed"
+  | string;
+export type ProvenanceFidelity = "circular-coplanar" | "analytic-ephemeris" | "real-de440" | string;
+export type ValidationTier = "cross_validated" | "consistency_checked" | "unvalidated" | string;
+
 export type DataGapKind = "unknown" | "uncertain" | "derive";
 
 export interface DataGap {
@@ -157,6 +192,19 @@ export interface CyclerEntry {
   cycler_class?: CyclerClass;
   // Cycle-level identity for multi-arc entries (spec §16.7.4).
   invariants?: Invariants | null;
+  // Schema v4.1 (spec §16.7.7): Russell free-return arc descriptors.
+  free_return_arcs?: FreeReturnArc[] | null;
+  // Schema v4.2 (spec §16.7.9): ephemeris model the source's numbers trace to.
+  source_ephemeris?: string | null;
+  // Schema v4.3 (spec §16.7.10): row supersession links (referential).
+  superseded_by?: string[] | null;
+  supersedes?: string[] | null;
+  // Schema v4.4 (spec §16.7.11): per-field provenance tags. Absent = unknown.
+  orbit_source?: ProvenanceSource | null;
+  vinf_source?: ProvenanceSource | null;
+  orbit_fidelity?: ProvenanceFidelity | null;
+  vinf_fidelity?: ProvenanceFidelity | null;
+  validation_tier?: ValidationTier | null;
   delta_v_kms?: number | null;
   v_infinity_leveraging_dv_kms?: number | null;
   fleet_size?: number | null;

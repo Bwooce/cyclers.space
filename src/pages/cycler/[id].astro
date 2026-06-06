@@ -1,7 +1,30 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { loadCatalogue, fmt, fmtBodies, legsOf, isFullyDefined } from "../../lib/catalogue";
+import { loadCatalogue, fmt, fmtBodies, legsOf, isFullyDefined, resolveLinks } from "../../lib/catalogue";
 import type { CyclerEntry, Citation } from "../../lib/types";
+
+const ARC_TYPE_LABEL: Record<string, string> = {
+  generic: "generic",
+  "half-rev": "half-rev",
+  "full-rev": "full-rev",
+};
+
+// Source-registry keys (schema v4.4, spec §16.7.11) → human labels.
+const SOURCE_LABEL: Record<string, string> = {
+  "rogers-2012-t1": "Rogers et al. 2012, Table 1",
+  "russell-2004-t34": "Russell 2004, Table 3.4",
+  "russell-2004-t39_311": "Russell 2004, Tables 3.9 / 3.11",
+  "russell-2004-t49_413": "Russell 2004, Tables 4.9 / 4.13",
+  "mcconaghy-2002": "McConaghy et al. 2002",
+  "mcconaghy-2006": "McConaghy et al. 2006",
+  "spec-9": "spec §9",
+  "hollister-1970-t3": "Hollister & Menning 1970, Table 3",
+  "friedlander-1986": "Friedlander et al. 1986",
+  derived: "derived",
+  computed: "computed",
+};
+
+const sourceLabel = (k: string | null | undefined): string => (k ? (SOURCE_LABEL[k] ?? k) : "");
 
 const CLS_LABEL: Record<string, string> = {
   "single-ellipse": "single-ellipse",
@@ -25,6 +48,29 @@ const legs = legsOf(entry);
 const fullyDefined = isFullyDefined(entry);
 const dataGaps = entry.data_gaps ?? [];
 
+// Schema v4.3 (spec §16.7.10): supersession links.
+const supersededBy = resolveLinks(entry.superseded_by);
+const supersedes = resolveLinks(entry.supersedes);
+
+// Schema v4.1 (spec §16.7.7): Russell free-return arc descriptors.
+const freeReturnArcs = entry.free_return_arcs ?? [];
+
+// Schema v4.4 (spec §16.7.11): per-field provenance tags. Absent ⇒ omitted.
+const provenanceTags: { label: string; value: string; mono?: boolean }[] = [];
+if (entry.orbit_source) provenanceTags.push({ label: "orbit source", value: sourceLabel(entry.orbit_source) });
+if (entry.orbit_fidelity) provenanceTags.push({ label: "orbit fidelity", value: entry.orbit_fidelity, mono: true });
+if (entry.vinf_source) provenanceTags.push({ label: "V∞ source", value: sourceLabel(entry.vinf_source) });
+if (entry.vinf_fidelity) provenanceTags.push({ label: "V∞ fidelity", value: entry.vinf_fidelity, mono: true });
+if (entry.validation_tier) provenanceTags.push({ label: "validation tier", value: entry.validation_tier, mono: true });
+
+// Schema v4.2 (spec §16.7.9): segment TOF bounds, keyed by "from→to" so the
+// legs list (which goes through legsOf and loses segment metadata) can show
+// them beside the point value where the segments render.
+const tofBoundsByLeg = new Map<string, [number, number]>();
+for (const seg of entry.trajectory?.segments ?? []) {
+  if (seg.tof_days_bounds) tofBoundsByLeg.set(`${seg.from}→${seg.to}`, seg.tof_days_bounds);
+}
+
 const formatCite = (c: Citation): string => {
   const authors =
     c.authors.length === 1
@@ -43,6 +89,27 @@ const formatCite = (c: Citation): string => {
     <code>{entry.id}</code> &middot; source: <strong>{entry.source}</strong> &middot;
     validation: <span class="vlevel">{entry.validation_level ?? "V0"}</span>
   </p>
+
+  {supersededBy.length > 0 && (
+    <div class="banner banner-superseded" role="note">
+      <strong>Superseded.</strong> This entry's premise has been invalidated or
+      superseded — see the attested {supersededBy.length === 1 ? "replacement" : "replacements"}:
+      <ul class="bare">
+        {supersededBy.map((t) => (
+          <li><a href={`/cycler/${t.id}/`}>{t.name}</a> <code class="muted">{t.id}</code></li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  {supersedes.length > 0 && (
+    <p class="muted">
+      Supersedes:
+      {supersedes.map((t, i) => (
+        <>{i > 0 ? ", " : " "}<a href={`/cycler/${t.id}/`}>{t.name}</a></>
+      ))}
+    </p>
+  )}
 
   <h2>Signature</h2>
   <dl class="cycler">
@@ -100,6 +167,17 @@ const formatCite = (c: Citation): string => {
     )}
     {entry.fleet_size !== undefined && entry.fleet_size !== null && (
       <><dt>Fleet size</dt><dd>{entry.fleet_size} vehicles</dd></>
+    )}
+    {entry.source_ephemeris && (
+      <>
+        <dt>Source ephemeris</dt>
+        <dd>
+          {entry.source_ephemeris}
+          <div class="muted" style="font-size:0.85em">
+            Ephemeris model the source states its numbers were computed against.
+          </div>
+        </dd>
+      </>
     )}
     <dt>Priority date</dt><dd>{entry.priority_date}</dd>
   </dl>
@@ -191,14 +269,51 @@ const formatCite = (c: Citation): string => {
     <>
       <h2>Legs{entry.trajectory ? " (trajectory segments)" : ""}</h2>
       <ul class="bare">
-        {legs.map((leg) => (
-          <li>
-            <code>{leg.from} → {leg.to}</code>:
-            {leg.tof_days === null ? " (TOF not published)" : ` ${leg.tof_days} d, ${leg.n_revs} revs`}
-            {leg.note && <div class="muted">{leg.note}</div>}
-          </li>
-        ))}
+        {legs.map((leg) => {
+          const bounds = tofBoundsByLeg.get(`${leg.from}→${leg.to}`);
+          return (
+            <li>
+              <code>{leg.from} → {leg.to}</code>:
+              {leg.tof_days === null ? " (TOF not published)" : ` ${leg.tof_days} d, ${leg.n_revs} revs`}
+              {bounds && (
+                <span class="muted"> &middot; published range {bounds[0]}–{bounds[1]} d</span>
+              )}
+              {leg.note && <div class="muted">{leg.note}</div>}
+            </li>
+          );
+        })}
       </ul>
+    </>
+  )}
+
+  {freeReturnArcs.length > 0 && (
+    <>
+      <h2>Free-return arcs (Russell decomposition)</h2>
+      <p class="muted">
+        Russell's Earth-to-Earth free-return arcs (spec §16.7.7) — a decomposition
+        distinct from the encounter legs above. A single arc spans what the
+        catalogue models as two or more encounter segments.
+      </p>
+      <table class="catalogue">
+        <thead>
+          <tr>
+            <th>Arc type</th>
+            <th>Resonance</th>
+            <th class="right">TOF (yr)</th>
+            <th>Raw descriptor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {freeReturnArcs.map((arc) => (
+            <tr>
+              <td>{ARC_TYPE_LABEL[arc.arc_type] ?? arc.arc_type}</td>
+              <td>{arc.resonance ?? <span class="muted">—</span>}</td>
+              <td class="right">{arc.tof_years ?? <span class="muted">—</span>}</td>
+              <td class="identity">{arc.raw_descriptor ?? <span class="muted">—</span>}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </>
   )}
 
@@ -249,6 +364,17 @@ const formatCite = (c: Citation): string => {
     <p>URL: <a href={entry.first_published.url} rel="noopener noreferrer">{entry.first_published.url}</a></p>
   )}
   {entry.first_published.note && <p class="muted">{entry.first_published.note}</p>}
+
+  {provenanceTags.length > 0 && (
+    <p class="prov-chips">
+      {provenanceTags.map((t) => (
+        <span class="prov-chip">
+          <span class="prov-key">{t.label}</span>
+          <span class={t.mono ? "prov-val mono" : "prov-val"}>{t.value}</span>
+        </span>
+      ))}
+    </p>
+  )}
 
   {entry.corroborating_sources && entry.corroborating_sources.length > 0 && (
     <>

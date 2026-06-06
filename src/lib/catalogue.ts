@@ -30,6 +30,20 @@ export function getEntryById(id: string): CyclerEntry | undefined {
 }
 
 /**
+ * Resolve a list of supersession target ids (schema v4.3, spec §16.7.10) to
+ * {id, name} pairs for linking. Ids that don't resolve to an existing row are
+ * passed through with name === id so the link text is still informative (the
+ * upstream Python gate guarantees resolution, this is defensive).
+ */
+export function resolveLinks(ids: readonly string[] | null | undefined): { id: string; name: string }[] {
+  if (!ids || ids.length === 0) return [];
+  return ids.map((id) => {
+    const target = getEntryById(id);
+    return { id, name: target?.name ?? id };
+  });
+}
+
+/**
  * Tally the catalogue's validation levels (V0..V5), reading the back-filled
  * level from each row (absent ⇒ V0 floor). Drives the data-driven validation
  * prose on the home and about pages so the site never hard-codes "every entry
