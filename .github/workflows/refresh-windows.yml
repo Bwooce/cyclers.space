@@ -43,7 +43,16 @@ jobs:
         # Reads seed_cyclers.yaml, calls cyclerfinder.search.phase_match
         # for each ballistic Earth-touching cycler, writes windows.json
         # with real JPL DE440 dates + actual Lambert V_inf per window.
-        run: python scripts/compute_windows.py
+        #
+        # --preserve-maintenance-dv: the maintenance-ΔV column is NOT recomputed
+        # here. The upstream optimiser is a cold-cache DE440 differential-
+        # evolution + SLSQP solve; GitHub's free runners give only 2-4 cores, so
+        # a recompute is not worth the wall time (and the value is row-invariant
+        # — see scripts/maintenance_batch.py). The column is computed locally
+        # once with `python scripts/compute_windows.py --maintenance-dv` and
+        # committed; this flag copies those existing values forward so the weekly
+        # dates refresh keeps the ΔV column intact rather than nulling it.
+        run: python scripts/compute_windows.py --preserve-maintenance-dv
       - name: Commit if changed
         id: commit
         run: |

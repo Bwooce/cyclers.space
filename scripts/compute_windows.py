@@ -16,21 +16,24 @@ Honest scope (per the 2026-06-01 launch-windows slice of M6 in upstream):
 - Time-of-flight to the first encounter is now emitted per cycler: the first
   leg ToF of the cycler's phase signature (the same value the Lambert solve
   uses at every candidate date). No extra computation.
-- Maintenance-ΔV budget is DEFERRED to an optional, opt-in column
-  (``--maintenance-dv``). It is null by default. Rationale (Task #103,
-  measured 2026-06-05): cyclerfinder's ``optimise_maintenance_dv`` is a global
-  ``differential_evolution`` + multi-start SLSQP optimiser over real DE440
-  states; one E-M-E cycler costs ~12 s with the astropy ephemeris. The
-  catalogue carries ~229 ballistic Earth-touching cyclers, so a full-catalogue
-  run is ~46 min — over the weekly CI budget (~20 min). It also needs a
-  *closed* sequence (first == last body) plus per-entry leg bounds/guesses and
-  an Earth-closure flyby config, which the open-chain catalogue ``bodies``
-  (e.g. ``["E", "M"]``) don't supply. Until that mapping + a tractable CI
-  story exist, the column stays null. Pass ``--maintenance-dv`` to populate it
-  for the Aldrin-style closed E-M-E cyclers locally (slow).
+- Maintenance-ΔV budget is an opt-in column (``--maintenance-dv``), computed
+  by a row-level parallel batch (``scripts/maintenance_batch.py``). cyclerfinder's
+  ``optimise_aldrin_maintenance_dv`` is a global ``differential_evolution`` +
+  multi-start SLSQP optimiser over real DE440 states costing ~12-19 s per solve.
+  The batch fans out over rows with a ``ProcessPoolExecutor`` (each worker builds
+  its own Ephemeris; no live object is pickled), and deduplicates: the upstream
+  solve takes no row-specific input, so every closed E-M (Aldrin) row resolves to
+  the identical Aldrin E→M→E ΔV — it is computed once and broadcast. Rows whose
+  ``bodies`` are not ``["E", "M"]`` stay null (the optimiser needs a closed
+  sequence + Earth-closure flyby config the open-chain rows don't supply);
+  ``maintenance_dv_status`` records the reason per row.
 
-When the upstream cyclerfinder ships full M6, the maintenance-ΔV column can be
-populated in CI; the JSON schema already carries the nullable field.
+CI story (Task #114, measured 2026-06-06): even parallelised, the cold-cache
+DE440 solve is too slow for GitHub's free 2-4-core runners, so the weekly cron
+does NOT recompute the column. Instead the populated values are computed locally
+once with ``--maintenance-dv`` and committed; the cron runs with
+``--preserve-maintenance-dv`` so a dates refresh keeps the existing ΔV column
+intact rather than nulling it. Re-run ``--maintenance-dv`` locally to refresh.
 """
 
 from __future__ import annotations
@@ -38,6 +41,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -61,24 +65,95 @@ NOW = datetime.datetime.now(tz=datetime.UTC).replace(hour=0, minute=0, second=0,
 HORIZON_END = NOW + datetime.timedelta(days=int(365.25 * HORIZON_YEARS))
 
 
-def _maintenance_dv_for_entry(entry: dict, sig: object, ephem: object) -> float | None:
-    """Compute the per-cycler maintenance ΔV, or None when not applicable.
+def _eligible_for_maintenance(entry: dict) -> bool:
+    """True when this catalogue row is a candidate for the maintenance solve.
 
-    Only closed E-M-E (Aldrin-style) cyclers are handled today: the upstream
+    Only closed E-M (Aldrin-style) cyclers are handled today: the upstream
     optimiser needs a closed sequence and an Earth-closure flyby config. The
-    open-chain catalogue ``bodies`` (e.g. ``["E", "M"]``) are treated as the
-    canonical Aldrin E→M→E loop. Anything else returns None (deferred).
-
-    This is SLOW (~12 s/cycler with the astropy ephemeris) and only runs under
-    the ``--maintenance-dv`` flag; see the module docstring for the rationale.
+    open-chain catalogue ``bodies`` ``["E", "M"]`` are treated as the canonical
+    Aldrin E→M→E loop. Everything else is deferred (null) honestly.
     """
-    from cyclerfinder.search.maintain import optimise_aldrin_maintenance_dv
+    return tuple(entry.get("bodies") or []) == ("E", "M")
 
-    bodies = tuple(entry.get("bodies") or [])
-    if bodies != ("E", "M"):
-        return None
-    result = optimise_aldrin_maintenance_dv(ephem, n_starts=5, seed=0)  # type: ignore[arg-type]
-    return float(result.maintenance_dv_kms)
+
+def _populate_maintenance_dv(
+    catalogue: list[dict],
+    entries_list: list[dict],
+    *,
+    max_workers: int | None,
+) -> None:
+    """Run the row-level parallel maintenance batch and write results back.
+
+    Eligible rows (closed E-M cyclers) get a real, computed ΔV. Every other row
+    keeps ``maintenance_dv_kms = None`` with a deferred status recorded in
+    ``maintenance_dv_status``. The batch lives in ``maintenance_batch`` (this
+    repo); the upstream cyclerfinder optimiser is not modified.
+    """
+    from maintenance_batch import MaintenanceRow, run_maintenance_batch
+
+    eligible_ids = {e["id"] for e in catalogue if _eligible_for_maintenance(e)}
+    rows = [
+        MaintenanceRow(row_id=str(e["id"]), bodies=tuple(e.get("bodies") or []))
+        for e in entries_list
+        if e["id"] in eligible_ids
+    ]
+    workers = max_workers if max_workers is not None else (os.cpu_count() or 1)
+    print(
+        f"maintenance-dv: solving {len(rows)} eligible (closed E-M) rows "
+        f"on {min(workers, max(1, len(rows)))} worker(s)..."
+    )
+    results = run_maintenance_batch(rows, ephem_model="astropy", max_workers=max_workers)
+    by_id = {r.row_id: r for r in results}
+
+    n_ok = 0
+    for out in entries_list:
+        res = by_id.get(str(out["id"]))
+        if res is None:
+            out["maintenance_dv_kms"] = None
+            out["maintenance_dv_status"] = (
+                "deferred: only closed E-M (Aldrin) cyclers are solved today"
+            )
+            continue
+        out["maintenance_dv_kms"] = (
+            round(res.dv_kms, 4) if res.dv_kms is not None else None
+        )
+        out["maintenance_dv_status"] = res.status
+        if res.dv_kms is not None:
+            n_ok += 1
+    print(
+        f"maintenance-dv: {n_ok} rows got a real ΔV; "
+        f"{len(rows) - n_ok} eligible rows failed; "
+        f"{len(entries_list) - len(rows)} deferred (non-E-M)."
+    )
+
+
+def _preserve_maintenance_dv(entries_list: list[dict]) -> None:
+    """Copy existing maintenance ΔV values from the prior windows.json.
+
+    Used by the weekly cron (which does NOT recompute the slow column): a dates
+    refresh should not null out a column that was populated by a local opt-in
+    run. Missing or unreadable prior output leaves the column null.
+    """
+    if not OUTPUT.exists():
+        return
+    try:
+        prior = json.loads(OUTPUT.read_text())
+    except (OSError, json.JSONDecodeError):
+        return
+    prior_by_id = {e.get("id"): e for e in prior.get("entries", [])}
+    n_kept = 0
+    for out in entries_list:
+        prev = prior_by_id.get(out["id"])
+        if prev is None:
+            continue
+        dv = prev.get("maintenance_dv_kms")
+        if dv is not None:
+            out["maintenance_dv_kms"] = dv
+            out["maintenance_dv_status"] = prev.get(
+                "maintenance_dv_status", "preserved from prior run"
+            )
+            n_kept += 1
+    print(f"maintenance-dv: preserved {n_kept} existing values from prior windows.json.")
 
 
 def main() -> int:
@@ -88,7 +163,27 @@ def main() -> int:
         action="store_true",
         help=(
             "Populate the per-cycler maintenance_dv_kms column. SLOW "
-            "(~12 s/cycler, astropy); off by default and skipped in weekly CI."
+            "(~12-19 s/solve, astropy) but parallelised row-level across a "
+            "process pool; off by default and skipped in weekly CI."
+        ),
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=None,
+        help=(
+            "Worker processes for the --maintenance-dv batch. "
+            "Default: os.cpu_count(). Lower it to share the box."
+        ),
+    )
+    parser.add_argument(
+        "--preserve-maintenance-dv",
+        action="store_true",
+        help=(
+            "When NOT computing maintenance ΔV, copy any existing "
+            "maintenance_dv_kms values from the current windows.json into the "
+            "new output instead of nulling them. Used by the weekly cron so it "
+            "refreshes dates without wiping the locally-computed ΔV column."
         ),
     )
     args = parser.parse_args()
@@ -125,8 +220,12 @@ def main() -> int:
         "schema_note": (
             "Per-window c3_km2_s2 = |V_inf,depart|^2 (Lambert output). "
             "Per-cycler tof_first_leg_days is the cycler's first-leg ToF. "
-            "Per-cycler maintenance_dv_kms is null unless this export ran "
-            "with --maintenance-dv (deferred from weekly CI for runtime)."
+            "Per-cycler maintenance_dv_kms is the computed per-synodic TCM "
+            "budget for closed E-M (Aldrin) cyclers, populated by an opt-in "
+            "--maintenance-dv run (row-level parallel) and refreshed on manual "
+            "runs only; the weekly cron preserves existing values rather than "
+            "recomputing the slow optimiser. Null for non-E-M rows "
+            "(maintenance_dv_status records the reason)."
         ),
         "disclaimer": (
             "Geometric-match launch windows from real JPL DE440 ephemeris "
@@ -134,9 +233,12 @@ def main() -> int:
             "departure column is the actual Lambert output at the matched "
             "date. C_3 at departure and time-of-flight to the first encounter "
             "are now emitted (both derived from the same Lambert solve / phase "
-            "signature). The maintenance-ΔV (TCM-budget) column is deferred to "
-            "an opt-in run: the upstream optimiser is too slow for the weekly "
-            "CI job (~12 s/cycler), so it is null by default."
+            "signature). The maintenance-ΔV (TCM-budget) column carries the "
+            "upstream optimiser's computed per-synodic value for closed E-M "
+            "(Aldrin) cyclers; it is too slow for the weekly CI runner so it is "
+            "computed by an opt-in local run and refreshed manually, with the "
+            "cron preserving existing values. Null for rows the optimiser does "
+            "not yet model."
         ),
         "entries": [],
     }
@@ -156,6 +258,7 @@ def main() -> int:
             "mismatch_kms": [],
             "tof_first_leg_days": None,
             "maintenance_dv_kms": None,
+            "maintenance_dv_status": "not-computed",
             "status": "unprocessed",
         }
 
@@ -209,13 +312,17 @@ def main() -> int:
         # candidate date), straight from the phase signature in days.
         if sig.leg_durations_s:
             out["tof_first_leg_days"] = round(sig.leg_durations_s[0] / SECONDS_PER_DAY, 1)
-        if args.maintenance_dv:
-            try:
-                out["maintenance_dv_kms"] = _maintenance_dv_for_entry(entry, sig, ephem)
-            except Exception as exc:  # noqa: BLE001 -- optimiser can fail many ways
-                out["maintenance_dv_note"] = f"maintenance-dv error: {exc}"
         out["status"] = "ok" if launch_windows else "no-windows-found"
         entries_list.append(out)
+
+    # --- Maintenance-ΔV column -------------------------------------------------
+    # Either compute it (row-level parallel batch) or, for the weekly cron,
+    # preserve any values already present in the prior windows.json so a dates
+    # refresh does not wipe a locally-computed column.
+    if args.maintenance_dv:
+        _populate_maintenance_dv(catalogue, entries_list, max_workers=args.max_workers)
+    elif args.preserve_maintenance_dv:
+        _preserve_maintenance_dv(entries_list)
 
     windows["entries"] = entries_list
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
