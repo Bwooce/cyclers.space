@@ -22,9 +22,10 @@ completion order, so a parallel run is reproducible and matches a serial run.
 
 Work deduplication
 ------------------
-Today the upstream ``optimise_aldrin_maintenance_dv`` is invoked with *no
-row-specific input* — every closed E-M cycler row resolves to the identical
-Aldrin E→M→E solve (same sequence, same seed, same guesses). Running 200+
+Today the upstream ``optimise_aldrin_maintenance_dv`` is invoked with no
+row-specific input (only the fixed Aldrin priority-date seed; finding #114) —
+every closed E-M cycler row resolves to the identical Aldrin E→M→E solve (same
+sequence, seed, guesses, and seed window). Running 200+
 byte-identical 18 s solves would be pure waste and would falsely imply per-row
 variation that does not exist. So the driver groups rows by their *solve key*
 (the body-code tuple that selects the solve), computes each distinct key once in
@@ -96,10 +97,23 @@ def _solve_key(key: tuple[str, ...]) -> tuple[tuple[str, ...], float | None, str
         return (key, None, "deferred: only closed E-M (Aldrin) cyclers are solved today")
     try:
         from cyclerfinder.core.ephemeris import Ephemeris
-        from cyclerfinder.search.maintain import optimise_aldrin_maintenance_dv
+        from cyclerfinder.search.maintain import (
+            _ALDRIN_PRIORITY_DATE,
+            optimise_aldrin_maintenance_dv,
+        )
 
         ephem = Ephemeris(model=_EPHEM_MODEL)
-        result = optimise_aldrin_maintenance_dv(ephem, n_starts=5, seed=0)
+        # Seed the real-DE440 solve from the sourced-anchor launch window
+        # (finding #114): the bare default seed is mis-phased on DE440 and
+        # slides off-family onto a 55 km/s degenerate basin. The priority-date
+        # seed lands in-family (a~1.59, e~0.39, Vinf 6.4/9.5, dV~2.91 km/s),
+        # matching the independent solve_powered_periodic_cycler BVP path.
+        result = optimise_aldrin_maintenance_dv(
+            ephem,
+            n_starts=5,
+            seed=0,
+            real_window_priority_date=_ALDRIN_PRIORITY_DATE,
+        )
         if not result.converged:
             return (key, None, "no-converge: optimiser hit the Lambert penalty")
         return (key, float(result.maintenance_dv_kms), "ok")
