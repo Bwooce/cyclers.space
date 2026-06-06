@@ -258,6 +258,39 @@ table.catalogue tr.hidden { display: none; }
 
 .banner strong { font-family: var(--font-mono); }
 
+/* Supersession notice (schema v4.3): the warn banner, made prominent with a
+   thicker leading rule, sits at the top of an invalidated entry's page. */
+.banner-superseded { border-left-width: 4px; }
+.banner-superseded ul.bare { margin: 0.4rem 0 0; }
+.banner-superseded ul.bare li { margin: 0.2rem 0; }
+
+/* Per-field provenance chips (schema v4.4, spec §16.7.11): compact labelled
+   key/value pairs in the citation area. */
+.prov-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  margin: 0.5rem 0;
+}
+.prov-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  padding: 0.1rem 0.45rem;
+  font-size: 0.8rem;
+}
+.prov-chip .prov-key {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--fg-muted);
+}
+.prov-chip .prov-val.mono { font-family: var(--font-mono); }
+
 /* Definition lists for cycler detail pages */
 dl.cycler {
   display: grid;
