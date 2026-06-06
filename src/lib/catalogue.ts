@@ -1,5 +1,6 @@
 import yaml from "js-yaml";
 import type { CyclerEntry, Leg } from "./types";
+import windowsData from "../data/windows.json";
 // Vite raw-import: at build time the YAML file's contents are inlined as a
 // string into the bundle. This is robust against Astro's prerender file
 // layout (no filesystem reads at runtime) and works in both dev and
@@ -27,6 +28,29 @@ export function loadCatalogue(): CyclerEntry[] {
 
 export function getEntryById(id: string): CyclerEntry | undefined {
   return loadCatalogue().find((e) => e.id === id);
+}
+
+/**
+ * Real-ephemeris encounter windows for a row, from the synced windows.json
+ * (DE440 geometric-match dates; see windows.json header). Used by the orbit
+ * view to prefer real DE440 dates over idealized geometry (design Q3). Returns
+ * the body order + chronologically-sorted match dates, or null when the row
+ * produced no windows (skipped / non-ballistic / non-heliocentric).
+ */
+export interface WindowMatch {
+  iso: string;
+  vinf: number[];
+}
+export function encounterWindowsFor(id: string): { bodies: string[]; matches: WindowMatch[] } | null {
+  const entry = (windowsData as { entries: Array<Record<string, unknown>> }).entries.find((e) => e.id === id);
+  if (!entry) return null;
+  const dates = (entry.next_encounters_iso as string[]) ?? [];
+  if (dates.length === 0) return null;
+  const vinfs = (entry.vinf_actual_kms as number[][]) ?? [];
+  const matches = dates
+    .map((iso, i) => ({ iso, vinf: vinfs[i] ?? [] }))
+    .sort((a, b) => a.iso.localeCompare(b.iso));
+  return { bodies: (entry.bodies as string[]) ?? [], matches };
 }
 
 /**

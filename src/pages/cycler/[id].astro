@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { loadCatalogue, fmt, fmtBodies, legsOf, isFullyDefined, resolveLinks } from "../../lib/catalogue";
+import OrbitView from "../../components/OrbitView.astro";
 import type { CyclerEntry, Citation } from "../../lib/types";
 
 const ARC_TYPE_LABEL: Record<string, string> = {
@@ -264,6 +265,8 @@ const formatCite = (c: Citation): string => {
       {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
     </>
   )}
+
+  <OrbitView entry={entry} />
 
   {legs.length > 0 && (
     <>
