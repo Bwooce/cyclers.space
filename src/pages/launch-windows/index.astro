@@ -16,6 +16,7 @@ interface WindowEntry {
   mismatch_kms: number[];
   tof_first_leg_days: number | null;
   maintenance_dv_kms: number | null;
+  maintenance_dv_status?: string;
   status: string;
 }
 
@@ -70,12 +71,15 @@ const nTotal = data.entries.length;
     keeping the dates whose V<sub>∞</sub> at injection matches the cycler's signature.
     <strong>Now shown:</strong> C<sub>3</sub> at departure (= |V<sub>∞,depart</sub>|², per
     window) and time-of-flight to the first encounter (per cycler) — both derived directly
-    from the same Lambert solve / phase signature the dates come from.
-    <strong>Still deferred:</strong> the maintenance-ΔV (TCM) budget. The upstream optimiser
-    (<a href="https://github.com/Bwooce/cyclers">M6b</a>) exists but is a global
-    differential-evolution + SLSQP run costing ~12 s per cycler on real ephemeris; running it
-    for the whole catalogue would blow the weekly CI budget, so that column is blank by default
-    and populated only by an opt-in export run.
+    from the same Lambert solve / phase signature the dates come from — plus the
+    <strong>maintenance-ΔV (TCM) budget</strong> for closed E–M (Aldrin-style) cyclers, the
+    computed per-synodic turn-deficit ΔV from the upstream optimiser
+    (<a href="https://github.com/Bwooce/cyclers">M6b</a>).
+    <strong>How that column refreshes:</strong> the optimiser is a cold-cache DE440
+    differential-evolution + SLSQP solve, too slow for GitHub's free CI runner, so the column
+    is computed locally (row-level parallel) and committed; the weekly cron preserves the
+    existing values rather than recomputing them. It is null for non-E–M rows the optimiser
+    does not yet model.
   </div>
 
   <p>
@@ -164,15 +168,28 @@ const nTotal = data.entries.length;
     runtime to the cron job.
   </p>
   <p>
-    The <strong>maintenance-ΔV budget</strong> remains deferred. The upstream optimiser
-    (M6b, <code>cyclerfinder.search.maintain.optimise_maintenance_dv</code>) is a global
+    The <strong>maintenance-ΔV budget</strong> is now populated for closed E–M (Aldrin-style)
+    cyclers. The upstream optimiser (M6b,
+    <code>cyclerfinder.search.maintain.optimise_aldrin_maintenance_dv</code>) is a global
     <code>differential_evolution</code> + multi-start SLSQP run over real DE440 states; one
-    closed E-M-E cycler measured ~12 s, and the catalogue carries ~229 ballistic
-    Earth-touching cyclers (≈46 min full-run) — over the weekly CI budget. It also needs a
-    closed encounter sequence plus per-cycler flyby-closure config that the open-chain
-    catalogue rows don't yet supply. The export emits a nullable <code>maintenance_dv_kms</code>
-    column (blank above) that an opt-in run (<code>--maintenance-dv</code>) populates; CI
-    leaves it null until a tractable batched optimisation lands.
+    closed E–M–E solve measures ~12–19 s. The export now drives it through a row-level
+    parallel batch (<code>scripts/maintenance_batch.py</code>, a
+    <code>ProcessPoolExecutor</code> over rows, each worker building its own ephemeris).
+    Because the solve takes no row-specific input, every closed E–M row resolves to the same
+    Aldrin E→M→E ΔV; the batch computes it once and broadcasts it, so the
+    <code>maintenance_dv_kms</code> column carries that single computed per-synodic turn-deficit
+    value across the Aldrin family. Rows whose <code>bodies</code> are not
+    <code>["E","M"]</code> stay null — the optimiser needs a closed sequence plus an
+    Earth-closure flyby config the open-chain rows don't yet supply
+    (<code>maintenance_dv_status</code> records the reason per row).
+  </p>
+  <p class="muted">
+    <strong>Why it isn't on the weekly cron.</strong> Even parallelised, the cold-cache DE440
+    solve is too slow for GitHub's free runner (2–4 cores), and the value is row-invariant, so
+    a weekly recompute buys nothing. The column is computed once with
+    <code>python scripts/compute_windows.py --maintenance-dv</code> and committed; the cron runs
+    with <code>--preserve-maintenance-dv</code>, which carries the existing values forward so a
+    dates refresh never nulls the column. Re-run the opt-in command locally to refresh it.
   </p>
 
   <h2>How the dates are computed</h2>
