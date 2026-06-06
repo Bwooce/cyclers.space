@@ -71,15 +71,12 @@ const nTotal = data.entries.length;
     keeping the dates whose V<sub>∞</sub> at injection matches the cycler's signature.
     <strong>Now shown:</strong> C<sub>3</sub> at departure (= |V<sub>∞,depart</sub>|², per
     window) and time-of-flight to the first encounter (per cycler) — both derived directly
-    from the same Lambert solve / phase signature the dates come from — plus the
-    <strong>maintenance-ΔV (TCM) budget</strong> for closed E–M (Aldrin-style) cyclers, the
-    computed per-synodic turn-deficit ΔV from the upstream optimiser
-    (<a href="https://github.com/Bwooce/cyclers">M6b</a>).
-    <strong>How that column refreshes:</strong> the optimiser is a cold-cache DE440
-    differential-evolution + SLSQP solve, too slow for GitHub's free CI runner, so the column
-    is computed locally (row-level parallel) and committed; the weekly cron preserves the
-    existing values rather than recomputing them. It is null for non-E–M rows the optimiser
-    does not yet model.
+    from the same Lambert solve / phase signature the dates come from.
+    <strong>Still blank: the maintenance-ΔV column.</strong> The batch machinery is built
+    (row-level parallel, local-compute + cron-preserve), but the default-seeded DE440
+    maintenance solve lands an off-family basin (55.3 km/s — implausible against the
+    1.29 km/s in-family circular-model value and the upstream test suite's &lt;3 km/s
+    plausibility bar), so no value is published until a family-seeded solve is verified.
   </div>
 
   <p>
@@ -168,20 +165,19 @@ const nTotal = data.entries.length;
     runtime to the cron job.
   </p>
   <p>
-    The <strong>maintenance-ΔV budget</strong> is now populated for closed E–M (Aldrin-style)
-    cyclers. The upstream optimiser (M6b,
-    <code>cyclerfinder.search.maintain.optimise_aldrin_maintenance_dv</code>) is a global
-    <code>differential_evolution</code> + multi-start SLSQP run over real DE440 states; one
-    closed E–M–E solve measures ~12–19 s. The export now drives it through a row-level
-    parallel batch (<code>scripts/maintenance_batch.py</code>, a
-    <code>ProcessPoolExecutor</code> over rows, each worker building its own ephemeris).
-    Because the solve takes no row-specific input, every closed E–M row resolves to the same
-    Aldrin E→M→E ΔV; the batch computes it once and broadcasts it, so the
-    <code>maintenance_dv_kms</code> column carries that single computed per-synodic turn-deficit
-    value across the Aldrin family. Rows whose <code>bodies</code> are not
-    <code>["E","M"]</code> stay null — the optimiser needs a closed sequence plus an
-    Earth-closure flyby config the open-chain rows don't yet supply
-    (<code>maintenance_dv_status</code> records the reason per row).
+    The <strong>maintenance-ΔV budget</strong> column remains blank — honestly. The batch
+    infrastructure shipped (<code>scripts/maintenance_batch.py</code>: a row-level
+    <code>ProcessPoolExecutor</code>, workers building their own ephemerides, dedup of the
+    row-invariant solve, a <code>--preserve-maintenance-dv</code> cron mode), and a full
+    local run completed — but the default-seeded real-DE440 solve converges to an
+    <em>off-family</em> basin: 55.3 km/s, versus the <strong>1.29 km/s</strong> in-family
+    value from the circular-model solve (sourced Aldrin ellipse, 11.3° Earth turn deficit)
+    and the upstream test suite's <code>&lt;3 km/s</code> plausibility bar. Publishing the
+    off-family number would mislabel a degenerate solve as a TCM budget, so the column
+    stays null until the DE440 solve is seeded onto the Aldrin family and verified
+    (tracked upstream). Non-E–M rows additionally need a closed sequence + Earth-closure
+    flyby config the open-chain rows don't yet supply
+    (<code>maintenance_dv_status</code> records per-row reasons when populated).
   </p>
   <p class="muted">
     <strong>Why it isn't on the weekly cron.</strong> Even parallelised, the cold-cache DE440
