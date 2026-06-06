@@ -71,6 +71,13 @@ export interface OrbitElements {
   aphelion_au: number | null;
   inclination_deg: number | null;
   note?: string;
+  // Schema v2 (2026-06-01): 3D orientation children (spec §16.1). Present in
+  // the YAML, frequently null — when null the orbit view draws the in-plane
+  // ellipse and labels it coplanar-idealized (task #132, design Q5).
+  raan_deg?: number | null;
+  arg_periapsis_deg?: number | null;
+  true_anomaly_deg?: number | null;
+  epoch_iso8601?: string | null;
   // Schema v4 (2026-06-03): frame/center tags and CR3BP identity block.
   reference_frame?: string | null;
   center?: string | null;

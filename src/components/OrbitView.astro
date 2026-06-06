@@ -1,0 +1,397 @@
+---
+// Per-cycler 2.5D orbit view (task #132; design
+// docs/.../2026-06-06-web-3d-orbit-visualization-design.md, Phase 1).
+//
+// Class-aware, build-time-rendered inline SVG (JS-off safe) of the top-down
+// ecliptic projection (Sun at origin) plus a labelled edge-on z-panel. The
+// only client JS is a small play/scrub island that walks markers along the
+// already-rendered SVG paths via getPointAtLength — no math, no library, and
+// it bails gracefully if the SVG is absent. Everything inverts with dark mode
+// via currentColor / CSS variables; legs and markers are distinguished by
+// dash pattern AND glyph AND text, never colour alone (design §4).
+import type { CyclerEntry } from "../lib/types";
+import { encounterWindowsFor } from "../lib/catalogue";
+import {
+  PLANETS,
+  sampleEllipse,
+  sampleEdgeOn,
+  sampleCircle,
+  idealEncounters,
+  toSvgPath,
+  renderClassOf,
+} from "../lib/orbit";
+
+interface Props {
+  entry: CyclerEntry;
+}
+const { entry } = Astro.props;
+const cls = renderClassOf(entry);
+
+// --- canvas geometry -------------------------------------------------------
+const W = 440;
+const H = 440;
+const cx = W / 2;
+const cy = H / 2;
+const PAD = 28; // px margin so labels at the rim are not clipped
+
+const oe = entry.orbit_elements;
+const bodies = entry.bodies ?? [];
+// Planets to draw as reference circles: every encountered V/E/M plus Earth as
+// the universal anchor (matches plots.py:177-179 reference circles).
+const planetCodes = Array.from(new Set<string>([...bodies.filter((b) => PLANETS[b]), "E"]));
+const planetRadii = planetCodes.map((c) => PLANETS[c]!.sma_au);
+
+// --- single-ellipse path ---------------------------------------------------
+const orient = {
+  inclination_deg: oe.inclination_deg,
+  raan_deg: oe.raan_deg,
+  arg_periapsis_deg: oe.arg_periapsis_deg,
+};
+// Is the orientation coplanar-idealized? (the common case — angles null/zero)
+const oriented =
+  Number.isFinite(oe.raan_deg as number) ||
+  Number.isFinite(oe.arg_periapsis_deg as number) ||
+  (Number.isFinite(oe.inclination_deg as number) && (oe.inclination_deg ?? 0) !== 0);
+
+let ellipsePts: { x: number; y: number }[] = [];
+let maxR = Math.max(...planetRadii, 1);
+if (cls === "single-ellipse" && oe.a_au != null && oe.e != null) {
+  ellipsePts = sampleEllipse(oe.a_au, oe.e, orient);
+  maxR = Math.max(maxR, oe.a_au * (1 + oe.e));
+}
+
+// One scale (px/AU) fits the largest radius into the padded canvas.
+const scale = (Math.min(W, H) / 2 - PAD) / maxR;
+
+const ellipsePath = toSvgPath(ellipsePts, scale, cx, cy);
+const planetPaths = planetRadii.map((r) => toSvgPath(sampleCircle(r), scale, cx, cy));
+
+// --- encounter markers (single-ellipse): real DE440 dates preferred, else
+// idealized planet-crossing geometry (design §5, Q3). Real windows give us
+// dates but not heliocentric XY without ephemeris, so when real dates exist we
+// still place the marker at the idealized crossing AND surface the real date in
+// the marker label + provenance line (never fabricating a position we lack, but
+// honestly anchoring it to the encountered body's radius). When no real dates
+// exist the marker is purely idealized.
+const realWindows = encounterWindowsFor(entry.id);
+const encMarks =
+  cls === "single-ellipse" && oe.a_au != null && oe.e != null ? idealEncounters(oe.a_au, oe.e, bodies) : [];
+const encProvenance = realWindows
+  ? "encounter dates: real ephemeris (DE440); positions: idealized crossing geometry"
+  : "encounters: idealized circular-coplanar crossing geometry (no real window matched)";
+
+// --- edge-on z-panel -------------------------------------------------------
+const EXAGG = 12; // out-of-plane exaggeration factor (labelled on the panel)
+const ePadX = 18;
+const eW = 440;
+const eH = 120;
+const ecx = eW / 2;
+const ecy = eH / 2;
+let edgePath = "";
+let edgeScale = 0;
+if (cls === "single-ellipse" && oe.a_au != null && oe.e != null) {
+  const edgePts = sampleEdgeOn(oe.a_au, oe.e, orient, EXAGG);
+  const exMax = Math.max(...edgePts.map((p) => Math.abs(p.x)), oe.a_au * (1 + oe.e));
+  edgeScale = (eW / 2 - ePadX) / exMax;
+  edgePath = toSvgPath(edgePts, edgeScale, ecx, ecy);
+}
+const inclLabel =
+  (oe.inclination_deg ?? 0) === 0 || oe.inclination_deg == null
+    ? "i = 0° (coplanar-idealized — flat in this view)"
+    : `i = ${(oe.inclination_deg ?? 0).toFixed(2)}° (z exaggerated ×${EXAGG})`;
+
+// --- multi-arc: per-segment arcs where (a,e) present, explicit gaps else ----
+type ArcRow = { id: string; from: string; to: string; rendered: boolean; path: string };
+const arcRows: ArcRow[] = [];
+if (cls === "multi-arc") {
+  for (const seg of entry.trajectory?.segments ?? []) {
+    if (seg.a_au != null && seg.e != null) {
+      const pts = sampleEllipse(seg.a_au, seg.e, {});
+      arcRows.push({ id: seg.id, from: seg.from, to: seg.to, rendered: true, path: toSvgPath(pts, scale, cx, cy) });
+    } else {
+      arcRows.push({ id: seg.id, from: seg.from, to: seg.to, rendered: false, path: "" });
+    }
+  }
+}
+const renderedArcs = arcRows.filter((a) => a.rendered);
+const gapArcs = arcRows.filter((a) => !a.rendered);
+
+// Model-fidelity badge text (design §5, reusing model_assumption vocabulary).
+const fidelity = entry.model_assumption ?? "circular-coplanar";
+const fidelityBadge =
+  fidelity === "cr3bp"
+    ? "CR3BP (rotating frame)"
+    : fidelity === "analytic-ephemeris"
+      ? "analytic-ephemeris (real e/i retained)"
+      : "idealized: coplanar, planets on circles";
+
+const titleId = `orbit-title-${entry.id}`;
+const descId = `orbit-desc-${entry.id}`;
+
+// Static a11y description of what the figure shows.
+const svgDesc =
+  cls === "single-ellipse"
+    ? `Top-down ecliptic view: the Sun at centre, reference circles for ${planetCodes
+        .map((c) => PLANETS[c]!.name)
+        .join(", ")}, and the cycler's heliocentric ellipse (a=${oe.a_au}, e=${oe.e}).`
+    : cls === "multi-arc"
+      ? `Top-down ecliptic view: the Sun at centre with planet reference circles. ${renderedArcs.length} of ${arcRows.length} trajectory segments carry published (a,e) and are drawn; ${gapArcs.length} are shown as "elements not published" gaps, never interpolated.`
+      : "This is a rotating-frame (CR3BP) periodic orbit; it is not renderable from the catalogue's current public data.";
+---
+<section class="orbit-view" aria-labelledby={titleId}>
+  <h2 id={titleId}>Orbit view <span class="orbit-badge">2.5D ecliptic projection</span></h2>
+
+  {cls === "non-keplerian" ? (
+    <div class="orbit-placeholder" role="note">
+      <p>
+        <strong>Not renderable from current data.</strong> This is a
+        rotating-frame (CR3BP) periodic orbit. A faithful render requires
+        numerical propagation of the synodic-frame state, which the catalogue
+        does not yet publish as a sampled path — so no stand-in ellipse is
+        drawn (drawing a heliocentric ellipse here would misrepresent the
+        dynamics). The CR3BP identity (Jacobi constant, period, stability) is
+        tabulated above.
+      </p>
+      <p class="muted orbit-prov">model: {fidelityBadge}</p>
+    </div>
+  ) : (
+    <>
+      <figure class="orbit-figure">
+        <svg
+          class="orbit-svg"
+          id={`orbit-svg-${entry.id}`}
+          viewBox={`0 0 ${W} ${H}`}
+          role="img"
+          aria-labelledby={`${titleId} ${descId}`}
+          data-class={cls}
+        >
+          <desc id={descId}>{svgDesc}</desc>
+
+          {/* planet reference circles (dashed, with end labels) */}
+          {planetPaths.map((d, i) => (
+            <g class="orbit-planet">
+              <path d={d} class="orbit-planet-orbit" fill="none" />
+              <text
+                x={(cx + planetRadii[i]! * scale + 3).toFixed(1)}
+                y={(cy - 2).toFixed(1)}
+                class="orbit-label"
+              >{PLANETS[planetCodes[i]!]!.code}</text>
+            </g>
+          ))}
+
+          {/* Sun at origin */}
+          <g class="orbit-sun">
+            <circle cx={cx} cy={cy} r="3.5" />
+            <text x={(cx + 6).toFixed(1)} y={(cy + 12).toFixed(1)} class="orbit-label">Sun</text>
+          </g>
+
+          {cls === "single-ellipse" && ellipsePath && (
+            <>
+              <path id={`orbit-ellipse-${entry.id}`} d={ellipsePath} class="orbit-ellipse" fill="none" />
+              {/* idealized encounter markers: distinct glyph per body order */}
+              {encMarks.map((m, i) => {
+                const px = (cx + m.pos.x * scale).toFixed(2);
+                const py = (cy - m.pos.y * scale).toFixed(2);
+                const glyph = i === 0 ? "circle" : i === 1 ? "tri" : "sq";
+                return (
+                  <g class="orbit-enc" tabindex="0" role="img"
+                     aria-label={`Encounter: ${PLANETS[m.body]?.name ?? m.body}${realWindows ? `, real DE440 dates available` : `, idealized geometry`}`}>
+                    {glyph === "circle" && <circle cx={px} cy={py} r="5" class="orbit-enc-mark" fill="none" />}
+                    {glyph === "tri" && (
+                      <path d={`M${px} ${(+py - 6).toFixed(2)} L${(+px + 5.5).toFixed(2)} ${(+py + 4).toFixed(2)} L${(+px - 5.5).toFixed(2)} ${(+py + 4).toFixed(2)} Z`} class="orbit-enc-mark" fill="none" />
+                    )}
+                    {glyph === "sq" && <rect x={(+px - 4.5).toFixed(2)} y={(+py - 4.5).toFixed(2)} width="9" height="9" class="orbit-enc-mark" fill="none" />}
+                    <title>Encounter {PLANETS[m.body]?.name ?? m.body}</title>
+                  </g>
+                );
+              })}
+              {/* animated spacecraft marker (island moves it; static at periapsis) */}
+              <circle r="4" class="orbit-craft" data-path={`orbit-ellipse-${entry.id}`}
+                      cx={(cx + (ellipsePts[0]?.x ?? 0) * scale).toFixed(2)}
+                      cy={(cy - (ellipsePts[0]?.y ?? 0) * scale).toFixed(2)} />
+            </>
+          )}
+
+          {cls === "multi-arc" && renderedArcs.map((a) => (
+            <path d={a.path} class="orbit-arc" fill="none">
+              <title>Segment {a.from} → {a.to}</title>
+            </path>
+          ))}
+          {/* animated planet markers walk their reference circles */}
+          {planetPaths.map((d, i) => {
+            const id = `orbit-pcirc-${entry.id}-${i}`;
+            return (
+              <>
+                <path id={id} d={d} class="orbit-planet-hidden" fill="none" />
+                <circle r="3" class="orbit-planet-marker" data-path={id}
+                        cx={(cx + planetRadii[i]! * scale).toFixed(2)} cy={cy.toFixed(2)} />
+              </>
+            );
+          })}
+        </svg>
+
+        <figcaption class="orbit-caption">
+          <span class="orbit-prov">model: {fidelityBadge}</span>
+          {oriented ? (
+            <span class="orbit-prov">orientation: from published angles (i/Ω/ω)</span>
+          ) : (
+            <span class="orbit-prov">orientation: coplanar-idealized (no Ω/ω published — in-plane ellipse)</span>
+          )}
+          {cls === "single-ellipse" && <span class="orbit-prov">{encProvenance}</span>}
+        </figcaption>
+      </figure>
+
+      {cls === "single-ellipse" && edgePath && (
+        <figure class="orbit-figure orbit-edge">
+          <figcaption class="orbit-edge-cap">Edge-on (X–Z) — {inclLabel}</figcaption>
+          <svg class="orbit-svg" viewBox={`0 0 ${eW} ${eH}`} role="img"
+               aria-label={`Edge-on view of the orbit. ${inclLabel}.`}>
+            <line x1="0" y1={ecy} x2={eW} y2={ecy} class="orbit-ecliptic" />
+            <text x="4" y={(ecy - 4).toFixed(1)} class="orbit-label">ecliptic</text>
+            <path d={edgePath} class="orbit-ellipse" fill="none" />
+            <circle cx={ecx} cy={ecy} r="3" class="orbit-sun-dot" />
+          </svg>
+        </figure>
+      )}
+
+      {/* legend (no colour-only meaning: dash + glyph + text) */}
+      <div class="orbit-legend">
+        <span class="leg leg-planet">— — planet orbit (circle at sma)</span>
+        {cls === "single-ellipse" && <span class="leg leg-ellipse">——— cycler ellipse</span>}
+        {cls === "single-ellipse" && encMarks.length > 0 && (
+          <span class="leg">○ △ □ encounters ({encMarks.map((m) => m.body).join(", ")})</span>
+        )}
+        {cls === "multi-arc" && renderedArcs.length > 0 && <span class="leg leg-arc">··· segment arc</span>}
+      </div>
+
+      {cls === "multi-arc" && gapArcs.length > 0 && (
+        <div class="orbit-gaps" role="note">
+          <strong>Not-published gaps (never interpolated):</strong>
+          <ul class="bare">
+            {gapArcs.map((a) => (
+              <li><code>{a.from} → {a.to}</code> — segment elements (a, e) not published; no curve drawn.</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {realWindows && realWindows.matches.length > 0 && (
+        <details class="orbit-windows">
+          <summary>Real DE440 encounter dates ({realWindows.matches.length})</summary>
+          <ul class="bare">
+            {realWindows.matches.slice(0, 6).map((m) => (
+              <li><code>{m.iso}</code> {m.vinf.length > 0 && <span class="muted">V∞ {m.vinf.map((v) => v.toFixed(2)).join(" / ")} km/s</span>}</li>
+            ))}
+          </ul>
+          <p class="muted">Real, verifiable JPL DE440 geometric-match dates (see Launch windows). Positions on the map are idealized; these are the true dates.</p>
+        </details>
+      )}
+
+      {/* time-evolution control (enhancement only; reduced-motion-safe) */}
+      <div class="orbit-controls" data-orbit-controls={`orbit-svg-${entry.id}`} hidden>
+        <button type="button" class="orbit-play" aria-pressed="false">▶ Play</button>
+        <label class="orbit-scrub-label">
+          <span>Time</span>
+          <input type="range" class="orbit-scrub" min="0" max="1000" value="0" step="1"
+                 aria-label="Scrub orbit time" />
+        </label>
+        <span class="muted orbit-motion-note"></span>
+      </div>
+    </>
+  )}
+</section>
+
+<script>
+  // Orbit-view time island. Vanilla TS, no framework, no math: it just walks
+  // pre-rendered SVG path markers using getPointAtLength. Static by default;
+  // motion is strictly user-initiated (play / scrub). Respects
+  // prefers-reduced-motion (no auto-play; play steps instantly per frame but
+  // we still honour the user's explicit click — the hard rule is no autoplay).
+  // Bails gracefully if anything is missing (mirrors CatalogueTable's island).
+  function initOrbit(controls: HTMLElement) {
+    const svgId = controls.getAttribute("data-orbit-controls");
+    if (!svgId) return;
+    const svg = document.getElementById(svgId) as unknown as SVGSVGElement | null;
+    if (!svg) return;
+
+    const markers = Array.from(
+      svg.querySelectorAll<SVGCircleElement>("[data-path]"),
+    ).map((el) => {
+      const pathId = el.getAttribute("data-path")!;
+      const path = document.getElementById(pathId) as unknown as SVGPathElement | null;
+      const len = path && typeof path.getTotalLength === "function" ? path.getTotalLength() : 0;
+      return { el, path, len };
+    }).filter((m) => m.path && m.len > 0);
+
+    if (markers.length === 0) return; // nothing animatable — leave static
+
+    controls.hidden = false;
+    const playBtn = controls.querySelector<HTMLButtonElement>(".orbit-play")!;
+    const scrub = controls.querySelector<HTMLInputElement>(".orbit-scrub")!;
+    const note = controls.querySelector<HTMLElement>(".orbit-motion-note");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (note) note.textContent = reduced ? "(reduced-motion: scrub only)" : "";
+
+    const setPhase = (t: number) => {
+      // t in 0..1 — place each marker at fractional arc length.
+      for (const m of markers) {
+        const pt = m.path!.getPointAtLength((t % 1) * m.len);
+        m.el.setAttribute("cx", pt.x.toFixed(2));
+        m.el.setAttribute("cy", pt.y.toFixed(2));
+      }
+    };
+
+    let raf = 0;
+    let playing = false;
+    let phase = 0;
+    let last = 0;
+
+    const stop = () => {
+      playing = false;
+      playBtn.setAttribute("aria-pressed", "false");
+      playBtn.textContent = "▶ Play";
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    const tick = (now: number) => {
+      if (!playing) return;
+      if (!last) last = now;
+      const dt = (now - last) / 1000;
+      last = now;
+      phase = (phase + dt * 0.08) % 1; // ~12.5 s per revolution
+      scrub.value = String(Math.round(phase * 1000));
+      setPhase(phase);
+      raf = requestAnimationFrame(tick);
+    };
+
+    playBtn.addEventListener("click", () => {
+      if (playing) {
+        stop();
+      } else if (reduced) {
+        // Reduced-motion: no continuous loop. Step forward one notch instead.
+        phase = (phase + 0.05) % 1;
+        scrub.value = String(Math.round(phase * 1000));
+        setPhase(phase);
+      } else {
+        playing = true;
+        last = 0;
+        playBtn.setAttribute("aria-pressed", "true");
+        playBtn.textContent = "⏸ Pause";
+        raf = requestAnimationFrame(tick);
+      }
+    });
+
+    scrub.addEventListener("input", () => {
+      if (playing) stop();
+      phase = Number(scrub.value) / 1000;
+      setPhase(phase);
+    });
+
+    setPhase(0);
+  }
+
+  for (const c of document.querySelectorAll<HTMLElement>("[data-orbit-controls]")) {
+    initOrbit(c);
+  }
+</script>
