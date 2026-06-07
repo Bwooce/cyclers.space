@@ -15,6 +15,7 @@ import { markerWorldPos, defaultStartTime } from "./three-clock";
 import { buildOrbitLinePoints, buildCraftPathPoints } from "./three-geometry";
 import { makeOrbitControls, type OrbitControls } from "./three-controls";
 import { chaseCameraPose } from "./three-view-chase";
+import { tourKeyframes, type TourKeyframe } from "./three-tour";
 import { PLANETS, PLANET_GEOMETRY_CITATION } from "./orbit";
 import type { ClockConfig } from "./three-types";
 
@@ -28,6 +29,7 @@ const KEY_HELP: [string, string][] = [
   ["Space", "play / pause (inert under reduced-motion)"],
   ["1", "orbit-cam (look down on the system)"],
   ["2", "chase-cam (ride the spacecraft; disabled under reduced-motion)"],
+  ["T", "guided tour (departure -> flyby -> aphelion -> return; [ / ] step beats under reduced-motion)"],
   ["?", "toggle this help"],
   ["Esc", "exit 3D, return to the 2D view"],
 ];
@@ -163,7 +165,7 @@ export async function mountThreeView(
   // pose is applied each frame in the render loop; switching back to `1` hands
   // the orbit controller back. The trailing distance is framed off the craft's
   // own aphelion so the camera sits a sensible distance behind.
-  type CamMode = "orbit" | "chase";
+  type CamMode = "orbit" | "chase" | "tour";
   let mode: CamMode = "orbit";
   const chaseTrail = Math.max(0.25, cfg.craft.a * (1 + cfg.craft.e) * 0.18);
   // Damped look-at so the craft motion does not snap the gaze (skipped on
@@ -188,6 +190,108 @@ export async function mountThreeView(
     camera.lookAt(lookEased.x, lookEased.y, lookEased.z);
   };
 
+  // --- guided tour (Slice 3): geometry-derived keyframes --------------------
+  // `T` flies the camera over the didactic beats (departure -> flyby ->
+  // aphelion -> return), each keyframe DERIVED from the geometry by tourKeyframes
+  // (no per-row authoring). Continuous lerp drives both the camera pose AND the
+  // clock t between keyframes, narrating each beat in the live region. ANY user
+  // input cancels immediately and returns control to orbit-cam. Under
+  // reduced-motion the tour does NOT autoplay: it arms a stepped fallback where
+  // [ / ] jump-cut between keyframes with snapped poses (design §4.3).
+  const tourFrames: TourKeyframe[] = tourKeyframes(cfg);
+  let tourSeg = 0; // index of the keyframe we are travelling FROM
+  let tourPhase = 0; // 0..1 progress within the current segment
+  let tourBeatAnnounced = -1; // last beat index narrated (avoid repeats)
+  const TOUR_SEG_MS = 4500; // wall-time per segment when animating
+
+  const announceBeat = (i: number) => {
+    const kf = tourFrames[i];
+    if (!kf || tourBeatAnnounced === i) return;
+    tourBeatAnnounced = i;
+    const prox = lastNearestText ? ` ${lastNearestText}` : "";
+    announce(`Tour beat ${i + 1} of ${tourFrames.length}: ${kf.caption}${prox}`);
+  };
+
+  // Place the camera at a tour pose (snap), set the clock to its instant.
+  const applyTourPose = (pos: { x: number; y: number; z: number }, look: { x: number; y: number; z: number }) => {
+    camera.up.set(0, 1, 0);
+    camera.position.set(pos.x, pos.y, pos.z);
+    camera.lookAt(look.x, look.y, look.z);
+  };
+
+  // Continuous tour step (animated path): advance tourPhase by dt, lerp pose +
+  // clock between keyframe tourSeg and tourSeg+1; end -> return to orbit-cam.
+  const applyTour = (dtMs: number) => {
+    if (tourFrames.length < 2) {
+      endTour("ended");
+      return;
+    }
+    announceBeat(tourSeg);
+    const a = tourFrames[tourSeg]!;
+    const b = tourFrames[tourSeg + 1]!;
+    tourPhase += dtMs / TOUR_SEG_MS;
+    if (tourPhase >= 1) {
+      tourPhase = 0;
+      tourSeg += 1;
+      if (tourSeg >= tourFrames.length - 1) {
+        // settle on the final beat, narrate it, then end.
+        const last = tourFrames[tourFrames.length - 1]!;
+        applyTourPose(last.pose.position, last.pose.lookAt);
+        setTime(last.t);
+        broadcast();
+        announceBeat(tourFrames.length - 1);
+        endTour("ended");
+        return;
+      }
+      announceBeat(tourSeg);
+      return;
+    }
+    const s = tourPhase;
+    const lerp = (x: number, y: number) => x + (y - x) * s;
+    applyTourPose(
+      { x: lerp(a.pose.position.x, b.pose.position.x), y: lerp(a.pose.position.y, b.pose.position.y), z: lerp(a.pose.position.z, b.pose.position.z) },
+      { x: lerp(a.pose.lookAt.x, b.pose.lookAt.x), y: lerp(a.pose.lookAt.y, b.pose.lookAt.y), z: lerp(a.pose.lookAt.z, b.pose.lookAt.z) },
+    );
+    setTime(lerp(a.t, b.t));
+    broadcast();
+  };
+
+  // Reduced-motion stepped fallback: jump-cut to a specific keyframe (snap pose
+  // + clock), no continuous motion.
+  const tourJumpTo = (i: number) => {
+    const idx = Math.max(0, Math.min(tourFrames.length - 1, i));
+    tourSeg = idx;
+    const kf = tourFrames[idx]!;
+    applyTourPose(kf.pose.position, kf.pose.lookAt);
+    setTime(kf.t);
+    broadcast();
+    announceBeat(idx);
+  };
+
+  function startTour() {
+    if (tourFrames.length < 2) {
+      announce("No guided tour available for this trajectory.");
+      return;
+    }
+    mode = "tour";
+    tourSeg = 0;
+    tourPhase = 0;
+    tourBeatAnnounced = -1;
+    playing = false; // the tour drives the clock itself
+    if (reduced) {
+      announce("Guided tour requires motion — stepped fallback. Use [ and ] to jump between beats; any other key exits.");
+      tourJumpTo(0);
+    } else {
+      announce("Guided tour: departure, flyby, aphelion, return. Any key exits.");
+    }
+  }
+
+  function endTour(why: "ended" | "cancelled") {
+    if (mode !== "tour") return;
+    mode = "orbit";
+    announce(why === "ended" ? "Tour ended; returned to orbit-cam." : "Tour cancelled; returned to orbit-cam.");
+  }
+
   // --- the shared clock (one clock, two renderers) --------------------------
   // The 3D view opens PAUSED at the first encounter (design §4.2). Stepping time
   // here dispatches an "orbit-time" CustomEvent on the host so the 2a SVG island
@@ -210,6 +314,7 @@ export async function mountThreeView(
     }
   };
   const planetName = (code: string) => PLANETS[code]?.name ?? code;
+  let lastNearestText = ""; // most recent proximity readout (folded into tour narration)
 
   const setTime = (next: number) => {
     t = next;
@@ -229,8 +334,13 @@ export async function mountThreeView(
     if (nearest) {
       const d = nearest.d;
       const txt = d < 0.01 ? `${(d * AU_KM).toFixed(0)} km` : `${d.toFixed(3)} AU`;
-      const modeLabel = mode === "chase" ? "Chase-cam" : "Orbit-cam";
-      announce(`${modeLabel}. Nearest: ${planetName(nearest.code)}, ${txt}.`);
+      lastNearestText = `Nearest: ${planetName(nearest.code)}, ${txt}.`;
+      // During a tour the beat narration owns the live region (it folds in the
+      // proximity below); the per-frame proximity must not clobber the caption.
+      if (mode !== "tour") {
+        const modeLabel = mode === "chase" ? "Chase-cam" : "Orbit-cam";
+        announce(`${modeLabel}. ${lastNearestText}`);
+      }
     }
   };
 
@@ -267,6 +377,18 @@ export async function mountThreeView(
   // play/pause (inert under reduced-motion), 1 = orbit-cam (the only Slice-1
   // mode), ? = key help, Esc = exit to the 2D SVG.
   const onKey = (e: KeyboardEvent) => {
+    // While the tour runs, ANY user input cancels and returns control to
+    // orbit-cam (design Slice-3 rule), with two exceptions: Esc exits 3D
+    // entirely, and under reduced-motion [ / ] jump-cut between beats (the
+    // stepped fallback). Everything else cancels the tour.
+    if (mode === "tour") {
+      if (e.key === "Escape") { closeView(); e.preventDefault(); return; }
+      if (reduced && e.key === "]") { tourJumpTo(tourSeg + 1); e.preventDefault(); return; }
+      if (reduced && e.key === "[") { tourJumpTo(tourSeg - 1); e.preventDefault(); return; }
+      endTour("cancelled");
+      e.preventDefault();
+      return;
+    }
     switch (e.key) {
       case "ArrowLeft": controls.stepAzimuth(-1); break;
       case "ArrowRight": controls.stepAzimuth(1); break;
@@ -293,6 +415,7 @@ export async function mountThreeView(
           announce("Chase-cam: riding the spacecraft, looking along its velocity.");
         }
         break;
+      case "T": case "t": startTour(); break;
       case "?": toggleHelp(); break;
       case "Escape": closeView(); break;
       default: return;
@@ -304,7 +427,7 @@ export async function mountThreeView(
   renderer.domElement.setAttribute("role", "application");
   renderer.domElement.setAttribute(
     "aria-label",
-    "3D orbit camera. Arrow keys orbit, plus and minus dolly, brackets step time, 1 for orbit-cam, 2 for chase-cam, question mark for help, Escape to exit.",
+    "3D orbit camera. Arrow keys orbit, plus and minus dolly, brackets step time, 1 for orbit-cam, 2 for chase-cam, T for guided tour, question mark for help, Escape to exit.",
   );
   renderer.domElement.addEventListener("keydown", onKey);
   // Move focus into the canvas on open; announce entry + reduced-motion state.
@@ -317,8 +440,16 @@ export async function mountThreeView(
 
   // Render loop: ease the camera, advance the clock if playing, then paint.
   let raf = 0;
+  let lastFrame = 0; // wall-clock of the previous frame (for the tour lerp)
   const render = (now: number) => {
-    if (playing && !reduced) {
+    const frameDt = lastFrame ? now - lastFrame : 16;
+    lastFrame = now;
+    if (mode === "tour" && !reduced) {
+      // The tour drives both the camera pose and the clock itself; ordinary
+      // play/pause is suspended while it runs.
+      applyTour(frameDt);
+      lastNow = 0;
+    } else if (playing && !reduced) {
       if (!lastNow) lastNow = now;
       const dtMs = now - lastNow;
       lastNow = now;
@@ -332,10 +463,11 @@ export async function mountThreeView(
     }
     // Orbit-cam runs the hand-rolled spherical controller; chase-cam rides the
     // craft (pose recomputed each frame so Earth/Mars sweep past as flyby
-    // geometry). Both end with the same render call.
+    // geometry); the tour (above) has already set the camera pose. All three end
+    // with the same render call.
     if (mode === "chase") {
       applyChase();
-    } else {
+    } else if (mode === "orbit") {
       controls.update();
     }
     renderer.render(scene, camera);
