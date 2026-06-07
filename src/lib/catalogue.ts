@@ -54,6 +54,35 @@ export function encounterWindowsFor(id: string): { bodies: string[]; matches: Wi
 }
 
 /**
+ * The lowest-mismatch DE440 window for a row (design Q5: the most physically
+ * meaningful anchor for t=0 in the time-true viz). windows.json stores the
+ * per-window mismatch_kms parallel to next_encounters_iso; we pair them and
+ * return the minimum, NOT the chronologically-first (which encounterWindowsFor
+ * sorts to). Returns null when the row has no windows.
+ */
+export interface AnchorWindow {
+  iso: string;
+  mismatch: number;
+  vinf: number[];
+}
+export function lowestMismatchWindow(id: string): AnchorWindow | null {
+  const entry = (windowsData as { entries: Array<Record<string, unknown>> }).entries.find((e) => e.id === id);
+  if (!entry) return null;
+  const dates = (entry.next_encounters_iso as string[]) ?? [];
+  if (dates.length === 0) return null;
+  const mism = (entry.mismatch_kms as number[]) ?? [];
+  const vinfs = (entry.vinf_actual_kms as number[][]) ?? [];
+  let best: AnchorWindow | null = null;
+  for (let i = 0; i < dates.length; i++) {
+    const m = mism[i] ?? Infinity;
+    if (best === null || m < best.mismatch) {
+      best = { iso: dates[i]!, mismatch: m, vinf: vinfs[i] ?? [] };
+    }
+  }
+  return best;
+}
+
+/**
  * Resolve a list of supersession target ids (schema v4.3, spec §16.7.10) to
  * {id, name} pairs for linking. Ids that don't resolve to an existing row are
  * passed through with name === id so the link text is still informative (the

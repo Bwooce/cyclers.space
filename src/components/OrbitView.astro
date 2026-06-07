@@ -10,16 +10,27 @@
 // via currentColor / CSS variables; legs and markers are distinguished by
 // dash pattern AND glyph AND text, never colour alone (design §4).
 import type { CyclerEntry } from "../lib/types";
-import { encounterWindowsFor } from "../lib/catalogue";
+import { encounterWindowsFor, lowestMismatchWindow } from "../lib/catalogue";
 import {
   PLANETS,
+  PLANET_GEOMETRY_CITATION,
   sampleEllipse,
   sampleEdgeOn,
-  sampleCircle,
+  samplePlanetEllipse,
   idealEncounters,
   toSvgPath,
   renderClassOf,
 } from "../lib/orbit";
+import {
+  planetToElements,
+  stateAt,
+  periodDays,
+  proximitySeries,
+  isoToJ2000Days,
+  rephaseToEncounter,
+  meanMotionDegPerDay,
+  type KeplerElements,
+} from "../lib/kepler-time";
 
 interface Props {
   entry: CyclerEntry;
@@ -36,10 +47,14 @@ const PAD = 28; // px margin so labels at the rim are not clipped
 
 const oe = entry.orbit_elements;
 const bodies = entry.bodies ?? [];
-// Planets to draw as reference circles: every encountered V/E/M plus Earth as
-// the universal anchor (matches plots.py:177-179 reference circles).
+// Planets to draw as real ellipses: every encountered known planet plus Earth
+// as the universal anchor (Phase 1 drew reference circles; Phase 2 draws the
+// true J2000 ellipses, task #139).
 const planetCodes = Array.from(new Set<string>([...bodies.filter((b) => PLANETS[b]), "E"]));
 const planetRadii = planetCodes.map((c) => PLANETS[c]!.sma_au);
+const planetElems: Record<string, KeplerElements> = Object.fromEntries(
+  planetCodes.map((c) => [c, planetToElements(PLANETS[c]!.record)]),
+);
 
 // --- single-ellipse path ---------------------------------------------------
 const orient = {
@@ -64,21 +79,101 @@ if (cls === "single-ellipse" && oe.a_au != null && oe.e != null) {
 const scale = (Math.min(W, H) / 2 - PAD) / maxR;
 
 const ellipsePath = toSvgPath(ellipsePts, scale, cx, cy);
-const planetPaths = planetRadii.map((r) => toSvgPath(sampleCircle(r), scale, cx, cy));
+// Real J2000 planet ellipses (not circles).
+const planetPaths = planetCodes.map((c) => toSvgPath(samplePlanetEllipse(c), scale, cx, cy));
 
-// --- encounter markers (single-ellipse): real DE440 dates preferred, else
-// idealized planet-crossing geometry (design §5, Q3). Real windows give us
-// dates but not heliocentric XY without ephemeris, so when real dates exist we
-// still place the marker at the idealized crossing AND surface the real date in
-// the marker label + provenance line (never fabricating a position we lack, but
-// honestly anchoring it to the encountered body's radius). When no real dates
-// exist the marker is purely idealized.
+// --- the shared clock (design §1.3) ----------------------------------------
+// Spacecraft Kepler elements on the shared clock. Idealized rows have no real
+// epoch, so M0=0 (periapsis at t=0) is an arbitrary-but-honest phase origin;
+// the relative DANCE is what a cycler is about. Real-window rows anchor t=0 to
+// the lowest-mismatch DE440 date so the spacecraft and the J2000-clocked
+// planets share one calendar.
 const realWindows = encounterWindowsFor(entry.id);
-const encMarks =
-  cls === "single-ellipse" && oe.a_au != null && oe.e != null ? idealEncounters(oe.a_au, oe.e, bodies) : [];
-const encProvenance = realWindows
-  ? "encounter dates: real ephemeris (DE440); positions: idealized crossing geometry"
-  : "encounters: idealized circular-coplanar crossing geometry (no real window matched)";
+const anchor = cls === "single-ellipse" ? lowestMismatchWindow(entry.id) : null;
+const clockRegime: "real-window-anchored" | "idealized-phase" = anchor ? "real-window-anchored" : "idealized-phase";
+// For an anchored row t (days) is measured from J2000 (so planets need no
+// offset); the spacecraft's M0 is set so its periapsis sits at the anchor date.
+const anchorDay = anchor ? isoToJ2000Days(anchor.iso) : 0;
+const craftElems: KeplerElements | null =
+  cls === "single-ellipse" && oe.a_au != null && oe.e != null
+    ? {
+        a: oe.a_au,
+        e: oe.e,
+        i_deg: oe.inclination_deg ?? 0,
+        lan_deg: oe.raan_deg ?? 0,
+        argp_deg: oe.arg_periapsis_deg ?? 0,
+        M0_deg: 0,
+        t_epoch_day: anchorDay,
+      }
+    : null;
+const craftPeriod = craftElems ? periodDays(craftElems) : 0;
+
+// Idealized phase clock (design §1.3): the planets keep their REAL mean motions
+// and real ellipses, but for visited bodies we choose their absolute phase so
+// the cycler's geometric encounter actually occurs — making the proximity dip
+// reach ~0, the whole point — WITHOUT asserting a real date. For real-window
+// rows the planets stay on their true J2000 clock (no re-phasing). The deg<->day
+// helper finds the spacecraft time at the geometric crossing nu.
+const D = Math.PI / 180;
+function craftTimeAtTrueAnomaly(el: KeplerElements, nu: number): number {
+  const E = 2 * Math.atan2(Math.sqrt(1 - el.e) * Math.sin(nu / 2), Math.sqrt(1 + el.e) * Math.cos(nu / 2));
+  const Mdeg = (E - el.e * Math.sin(E)) / D; // mean anomaly at that point
+  const n = el.n_deg_per_day ?? meanMotionDegPerDay(el.a);
+  const t0 = el.t_epoch_day ?? 0;
+  // M(t) = M0 + n*(t - t0) = Mdeg  =>  t = t0 + (Mdeg - M0)/n.
+  return t0 + (Mdeg - el.M0_deg) / n;
+}
+const encounterTimes: number[] = [];
+if (clockRegime === "idealized-phase" && craftElems && oe.a_au != null && oe.e != null) {
+  const geomMarks = idealEncounters(oe.a_au, oe.e, bodies);
+  for (const m of geomMarks) {
+    if (!planetElems[m.body]) continue;
+    const nu = Math.atan2(m.pos.y, m.pos.x);
+    const tEnc = craftTimeAtTrueAnomaly(craftElems, nu);
+    encounterTimes.push(tEnc);
+    planetElems[m.body] = rephaseToEncounter(planetElems[m.body]!, { x: m.pos.x, y: m.pos.y, z: 0 }, tEnc);
+  }
+}
+
+// Clock span the scrub/animation covers: one spacecraft period. For real-window
+// rows it starts at the DE440 anchor; for idealized rows it is shifted to begin
+// at (just before) the earliest encounter so the window CONTAINS every encounter
+// — otherwise the proximity dip (which can fall before t=periapsis) would be
+// clipped out of view.
+const idealizedStart = encounterTimes.length > 0 ? Math.min(...encounterTimes) : 0;
+const clockT0 = clockRegime === "real-window-anchored" ? anchorDay : idealizedStart;
+const clockT1 = clockT0 + craftPeriod;
+
+// --- encounter-proximity indicator (the pedagogical headline, design §5) ----
+// Live |r_sc - r_planet| over one period; the minima ARE the encounters.
+const proximity =
+  craftElems && craftPeriod > 0
+    ? planetCodes
+        .filter((c) => bodies.includes(c)) // only the bodies this cycler actually visits
+        .map((c) => proximitySeries(craftElems, planetElems[c]!, c, clockT0, clockT1, 480))
+    : [];
+
+// --- encounter markers (single-ellipse): the planet's position AT the
+// proximity minimum on the shared clock (design §2 fallback #1, "time-true").
+// For real-window rows the planets run on their true J2000 clock; for idealized
+// rows they run on the phase clock (real n, chosen phase). Either way the marker
+// is wherever the planet actually is at closest approach — and the proximity
+// indicator confirms the spacecraft is there too.
+let encMarks: { body: string; pos: { x: number; y: number } }[] = [];
+if (cls === "single-ellipse" && craftElems && proximity.length > 0) {
+  encMarks = proximity.map((s) => {
+    const p = stateAt(planetElems[s.body]!, s.minimum.t);
+    return { body: s.body, pos: { x: p.x, y: p.y } };
+  });
+}
+const encProvenance =
+  clockRegime === "real-window-anchored"
+    ? `encounters: time-true — planet position at closest approach (anchored to DE440 ${anchor!.iso}, mismatch ${anchor!.mismatch.toFixed(2)} km/s)`
+    : "encounters: time-true on the idealized phase clock (real mean motions, phase chosen so the geometry's encounters occur)";
+const clockLabel =
+  clockRegime === "real-window-anchored"
+    ? `clock: real-window-anchored (DE440 ${anchor!.iso})`
+    : "clock: idealized phase clock (no epoch)";
 
 // --- edge-on z-panel -------------------------------------------------------
 const EXAGG = 12; // out-of-plane exaggeration factor (labelled on the panel)
@@ -116,22 +211,64 @@ if (cls === "multi-arc") {
 const renderedArcs = arcRows.filter((a) => a.rendered);
 const gapArcs = arcRows.filter((a) => !a.rendered);
 
-// Model-fidelity badge text (design §5, reusing model_assumption vocabulary).
+// Model-fidelity badge text (design §5, geometry axis vs clock axis kept
+// independent). This badge describes the SPACECRAFT curve; the planets are now
+// drawn from sourced J2000 ellipses (labelled separately below).
 const fidelity = entry.model_assumption ?? "circular-coplanar";
 const fidelityBadge =
   fidelity === "cr3bp"
     ? "CR3BP (rotating frame)"
     : fidelity === "analytic-ephemeris"
-      ? "analytic-ephemeris (real e/i retained)"
-      : "idealized: coplanar, planets on circles";
+      ? "spacecraft: analytic-ephemeris (real e/i retained)"
+      : "spacecraft: idealized coplanar ellipse";
+
+// --- proximity sparkline geometry (one mini-SVG per visited body) -----------
+const SPARK_W = 200;
+const SPARK_H = 32;
+const sparkData = proximity.map((s) => {
+  const dmax = Math.max(...s.samples.map((p) => p.d_au), 1e-9);
+  const n = s.samples.length - 1;
+  const path = s.samples
+    .map((p, i) => {
+      const x = (SPARK_W * i) / n;
+      const y = SPARK_H - (SPARK_H - 2) * (1 - p.d_au / dmax) - 1; // invert: low d = low on chart
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${(SPARK_H - y).toFixed(1)}`;
+    })
+    .join(" ");
+  // Minimum marker x-position.
+  const minIdx = s.samples.reduce((bi, p, i) => (p.d_au < s.samples[bi]!.d_au ? i : bi), 0);
+  const minX = (SPARK_W * minIdx) / n;
+  return {
+    body: s.body,
+    name: PLANETS[s.body]?.name ?? s.body,
+    path,
+    minX,
+    minD: s.minimum.d_au,
+    minDkm: s.minimum.d_au * 149_597_870.7,
+  };
+});
 
 const titleId = `orbit-title-${entry.id}`;
 const descId = `orbit-desc-${entry.id}`;
 
+// JSON config for the time island: the spacecraft + planet elements and the
+// clock span, so the client computes Kepler-true positions (not arc-length).
+const clockConfig = {
+  regime: clockRegime,
+  t0: clockT0,
+  t1: clockT1,
+  craft: craftElems,
+  planets: planetCodes.map((c) => ({ code: c, el: planetElems[c] })),
+  scale,
+  cx,
+  cy,
+  bodies: bodies.filter((b) => PLANETS[b]),
+};
+
 // Static a11y description of what the figure shows.
 const svgDesc =
   cls === "single-ellipse"
-    ? `Top-down ecliptic view: the Sun at centre, reference circles for ${planetCodes
+    ? `Top-down ecliptic view: the Sun at centre, true J2000 ellipses for ${planetCodes
         .map((c) => PLANETS[c]!.name)
         .join(", ")}, and the cycler's heliocentric ellipse (a=${oe.a_au}, e=${oe.e}).`
     : cls === "multi-arc"
@@ -167,7 +304,10 @@ const svgDesc =
         >
           <desc id={descId}>{svgDesc}</desc>
 
-          {/* planet reference circles (dashed, with end labels) */}
+          {/* tilt-group: client morphs this from top-down (0°) to edge-on (90°);
+              static (JS-off) it is the identity top-down projection. */}
+          <g class="orbit-tilt-group" data-tilt-group>
+          {/* planet TRUE J2000 ellipses (dashed, with end labels) */}
           {planetPaths.map((d, i) => (
             <g class="orbit-planet">
               <path d={d} class="orbit-planet-orbit" fill="none" />
@@ -188,14 +328,16 @@ const svgDesc =
           {cls === "single-ellipse" && ellipsePath && (
             <>
               <path id={`orbit-ellipse-${entry.id}`} d={ellipsePath} class="orbit-ellipse" fill="none" />
-              {/* idealized encounter markers: distinct glyph per body order */}
+              {/* encounter markers: distinct glyph per body order. Time-true
+                  (planet at closest approach) for anchored rows, else idealized
+                  minimum-distance geometry. */}
               {encMarks.map((m, i) => {
                 const px = (cx + m.pos.x * scale).toFixed(2);
                 const py = (cy - m.pos.y * scale).toFixed(2);
                 const glyph = i === 0 ? "circle" : i === 1 ? "tri" : "sq";
                 return (
                   <g class="orbit-enc" tabindex="0" role="img"
-                     aria-label={`Encounter: ${PLANETS[m.body]?.name ?? m.body}${realWindows ? `, real DE440 dates available` : `, idealized geometry`}`}>
+                     aria-label={`Encounter: ${PLANETS[m.body]?.name ?? m.body}${clockRegime === "real-window-anchored" ? `, time-true (DE440-anchored)` : `, idealized geometry`}`}>
                     {glyph === "circle" && <circle cx={px} cy={py} r="5" class="orbit-enc-mark" fill="none" />}
                     {glyph === "tri" && (
                       <path d={`M${px} ${(+py - 6).toFixed(2)} L${(+px + 5.5).toFixed(2)} ${(+py + 4).toFixed(2)} L${(+px - 5.5).toFixed(2)} ${(+py + 4).toFixed(2)} Z`} class="orbit-enc-mark" fill="none" />
@@ -205,10 +347,13 @@ const svgDesc =
                   </g>
                 );
               })}
-              {/* animated spacecraft marker (island moves it; static at periapsis) */}
-              <circle r="4" class="orbit-craft" data-path={`orbit-ellipse-${entry.id}`}
-                      cx={(cx + (ellipsePts[0]?.x ?? 0) * scale).toFixed(2)}
-                      cy={(cy - (ellipsePts[0]?.y ?? 0) * scale).toFixed(2)} />
+              {/* time-true spacecraft marker: the island moves it via
+                  kepler-time stateAt on the shared clock (NOT arc length). */}
+              {craftElems && (
+                <circle r="4" class="orbit-craft" data-craft
+                        cx={(cx + stateAt(craftElems, clockT0).x * scale).toFixed(2)}
+                        cy={(cy - stateAt(craftElems, clockT0).y * scale).toFixed(2)} />
+              )}
             </>
           )}
 
@@ -217,21 +362,25 @@ const svgDesc =
               <title>Segment {a.from} → {a.to}</title>
             </path>
           ))}
-          {/* animated planet markers walk their reference circles */}
-          {planetPaths.map((d, i) => {
-            const id = `orbit-pcirc-${entry.id}-${i}`;
+          {/* time-true planet markers: placed at their true longitude on the
+              shared clock at t0; the island advances them with Kepler motion. */}
+          {planetCodes.map((c) => {
+            const s0 = stateAt(planetElems[c]!, clockT0);
             return (
-              <>
-                <path id={id} d={d} class="orbit-planet-hidden" fill="none" />
-                <circle r="3" class="orbit-planet-marker" data-path={id}
-                        cx={(cx + planetRadii[i]! * scale).toFixed(2)} cy={cy.toFixed(2)} />
-              </>
+              <circle r="3" class="orbit-planet-marker" data-body={c}
+                      cx={(cx + s0.x * scale).toFixed(2)} cy={(cy - s0.y * scale).toFixed(2)} />
             );
           })}
+          </g>
         </svg>
+        {cls === "single-ellipse" && craftElems && (
+          <script type="application/json" is:inline data-orbit-config={`orbit-svg-${entry.id}`} set:html={JSON.stringify(clockConfig)} />
+        )}
 
         <figcaption class="orbit-caption">
-          <span class="orbit-prov">model: {fidelityBadge}</span>
+          <span class="orbit-prov">{fidelityBadge}</span>
+          <span class="orbit-prov">planets: {PLANET_GEOMETRY_CITATION}</span>
+          {cls === "single-ellipse" && <span class="orbit-prov">{clockLabel}</span>}
           {oriented ? (
             <span class="orbit-prov">orientation: from published angles (i/Ω/ω)</span>
           ) : (
@@ -240,6 +389,40 @@ const svgDesc =
           {cls === "single-ellipse" && <span class="orbit-prov">{encProvenance}</span>}
         </figcaption>
       </figure>
+
+      {/* tilt morph: continuous top-down (0°) -> edge-on (90°) projection. */}
+      <div class="orbit-tilt" data-orbit-tilt={`orbit-svg-${entry.id}`} hidden>
+        <label class="orbit-scrub-label">
+          <span>Tilt</span>
+          <input type="range" class="orbit-tilt-range" min="0" max="90" value="0" step="1"
+                 aria-label="Tilt the orbit plane from top-down (0 degrees) to edge-on (90 degrees)" />
+        </label>
+        <span class="muted orbit-tilt-note">0° (top-down)</span>
+      </div>
+
+      {/* encounter-proximity indicator (the pedagogical headline): live
+          spacecraft<->planet distance + a minima sparkline over one period. */}
+      {cls === "single-ellipse" && sparkData.length > 0 && (
+        <div class="orbit-proximity" data-orbit-proximity={`orbit-svg-${entry.id}`}>
+          <p class="orbit-prox-title">
+            Encounter proximity <span class="muted">— spacecraft↔planet distance over one period; the dips are the encounters</span>
+          </p>
+          {sparkData.map((s) => (
+            <div class="orbit-prox-row">
+              <span class="orbit-prox-body">{s.name}</span>
+              <svg class="orbit-spark" viewBox={`0 0 ${SPARK_W} ${SPARK_H}`} role="img"
+                   aria-label={`Distance from the spacecraft to ${s.name} over one period; closest approach ${s.minD.toFixed(3)} AU.`}>
+                <path d={s.path} class="orbit-spark-line" fill="none" />
+                <circle cx={s.minX.toFixed(1)} cy={(SPARK_H - 1).toFixed(1)} r="2.5" class="orbit-spark-min" />
+              </svg>
+              <span class="orbit-prox-read" data-prox-body={s.body}>
+                min {s.minD < 0.01 ? `${s.minDkm.toFixed(0)} km` : `${s.minD.toFixed(3)} AU`}
+              </span>
+            </div>
+          ))}
+          <p class="muted orbit-prox-live" data-prox-live aria-live="polite"></p>
+        </div>
+      )}
 
       {cls === "single-ellipse" && edgePath && (
         <figure class="orbit-figure orbit-edge">
@@ -256,7 +439,7 @@ const svgDesc =
 
       {/* legend (no colour-only meaning: dash + glyph + text) */}
       <div class="orbit-legend">
-        <span class="leg leg-planet">— — planet orbit (circle at sma)</span>
+        <span class="leg leg-planet">— — planet orbit (true J2000 ellipse)</span>
         {cls === "single-ellipse" && <span class="leg leg-ellipse">——— cycler ellipse</span>}
         {cls === "single-ellipse" && encMarks.length > 0 && (
           <span class="leg">○ △ □ encounters ({encMarks.map((m) => m.body).join(", ")})</span>
@@ -283,7 +466,7 @@ const svgDesc =
               <li><code>{m.iso}</code> {m.vinf.length > 0 && <span class="muted">V∞ {m.vinf.map((v) => v.toFixed(2)).join(" / ")} km/s</span>}</li>
             ))}
           </ul>
-          <p class="muted">Real, verifiable JPL DE440 geometric-match dates (see Launch windows). Positions on the map are idealized; these are the true dates.</p>
+          <p class="muted">Real, verifiable JPL DE440 geometric-match dates (see Launch windows).{clockRegime === "real-window-anchored" ? ` The map clock is anchored to the lowest-mismatch date (${anchor!.iso}); the time-true markers and the proximity minima sit on it.` : " Positions on the map are idealized; these are the true dates."}</p>
         </details>
       )}
 
@@ -302,28 +485,51 @@ const svgDesc =
 </section>
 
 <script>
-  // Orbit-view time island. Vanilla TS, no framework, no math: it just walks
-  // pre-rendered SVG path markers using getPointAtLength. Static by default;
-  // motion is strictly user-initiated (play / scrub). Respects
-  // prefers-reduced-motion (no auto-play; play steps instantly per frame but
-  // we still honour the user's explicit click — the hard rule is no autoplay).
-  // Bails gracefully if anything is missing (mirrors CatalogueTable's island).
+  // Time-true orbit island (task #139). Replaces the Phase-1 arc-length walk
+  // with Kepler-true motion on a shared clock: the spacecraft AND the planets
+  // advance by stateAt(elements, t) from the same kepler-time module the static
+  // SVG was built with, so the 2D view and any future 3D view agree exactly.
+  // Static by default; motion is strictly user-initiated (play / scrub).
+  // Respects prefers-reduced-motion (no auto-play; scrub/step only). Bails
+  // gracefully if anything is missing.
+  import { stateAt, distance, type KeplerElements } from "../lib/kepler-time";
+
+  interface ClockConfig {
+    regime: "real-window-anchored" | "idealized-phase";
+    t0: number;
+    t1: number;
+    craft: KeplerElements;
+    planets: { code: string; el: KeplerElements }[];
+    scale: number;
+    cx: number;
+    cy: number;
+    bodies: string[];
+  }
+
+  const AU_KM = 149_597_870.7;
+
   function initOrbit(controls: HTMLElement) {
     const svgId = controls.getAttribute("data-orbit-controls");
     if (!svgId) return;
     const svg = document.getElementById(svgId) as unknown as SVGSVGElement | null;
     if (!svg) return;
 
-    const markers = Array.from(
-      svg.querySelectorAll<SVGCircleElement>("[data-path]"),
-    ).map((el) => {
-      const pathId = el.getAttribute("data-path")!;
-      const path = document.getElementById(pathId) as unknown as SVGPathElement | null;
-      const len = path && typeof path.getTotalLength === "function" ? path.getTotalLength() : 0;
-      return { el, path, len };
-    }).filter((m) => m.path && m.len > 0);
+    const cfgEl = document.querySelector<HTMLScriptElement>(`script[data-orbit-config="${svgId}"]`);
+    if (!cfgEl || !cfgEl.textContent) return; // non-single-ellipse: leave static
+    let cfg: ClockConfig;
+    try {
+      cfg = JSON.parse(cfgEl.textContent) as ClockConfig;
+    } catch {
+      return;
+    }
+    if (!cfg.craft) return;
 
-    if (markers.length === 0) return; // nothing animatable — leave static
+    const craftMarker = svg.querySelector<SVGCircleElement>("[data-craft]");
+    const planetMarkers = new Map<string, SVGCircleElement>();
+    for (const el of svg.querySelectorAll<SVGCircleElement>("[data-body]")) {
+      planetMarkers.set(el.getAttribute("data-body")!, el);
+    }
+    if (!craftMarker && planetMarkers.size === 0) return;
 
     controls.hidden = false;
     const playBtn = controls.querySelector<HTMLButtonElement>(".orbit-play")!;
@@ -332,14 +538,41 @@ const svgDesc =
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (note) note.textContent = reduced ? "(reduced-motion: scrub only)" : "";
 
-    const setPhase = (t: number) => {
-      // t in 0..1 — place each marker at fractional arc length.
-      for (const m of markers) {
-        const pt = m.path!.getPointAtLength((t % 1) * m.len);
-        m.el.setAttribute("cx", pt.x.toFixed(2));
-        m.el.setAttribute("cy", pt.y.toFixed(2));
+    // Proximity live readout (the pedagogical payoff): nearest visited body.
+    const proxLive = document.querySelector<HTMLElement>(
+      `[data-orbit-proximity="${svgId}"] [data-prox-live]`,
+    );
+
+    const sx = (x: number) => (cfg.cx + x * cfg.scale).toFixed(2);
+    const sy = (y: number) => (cfg.cy - y * cfg.scale).toFixed(2);
+
+    const setTime = (t: number) => {
+      const craftPos = stateAt(cfg.craft, t);
+      if (craftMarker) {
+        craftMarker.setAttribute("cx", sx(craftPos.x));
+        craftMarker.setAttribute("cy", sy(craftPos.y));
+      }
+      let nearest: { code: string; d: number } | null = null;
+      for (const { code, el } of cfg.planets) {
+        const p = stateAt(el, t);
+        const m = planetMarkers.get(code);
+        if (m) {
+          m.setAttribute("cx", sx(p.x));
+          m.setAttribute("cy", sy(p.y));
+        }
+        if (cfg.bodies.includes(code)) {
+          const d = distance(craftPos, p);
+          if (!nearest || d < nearest.d) nearest = { code, d };
+        }
+      }
+      if (proxLive && nearest) {
+        const d = nearest.d;
+        const txt = d < 0.01 ? `${(d * AU_KM).toFixed(0)} km` : `${d.toFixed(3)} AU`;
+        proxLive.textContent = `nearest: ${nearest.code} — ${txt}`;
       }
     };
+
+    const phaseToTime = (phase: number) => cfg.t0 + (cfg.t1 - cfg.t0) * (phase % 1);
 
     let raf = 0;
     let playing = false;
@@ -359,9 +592,9 @@ const svgDesc =
       if (!last) last = now;
       const dt = (now - last) / 1000;
       last = now;
-      phase = (phase + dt * 0.08) % 1; // ~12.5 s per revolution
+      phase = (phase + dt * 0.08) % 1; // ~12.5 s per period
       scrub.value = String(Math.round(phase * 1000));
-      setPhase(phase);
+      setTime(phaseToTime(phase));
       raf = requestAnimationFrame(tick);
     };
 
@@ -369,10 +602,9 @@ const svgDesc =
       if (playing) {
         stop();
       } else if (reduced) {
-        // Reduced-motion: no continuous loop. Step forward one notch instead.
         phase = (phase + 0.05) % 1;
         scrub.value = String(Math.round(phase * 1000));
-        setPhase(phase);
+        setTime(phaseToTime(phase));
       } else {
         playing = true;
         last = 0;
@@ -385,13 +617,45 @@ const svgDesc =
     scrub.addEventListener("input", () => {
       if (playing) stop();
       phase = Number(scrub.value) / 1000;
-      setPhase(phase);
+      setTime(phaseToTime(phase));
     });
 
-    setPhase(0);
+    setTime(phaseToTime(0));
+  }
+
+  // Tilt morph: continuous top-down (0°) -> edge-on (90°) projection applied as
+  // an SVG transform on the tilt-group. y' = cy + (y - cy)*cos(tilt). Keyboard-
+  // accessible (range input). Snaps under reduced-motion (no CSS transition).
+  function initTilt(ctrl: HTMLElement) {
+    const svgId = ctrl.getAttribute("data-orbit-tilt");
+    if (!svgId) return;
+    const svg = document.getElementById(svgId) as unknown as SVGSVGElement | null;
+    if (!svg) return;
+    const group = svg.querySelector<SVGGElement>("[data-tilt-group]");
+    if (!group) return;
+    const range = ctrl.querySelector<HTMLInputElement>(".orbit-tilt-range")!;
+    const tnote = ctrl.querySelector<HTMLElement>(".orbit-tilt-note");
+    const vb = svg.viewBox.baseVal;
+    const cyView = vb.height / 2;
+
+    ctrl.hidden = false;
+    const apply = () => {
+      const deg = Number(range.value);
+      const k = Math.cos((deg * Math.PI) / 180);
+      // Scale Y about the view centre: matrix(1,0,0,k, 0, cy*(1-k)).
+      group.setAttribute("transform", `matrix(1 0 0 ${k.toFixed(4)} 0 ${(cyView * (1 - k)).toFixed(2)})`);
+      if (tnote) {
+        tnote.textContent = deg === 0 ? "0° (top-down)" : deg >= 90 ? "90° (edge-on)" : `${deg}°`;
+      }
+    };
+    range.addEventListener("input", apply);
+    apply();
   }
 
   for (const c of document.querySelectorAll<HTMLElement>("[data-orbit-controls]")) {
     initOrbit(c);
+  }
+  for (const c of document.querySelectorAll<HTMLElement>("[data-orbit-tilt]")) {
+    initTilt(c);
   }
 </script>

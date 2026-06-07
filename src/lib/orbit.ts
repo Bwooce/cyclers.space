@@ -11,33 +11,47 @@
 // elements rather than state vectors).
 
 import type { CyclerEntry } from "./types";
+import planetElementsDoc from "../data/planet-elements.json";
+import { planetToElements, samplePath, type PlanetElementRecord, type PlanetElementsDoc } from "./kepler-time";
 
 export interface Vec2 {
   x: number;
   y: number;
 }
 
-// Planet circular-orbit radii (semi-major axes) and J2000 eccentricities.
-// Sourced from the upstream registry — Standish & Williams, "Approximate
-// Positions of the Planets", JPL Solar System Dynamics, Table 1 (a_0 / e_0
-// columns); same constants as cyclers/src/cyclerfinder/core/constants.py
-// (_VENUS_SMA_AU etc.). We draw planet orbits as circles at sma_au (the
-// circular-coplanar idealization the catalogue's single-ellipse rows assume),
-// matching plots.py:177-179.
+// Planet J2000 osculating elements, synced from the upstream single source of
+// truth — Standish & Williams, "Approximate Positions of the Planets", JPL
+// Solar System Dynamics, Table 1 — emitted from
+// cyclers/src/cyclerfinder/core/constants.py by scripts/emit-planet-elements.py
+// into planet-elements.json (Phase 2, task #139). Phase 1 drew planets as pure
+// circles at sma_au; Phase 2 draws their TRUE ellipses (Mars's e=0.0934 is now
+// represented), and places them at their true longitudes on the shared clock.
+const PLANET_DOC = planetElementsDoc as PlanetElementsDoc;
+
+/** Provenance string for the planet geometry (surfaced in the caption). */
+export const PLANET_GEOMETRY_CITATION = PLANET_DOC.citation;
+
 export interface PlanetRef {
   code: string;
   name: string;
   sma_au: number;
+  record: PlanetElementRecord;
 }
 
-export const PLANETS: Record<string, PlanetRef> = {
-  V: { code: "V", name: "Venus", sma_au: 0.72333566 },
-  E: { code: "E", name: "Earth", sma_au: 1.0000026 },
-  M: { code: "M", name: "Mars", sma_au: 1.52371034 },
-};
+export const PLANETS: Record<string, PlanetRef> = Object.fromEntries(
+  PLANET_DOC.bodies.map((b) => [b.code, { code: b.code, name: b.name, sma_au: b.a_au, record: b }]),
+);
+
+/** Sample a planet's TRUE J2000 ellipse (closed curve) as a polyline in AU. */
+export function samplePlanetEllipse(code: string, n = 240): Vec2[] {
+  const ref = PLANETS[code];
+  if (!ref) return [];
+  return samplePath(planetToElements(ref.record), n).map((p) => ({ x: p.x, y: p.y }));
+}
 
 /** Degrees → radians. */
 const rad = (deg: number): number => (deg * Math.PI) / 180;
+const TWO_PI = 2 * Math.PI;
 
 /**
  * Sample a closed heliocentric ellipse from (a, e) in the ecliptic-projected
@@ -121,13 +135,15 @@ export function sampleCircle(radius: number, n = 180): Vec2[] {
 }
 
 /**
- * Idealized encounter markers for a single-ellipse cycler: the true-anomaly
- * positions where the cycler ellipse crosses each encountered planet's orbital
- * radius. This is the circular-coplanar encounter geometry (an encounter
- * happens at the planet's heliocentric distance) — labelled "idealized" by the
- * caller, distinct from real DE440 window dates. Returns at most two crossings
- * per planet (in/out bound). Bodies not crossed (radius outside [peri, apo])
- * yield none.
+ * Idealized (geometry-only) encounter markers for a single-ellipse cycler: the
+ * point on the cycler ellipse that comes CLOSEST to each encountered planet's
+ * real J2000 ellipse (design §2 fallback #2). Phase 1 used the planet's circular
+ * radius crossing; with the planet now on a real eccentric ellipse the crossing
+ * is no longer a single radius, so we generalise to minimum distance between the
+ * two curves. Labelled "idealized crossing geometry" by the caller — distinct
+ * from the time-true marker (the planet's position AT the encounter time) used
+ * when a clock exists, and from real DE440 window dates. Returns one mark per
+ * encountered body that the cycler ellipse can plausibly reach.
  */
 export interface EncounterMark {
   body: string;
@@ -145,14 +161,30 @@ export function idealEncounters(a: number, e: number, bodies: string[]): Encount
     seen.add(b);
     const planet = PLANETS[b];
     if (!planet) continue;
-    const rTarget = planet.sma_au;
-    if (rTarget < peri - 1e-9 || rTarget > apo + 1e-9) continue; // ellipse never reaches it
-    // r = p / (1 + e cos ν)  ⇒  cos ν = (p / r − 1) / e
-    const cosNu = e === 0 ? 0 : (p / rTarget - 1) / e;
-    const c = Math.max(-1, Math.min(1, cosNu));
-    const nu = Math.acos(c); // outbound crossing (0..π)
-    const r = rTarget;
-    marks.push({ body: b, pos: { x: r * Math.cos(nu), y: r * Math.sin(nu) } });
+    // The cycler must be able to reach the planet's radius band [peri, apo].
+    const planetPeri = planet.record.a_au * (1 - planet.record.e);
+    const planetApo = planet.record.a_au * (1 + planet.record.e);
+    if (planetApo < peri - 1e-9 || planetPeri > apo + 1e-9) continue;
+    // Minimum-distance point of the cycler ellipse to the planet's real ellipse.
+    const planetCurve = samplePlanetEllipse(b, 180);
+    let best: Vec2 = { x: 0, y: 0 };
+    let bestD = Infinity;
+    for (let k = 0; k < 360; k++) {
+      const nu = (TWO_PI * k) / 360;
+      const r = p / (1 + e * Math.cos(nu));
+      const cx = r * Math.cos(nu);
+      const cy = r * Math.sin(nu);
+      for (const q of planetCurve) {
+        const dx = cx - q.x;
+        const dy = cy - q.y;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) {
+          bestD = d;
+          best = { x: cx, y: cy };
+        }
+      }
+    }
+    marks.push({ body: b, pos: best });
   }
   return marks;
 }

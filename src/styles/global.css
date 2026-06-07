@@ -457,9 +457,58 @@ ul.bare li { margin: 0.25rem 0; }
 .orbit-scrub-label { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--fg-muted); }
 .orbit-scrub { width: 12rem; max-width: 50vw; accent-color: var(--accent); }
 
+/* tilt morph control (top-down -> edge-on) */
+.orbit-tilt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.4rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+.orbit-tilt-range { width: 10rem; max-width: 45vw; accent-color: var(--accent); }
+.orbit-tilt-group { transition: transform 0.15s ease; }
+.orbit-tilt-note { font-size: 0.75rem; }
+
+/* encounter-proximity indicator (the pedagogical headline) */
+.orbit-proximity {
+  margin: 0.6rem 0;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  padding: 0.5rem 0.7rem;
+}
+.orbit-prox-title { margin: 0 0 0.4rem; font-size: 0.82rem; font-weight: 600; }
+.orbit-prox-title .muted { font-weight: 400; }
+.orbit-prox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.2rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.orbit-prox-body { min-width: 3.5rem; color: var(--fg-muted); }
+.orbit-spark {
+  width: 200px;
+  max-width: 55vw;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg);
+}
+.orbit-spark-line { stroke: var(--accent); stroke-width: 1.25; }
+.orbit-spark-min { fill: var(--warn-border); stroke: var(--fg); stroke-width: 0.5; }
+.orbit-prox-read { color: var(--fg); white-space: nowrap; }
+.orbit-prox-live { margin: 0.35rem 0 0; font-family: var(--font-mono); font-size: 0.75rem; }
+
 /* Motion is user-controlled; under reduced-motion we never auto-loop. The
    island already honours this (no requestAnimationFrame loop on play); this
-   block disables any incidental SVG transitions as a belt-and-braces default. */
+   block disables any incidental SVG transitions as a belt-and-braces default,
+   and snaps the tilt morph rather than easing it. */
 @media (prefers-reduced-motion: reduce) {
   .orbit-craft, .orbit-planet-marker { transition: none !important; }
+  .orbit-tilt-group { transition: none !important; }
 }
