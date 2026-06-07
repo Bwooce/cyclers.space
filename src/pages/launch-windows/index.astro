@@ -195,6 +195,17 @@ const nTotal = data.entries.length;
     (<code>maintenance_dv_status</code> records the reason per row).
   </p>
   <p class="muted">
+    <strong>Now codified, not caught by hand.</strong> That 55.3 km/s value was originally
+    caught only by a manual cross-check. The exporter now runs every computed ΔV through a
+    publication-layer plausibility gate
+    (<code>cyclerfinder.verify.plausibility.check_publishable</code>): a value above the
+    &lt;3 km/s engineering bar is <em>refused</em> — recorded as
+    <code>maintenance_dv_status: "refused: …"</code> with the reason, never written as a ΔV.
+    The same module enforces a hard <em>physics</em> ceiling on V<sub>∞</sub> (a periodic
+    heliocentric orbit cannot exceed v<sub>esc,☉</sub>(r) + v<sub>body</sub>, ≈ 71.9 km/s at
+    Earth), distinct from the engineering bar.
+  </p>
+  <p class="muted">
     <strong>Why it isn't on the weekly cron.</strong> Even parallelised, the cold-cache DE440
     solve is too slow for GitHub's free runner (2–4 cores), and the value is row-invariant, so
     a weekly recompute buys nothing. The column is computed once with
