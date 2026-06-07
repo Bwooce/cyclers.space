@@ -15,7 +15,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.4.2"
+    "@astrojs/check": "^0.9.9",
+    "astro": "^6.4.2",
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
