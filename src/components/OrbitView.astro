@@ -612,6 +612,29 @@ const svgDesc =
 
     const phaseToTime = (phase: number) => cfg.t0 + (cfg.t1 - cfg.t0) * (phase % 1);
 
+    // SVG <-> 3D time sync (viz phase 2b): the 3D host (a sibling) dispatches an
+    // "orbit-time" CustomEvent when its clock steps; we mirror it onto the SVG
+    // markers, and broadcast our own scrub/play so the 3D view tracks. The guard
+    // stops the event ping-ponging between the two renderers.
+    const host3d = document.querySelector<HTMLElement>(`[data-orbit-3d="${svgId}"]`);
+    let syncing = false;
+    const broadcastTime = (t: number) => {
+      if (syncing || !host3d) return;
+      host3d.dispatchEvent(new CustomEvent("orbit-time", { detail: { t } }));
+    };
+    if (host3d) {
+      host3d.addEventListener("orbit-time", (e: Event) => {
+        const d = (e as CustomEvent).detail as { t?: number } | undefined;
+        if (!d || typeof d.t !== "number") return;
+        syncing = true;
+        setTime(d.t);
+        // reflect the external time on the scrub slider too
+        const span = cfg.t1 - cfg.t0 || 1;
+        scrub.value = String(Math.round((((d.t - cfg.t0) % span) / span) * 1000));
+        syncing = false;
+      });
+    }
+
     let raf = 0;
     let playing = false;
     let phase = 0;
@@ -632,7 +655,9 @@ const svgDesc =
       last = now;
       phase = (phase + dt * 0.08) % 1; // ~12.5 s per period
       scrub.value = String(Math.round(phase * 1000));
-      setTime(phaseToTime(phase));
+      const t = phaseToTime(phase);
+      setTime(t);
+      broadcastTime(t);
       raf = requestAnimationFrame(tick);
     };
 
@@ -642,7 +667,9 @@ const svgDesc =
       } else if (reduced) {
         phase = (phase + 0.05) % 1;
         scrub.value = String(Math.round(phase * 1000));
-        setTime(phaseToTime(phase));
+        const t = phaseToTime(phase);
+        setTime(t);
+        broadcastTime(t);
       } else {
         playing = true;
         last = 0;
@@ -655,7 +682,9 @@ const svgDesc =
     scrub.addEventListener("input", () => {
       if (playing) stop();
       phase = Number(scrub.value) / 1000;
-      setTime(phaseToTime(phase));
+      const t = phaseToTime(phase);
+      setTime(t);
+      broadcastTime(t);
     });
 
     setTime(phaseToTime(0));

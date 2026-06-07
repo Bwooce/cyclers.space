@@ -10,8 +10,7 @@
 // is in AU world units (3D drops the SVG's px/AU scale).
 
 import type * as THREE_NS from "three";
-import { stateAt } from "./kepler-time";
-import { toThree } from "./three-axis";
+import { markerWorldPos, defaultStartTime } from "./three-clock";
 import { buildOrbitLinePoints, buildCraftPathPoints } from "./three-geometry";
 import { makeOrbitControls, type OrbitControls } from "./three-controls";
 import { PLANETS, PLANET_GEOMETRY_CITATION } from "./orbit";
@@ -123,7 +122,54 @@ export async function mountThreeView(
   const controls: OrbitControls = makeOrbitControls(camera, cfg, reduced);
   controls.attachPointer(renderer.domElement);
 
-  // Keyboard: arrows orbit, +/- dolly (the full key map lands in Task 1.6).
+  // --- the shared clock (one clock, two renderers) --------------------------
+  // The 3D view opens PAUSED at the first encounter (design §4.2). Stepping time
+  // here dispatches an "orbit-time" CustomEvent on the host so the 2a SVG island
+  // moves its craft/planet markers together, and we listen for the same event so
+  // SVG scrubbing moves the 3D markers — switching renderers continues the same
+  // instant. A re-entrancy guard stops the event ping-ponging.
+  const span = cfg.t1 - cfg.t0 || 1;
+  const STEP = span / 60; // one [ / ] press = ~1/60 of the period
+  let t = defaultStartTime(cfg);
+  let syncing = false;
+
+  const setTime = (next: number) => {
+    t = next;
+    for (const [code, mesh] of planetMarkers) {
+      const el = cfg.planets.find((p) => p.code === code)!.el;
+      const w = markerWorldPos(el, t);
+      mesh.position.set(w.x, w.y, w.z);
+    }
+    const c = markerWorldPos(cfg.craft, t);
+    craftMarker.position.set(c.x, c.y, c.z);
+  };
+
+  const broadcast = () => {
+    if (syncing) return;
+    host.dispatchEvent(new CustomEvent("orbit-time", { detail: { t } }));
+  };
+  const onExternalTime = (e: Event) => {
+    const detail = (e as CustomEvent).detail as { t?: number } | undefined;
+    if (!detail || typeof detail.t !== "number") return;
+    syncing = true;
+    setTime(detail.t);
+    syncing = false;
+  };
+  host.addEventListener("orbit-time", onExternalTime);
+
+  setTime(t);
+
+  // play/pause (only when not reduced-motion); under reduced-motion Space is
+  // inert and [/] step (design §4.3).
+  let playing = false;
+  let lastNow = 0;
+  const stepTime = (sign: number) => {
+    setTime(t + sign * STEP);
+    broadcast();
+  };
+
+  // Keyboard: arrows orbit, +/- dolly, [ / ] step time, Space play/pause (the
+  // remaining a11y keys — 1/2/T/?/Esc — land in Task 1.6).
   const onKey = (e: KeyboardEvent) => {
     switch (e.key) {
       case "ArrowLeft": controls.stepAzimuth(-1); break;
@@ -132,6 +178,11 @@ export async function mountThreeView(
       case "ArrowDown": controls.stepElevation(-1); break;
       case "+": case "=": controls.dolly(1); break;
       case "-": case "_": controls.dolly(-1); break;
+      case "[": stepTime(-1); break;
+      case "]": stepTime(1); break;
+      case " ":
+        if (!reduced) playing = !playing;
+        break;
       default: return;
     }
     e.preventDefault();
@@ -140,22 +191,22 @@ export async function mountThreeView(
   renderer.domElement.classList.add("orbit-3d-canvas");
   renderer.domElement.addEventListener("keydown", onKey);
 
-  // Marker placement at the default instant (the shared clock arrives in 1.5).
-  const setTime = (t: number) => {
-    for (const [code, mesh] of planetMarkers) {
-      const el = cfg.planets.find((p) => p.code === code)!.el;
-      const w = toThree(stateAt(el, t));
-      mesh.position.set(w.x, w.y, w.z);
-    }
-    const c = toThree(stateAt(cfg.craft, t));
-    craftMarker.position.set(c.x, c.y, c.z);
-  };
-  setTime(cfg.t0);
-
-  // Render loop: ease the camera toward its target each frame, then paint.
+  // Render loop: ease the camera, advance the clock if playing, then paint.
   let raf = 0;
-  const render = () => {
+  const render = (now: number) => {
     controls.update();
+    if (playing && !reduced) {
+      if (!lastNow) lastNow = now;
+      const dtMs = now - lastNow;
+      lastNow = now;
+      // ~one period per 18 s of wall time (Kepler-true: aphelion visibly slow).
+      let next = t + (span * dtMs) / 18000;
+      if (next > cfg.t1) next = cfg.t0 + ((next - cfg.t0) % span);
+      setTime(next);
+      broadcast();
+    } else {
+      lastNow = 0;
+    }
     renderer.render(scene, camera);
     raf = requestAnimationFrame(render);
   };
@@ -175,6 +226,7 @@ export async function mountThreeView(
     cancelAnimationFrame(raf);
     window.removeEventListener("resize", onResize);
     renderer.domElement.removeEventListener("keydown", onKey);
+    host.removeEventListener("orbit-time", onExternalTime);
     controls.detachPointer();
     renderer.dispose();
     scene.traverse((o) => {
