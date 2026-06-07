@@ -1,0 +1,95 @@
+{
+  "epoch": "J2000",
+  "frame": "ecliptic",
+  "citation": "J2000 osculating ellipse (Standish & Williams Table 1)",
+  "bodies": [
+    {
+      "code": "V",
+      "name": "Venus",
+      "a_au": 0.72333566,
+      "e": 0.00677727,
+      "i_deg": 3.39467605,
+      "lan_deg": 76.67984255,
+      "varpi_deg": 131.60246718,
+      "L0_deg": 181.9790995,
+      "mean_motion_deg_day": 1.6021171144371613
+    },
+    {
+      "code": "E",
+      "name": "Earth",
+      "a_au": 1.00000261,
+      "e": 0.01671123,
+      "i_deg": 0.0,
+      "lan_deg": 0.0,
+      "varpi_deg": 102.93768193,
+      "L0_deg": 100.46457166,
+      "mean_motion_deg_day": 0.9856038098710971
+    },
+    {
+      "code": "M",
+      "name": "Mars",
+      "a_au": 1.52371034,
+      "e": 0.09340065,
+      "i_deg": 1.84969142,
+      "lan_deg": 49.55953891,
+      "varpi_deg": -23.94362959,
+      "L0_deg": -4.55343205,
+      "mean_motion_deg_day": 0.5240231238997968
+    },
+    {
+      "code": "Me",
+      "name": "Mercury",
+      "a_au": 0.38709927,
+      "e": 0.20563593,
+      "i_deg": 7.00497902,
+      "lan_deg": 48.33076593,
+      "varpi_deg": 77.45779628,
+      "L0_deg": 252.2503235,
+      "mean_motion_deg_day": 4.092329038904989
+    },
+    {
+      "code": "J",
+      "name": "Jupiter",
+      "a_au": 5.202887,
+      "e": 0.04838624,
+      "i_deg": 1.30439695,
+      "lan_deg": 100.47390909,
+      "varpi_deg": 14.72847983,
+      "L0_deg": 34.39644051,
+      "mean_motion_deg_day": 0.08304958819700649
+    },
+    {
+      "code": "S",
+      "name": "Saturn",
+      "a_au": 9.53667594,
+      "e": 0.05386179,
+      "i_deg": 2.48599187,
+      "lan_deg": 113.66242448,
+      "varpi_deg": 92.59887831,
+      "L0_deg": 49.95424423,
+      "mean_motion_deg_day": 0.03346636441519979
+    },
+    {
+      "code": "U",
+      "name": "Uranus",
+      "a_au": 19.18916464,
+      "e": 0.04725744,
+      "i_deg": 0.77263783,
+      "lan_deg": 74.01692503,
+      "varpi_deg": 170.9542763,
+      "L0_deg": 313.23810451,
+      "mean_motion_deg_day": 0.011725192196245907
+    },
+    {
+      "code": "N",
+      "name": "Neptune",
+      "a_au": 30.06992276,
+      "e": 0.00859048,
+      "i_deg": 1.77004347,
+      "lan_deg": 131.78422574,
+      "varpi_deg": 44.96476227,
+      "L0_deg": -55.12002969,
+      "mean_motion_deg_day": 0.005977307590151743
+    }
+  ]
+}
