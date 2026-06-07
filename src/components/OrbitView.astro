@@ -263,6 +263,14 @@ const clockConfig = {
   cx,
   cy,
   bodies: bodies.filter((b) => PLANETS[b]),
+  // Additive fields for the viz-2b camera (task #138). The 2a island ignores
+  // unknown keys, so this does not change 2D behaviour. encounterTimes is
+  // populated only for idealized-phase rows (real-window rows anchor t0 to the
+  // encounter date, so the camera's "t = first encounter" default falls back to
+  // t0). proximityMinima re-exposes the closest-approach instants already
+  // computed for the sparkline so the tour/orbit-cam can reuse them.
+  encounterTimes,
+  proximityMinima: proximity.map((s) => ({ body: s.body, t: s.minimum.t, d_au: s.minimum.d_au })),
 };
 
 // Static a11y description of what the figure shows.
