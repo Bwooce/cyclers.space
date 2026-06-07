@@ -504,6 +504,39 @@ ul.bare li { margin: 0.25rem 0; }
 .orbit-prox-read { color: var(--fg); white-space: nowrap; }
 .orbit-prox-live { margin: 0.35rem 0 0; font-family: var(--font-mono); font-size: 0.75rem; }
 
+/* View-in-3D launcher + canvas host (viz phase 2b, opt-in lazy Three.js). */
+.orbit-3d-launch { margin: 0.6rem 0; }
+.orbit-3d-btn {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  cursor: pointer;
+}
+.orbit-3d-btn:hover, .orbit-3d-btn:focus-visible { border-color: var(--accent); color: var(--accent); }
+.orbit-3d-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.orbit-3d-btn[disabled] { opacity: 0.6; cursor: progress; }
+.orbit-3d {
+  position: relative;
+  margin: 0.5rem 0;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow: hidden;
+}
+.orbit-3d canvas { display: block; width: 100%; height: 100%; }
+.orbit-3d-canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.orbit-3d-note { margin: 0.5rem 0; font-size: 0.8rem; }
+
 /* Motion is user-controlled; under reduced-motion we never auto-loop. The
    island already honours this (no requestAnimationFrame loop on play); this
    block disables any incidental SVG transitions as a belt-and-braces default,

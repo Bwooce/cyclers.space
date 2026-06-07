@@ -298,6 +298,7 @@ const svgDesc =
         tabulated above.
       </p>
       <p class="muted orbit-prov">model: {fidelityBadge}</p>
+      <p class="muted orbit-prov">3D view not available for rotating-frame (CR3BP) orbits.</p>
     </div>
   ) : (
     <>
@@ -430,6 +431,35 @@ const svgDesc =
           ))}
           <p class="muted orbit-prox-live" data-prox-live aria-live="polite"></p>
         </div>
+      )}
+
+      {/* View in 3D (viz phase 2b): opt-in, lazy-on-intent Three.js camera.
+          Gated to single-ellipse rows with craft elements; multi-arc gets an
+          honest "not available in 3D yet" note; CR3BP (non-keplerian) is the
+          separate placeholder branch above (no button — a rotating-frame orbit
+          is not renderable from heliocentric elements). Three.js ships ZERO
+          bytes until this button is clicked (the handler does the dynamic
+          import). */}
+      {cls === "single-ellipse" && craftElems && (
+        <div class="orbit-3d-launch" data-orbit-3d-launch={`orbit-svg-${entry.id}`}>
+          <button
+            type="button"
+            class="orbit-3d-btn"
+            title="Loads a Three.js 3D camera (~150 KB WebGL, fetched only on this click). The 2D SVG remains the accessible source of truth."
+          >View in 3D</button>
+          <div
+            class="orbit-3d"
+            data-orbit-3d={`orbit-svg-${entry.id}`}
+            hidden
+          ></div>
+        </div>
+      )}
+      {cls === "multi-arc" && (
+        <p class="muted orbit-3d-note" role="note">
+          3D view not available for multi-arc trajectories yet (each leg is a
+          separate ellipse with honest gaps where elements are unpublished — the
+          2D view above shows them; a 3D multi-arc render is a future slice).
+        </p>
       )}
 
       {cls === "single-ellipse" && edgePath && (
@@ -660,10 +690,46 @@ const svgDesc =
     apply();
   }
 
+  // View-in-3D launcher (viz phase 2b): the ONLY entry point to Three.js. The
+  // wiring here is tiny and eager (it ships with the 2a island); the scene code
+  // and three itself are behind the dynamic import inside the click handler, so
+  // the page ships ZERO WebGL bytes until the user clicks. mountThreeView reads
+  // the SAME clockConfig JSON the 2a island uses (one clock, two renderers).
+  function initThreeLaunch(launch: HTMLElement) {
+    const svgId = launch.getAttribute("data-orbit-3d-launch");
+    if (!svgId) return;
+    const btn = launch.querySelector<HTMLButtonElement>(".orbit-3d-btn");
+    const host = launch.querySelector<HTMLElement>("[data-orbit-3d]");
+    if (!btn || !host) return;
+    const cfgEl = document.querySelector<HTMLScriptElement>(`script[data-orbit-config="${svgId}"]`);
+    if (!cfgEl || !cfgEl.textContent) return; // non-single-ellipse: no 3D
+    let loaded = false;
+    btn.addEventListener("click", async () => {
+      host.hidden = false;
+      if (loaded) return;
+      loaded = true;
+      btn.disabled = true;
+      try {
+        const { mountThreeView } = await import("../lib/three-view");
+        const cfg = JSON.parse(cfgEl.textContent!);
+        await mountThreeView(host, cfg, svgId);
+      } catch (err) {
+        host.textContent = "3D view failed to load.";
+        loaded = false;
+        console.error("[orbit-3d] mount failed", err);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
   for (const c of document.querySelectorAll<HTMLElement>("[data-orbit-controls]")) {
     initOrbit(c);
   }
   for (const c of document.querySelectorAll<HTMLElement>("[data-orbit-tilt]")) {
     initTilt(c);
+  }
+  for (const c of document.querySelectorAll<HTMLElement>("[data-orbit-3d-launch]")) {
+    initThreeLaunch(c);
   }
 </script>
