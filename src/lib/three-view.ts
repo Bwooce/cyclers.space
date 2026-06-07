@@ -19,7 +19,8 @@ import { buildOrbitLinePoints, buildCraftPathPoints, buildSampledPathPoints } fr
 import { makeOrbitControls, type OrbitControls } from "./three-controls";
 import { chaseCameraPose } from "./three-view-chase";
 import { tourKeyframes, type TourKeyframe } from "./three-tour";
-import { PLANETS, PLANET_GEOMETRY_CITATION } from "./orbit";
+import { PLANETS } from "./orbit";
+import { captionLines } from "./three-caption";
 import type { ClockConfig } from "./three-types";
 
 const AU_KM = 149_597_870.7;
@@ -146,19 +147,15 @@ export async function mountThreeView(
   const craftMarker = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12), markerMat);
   scene.add(craftMarker);
 
-  // Honesty caption overlay (design §5): the SAME provenance strings the SVG
-  // figcaption shows — model badge, planet citation, clock regime — so 3D never
-  // claims more fidelity than 2D. Falls back to the build-time citation constant.
+  // Honesty caption overlay (design §5, viz-2c binding): PER-CURVE fidelity —
+  // captionLines names the craft's own model (analytic badge, or "craft:
+  // sampled (...)" + provenance for a sampled row) and ALWAYS states the planets
+  // are Standish osculating ellipses, plus the clock regime + encounter-marker
+  // provenance. So 3D never claims more fidelity than the data, and a sampled
+  // craft can never be read as implying the planets are sampled too.
   const caption = document.createElement("div");
   caption.className = "orbit-3d-caption";
-  caption.textContent = [
-    cfg.fidelityBadge,
-    `planets: ${cfg.planetCitation ?? PLANET_GEOMETRY_CITATION}`,
-    cfg.clockLabel,
-    cfg.encProvenance,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  caption.textContent = captionLines(cfg).join("\n");
   host.appendChild(caption);
 
   // On-canvas key-help overlay (toggled by `?`), listing the binding table.
