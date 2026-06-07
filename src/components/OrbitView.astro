@@ -271,6 +271,12 @@ const clockConfig = {
   // computed for the sparkline so the tour/orbit-cam can reuse them.
   encounterTimes,
   proximityMinima: proximity.map((s) => ({ body: s.body, t: s.minimum.t, d_au: s.minimum.d_au })),
+  // Honesty strings carried into the 3D caption (design §5) — the SAME strings
+  // the SVG figcaption shows, so provenance reads identically in both renderers.
+  fidelityBadge,
+  clockLabel,
+  encProvenance,
+  planetCitation: PLANET_GEOMETRY_CITATION,
 };
 
 // Static a11y description of what the figure shows.
@@ -452,6 +458,7 @@ const svgDesc =
             data-orbit-3d={`orbit-svg-${entry.id}`}
             hidden
           ></div>
+          <p class="visually-hidden orbit-3d-live" data-orbit-3d-live={`orbit-svg-${entry.id}`} aria-live="polite"></p>
         </div>
       )}
       {cls === "multi-arc" && (
@@ -732,11 +739,13 @@ const svgDesc =
     if (!btn || !host) return;
     const cfgEl = document.querySelector<HTMLScriptElement>(`script[data-orbit-config="${svgId}"]`);
     if (!cfgEl || !cfgEl.textContent) return; // non-single-ellipse: no 3D
-    let loaded = false;
+    let mounting = false;
     btn.addEventListener("click", async () => {
       host.hidden = false;
-      if (loaded) return;
-      loaded = true;
+      // Re-mount if the view was closed (Esc destroys the canvas). The host has
+      // a <canvas> only while a live view is mounted.
+      if (mounting || host.querySelector("canvas")) return;
+      mounting = true;
       btn.disabled = true;
       try {
         const { mountThreeView } = await import("../lib/three-view");
@@ -744,9 +753,9 @@ const svgDesc =
         await mountThreeView(host, cfg, svgId);
       } catch (err) {
         host.textContent = "3D view failed to load.";
-        loaded = false;
         console.error("[orbit-3d] mount failed", err);
       } finally {
+        mounting = false;
         btn.disabled = false;
       }
     });
