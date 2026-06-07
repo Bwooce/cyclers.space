@@ -57,6 +57,18 @@ Measured after `npm run build` with the full orbit-cam scene + controls + a11y.
 > still **zero WebGL bytes** — both three chunks remain reachable only via the
 > on-click `import()` (re-verified in the Playwright network log: 0 `three`
 > requests before the click, `three-view` + `three.module` fetched only after).
+>
+> **Slice 3 (guided tour) update:** adding the geometry-derived `three-tour.ts`
+> keyframes + the `T` tour runner (continuous keyframe lerp, live-region beat
+> narration with folded-in proximity, cancel-on-any-input, reduced-motion
+> jump-cut stepped fallback) grew the lazy `three-view.*.js` chunk from
+> **10133 → 12809 bytes** (+2676). The `three.module.*.js` core is still
+> byte-unchanged (704691 raw / 180161 gzip). Re-verified in the Playwright
+> network log on a fresh load: **0** `three` requests before the "View in 3D"
+> click; `three-view` + `three.module` fetched only after. Other routes
+> (home / launch-windows) reference no three chunk. Only the 7 single-ellipse
+> rows render the button; CR3BP / multi-arc rows show the honest "3D view not
+> available" note instead.
 
 > **Deviation from the literal "byte-identical initial payload" wording:** once the
 > button handler contains a dynamic `import("../lib/three-view")`, Astro/Vite
