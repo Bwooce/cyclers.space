@@ -48,7 +48,15 @@ Measured after `npm run build` with the full orbit-cam scene + controls + a11y.
 |---|---|
 | External `_astro/*.js` referenced by the detail page (initial payload) | 1 file, **6275** (the OrbitView island chunk) |
 | Any `three` chunk referenced via `src=` on the detail page | **none** (0) |
-| `three` chunks reachable only via dynamic `import()` (on disk) | `three.module.*.js` 704691 raw / **180161 gzip**, `three-view.*.js` 9086 |
+| `three` chunks reachable only via dynamic `import()` (on disk) | `three.module.*.js` 704691 raw / **180161 gzip**, `three-view.*.js` 9086 (Slice 1) |
+
+> **Slice 2 (chase-cam) update:** adding the chase-cam mode + the pure
+> `three-view-chase.ts` helper grew the lazy `three-view.*.js` chunk from
+> **9086 → 10133 bytes** (+1047, the mode switch + damped look-at wiring). The
+> `three.module.*.js` core is byte-unchanged (704691 raw). The initial payload is
+> still **zero WebGL bytes** — both three chunks remain reachable only via the
+> on-click `import()` (re-verified in the Playwright network log: 0 `three`
+> requests before the click, `three-view` + `three.module` fetched only after).
 
 > **Deviation from the literal "byte-identical initial payload" wording:** once the
 > button handler contains a dynamic `import("../lib/three-view")`, Astro/Vite
