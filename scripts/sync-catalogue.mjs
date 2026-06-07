@@ -56,3 +56,38 @@ try {
     process.exit(1);
   }
 }
+
+// --- sampled trajectories (viz-2c; committed, soft-fail on a stale remote) ----
+// Per-row numerically-propagated craft polylines emitted upstream by
+// cyclers/scripts/export_sampled_trajectories.py. Committed under public/data so
+// they are served at /data/sampled/<id>.json and fetched lazily only when the 3D
+// view opens. The committed copy is the floor; the sync merely refreshes it. The
+// id list mirrors sampled-availability.ts PUBLISHED_SAMPLED_IDS.
+const SAMPLED_IDS = ["aldrin-classic-em-k1-outbound"];
+const SAMPLED_BASE =
+  process.env.SAMPLED_BASE_URL ??
+  "https://raw.githubusercontent.com/Bwooce/cyclers/main/data/sampled";
+for (const id of SAMPLED_IDS) {
+  const url = `${SAMPLED_BASE}/${id}.json`;
+  const out = `public/data/sampled/${id}.json`;
+  try {
+    const sres = await fetch(url);
+    if (!sres.ok) throw new Error(`HTTP ${sres.status}`);
+    const sbody = await sres.text();
+    const parsed = JSON.parse(sbody);
+    if (parsed.kind !== "sampled" || !Array.isArray(parsed.timesSec)) {
+      throw new Error("payload is not a SampledTrajectory");
+    }
+    await mkdir(dirname(out), { recursive: true });
+    await writeFile(out, sbody);
+    console.log(`sync-catalogue: wrote ${out} (${sbody.length} bytes) from ${url}`);
+  } catch (err) {
+    try {
+      await access(out);
+      console.warn(`sync-catalogue: ${url} unavailable (${err.message}); keeping committed ${out}.`);
+    } catch {
+      console.error(`sync-catalogue: ${url} unavailable AND ${out} missing. Cannot serve sampled trajectory ${id}.`);
+      process.exit(1);
+    }
+  }
+}

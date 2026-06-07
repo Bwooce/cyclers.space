@@ -75,5 +75,14 @@ export interface ClockConfig {
   // framing fallback (period, aphelion for camera distance). The planets always
   // stay analytic (Standish osculating ellipses) — only the craft can be
   // sampled in this slice.
+  //
+  // `craftSampled` is NOT serialised inline (that would defeat the zero-cost
+  // proof): the build emits only `sampledUrl` (a small string), and the "View in
+  // 3D" click handler fetches that JSON and assigns `craftSampled` on the parsed
+  // cfg before mounting. So a row's sampled polyline costs zero bytes until 3D
+  // opens — same lazy-on-intent guarantee as the three.js chunk.
   craftSampled?: SampledTrajectory;
+  /** Public URL of this row's sampled-trajectory JSON, when one is published.
+   *  The renderer lazily fetches it into `craftSampled` on 3D open. */
+  sampledUrl?: string;
 }

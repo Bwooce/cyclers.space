@@ -31,7 +31,7 @@ import {
   meanMotionDegPerDay,
   type KeplerElements,
 } from "../lib/kepler-time";
-import { canRenderSampled3D } from "../lib/sampled-availability";
+import { canRenderSampled3D, sampledUrlFor } from "../lib/sampled-availability";
 
 interface Props {
   entry: CyclerEntry;
@@ -45,6 +45,11 @@ const cls = renderClassOf(entry);
 // the seam is wired so the gate opens the day the exporter lands, without faking
 // per-row data now. CR3BP stays excluded inside canRenderSampled3D.
 const hasSampled3D = canRenderSampled3D(entry);
+// viz-2c lazy-load seam: the URL of this row's sampled polyline (a small string,
+// NOT the polyline). It rides the inline clockConfig; the "View in 3D" handler
+// fetches it into cfg.craftSampled only when 3D opens, so the sampled data costs
+// zero initial-payload bytes (the zero-cost-when-unused proof).
+const sampledUrl = sampledUrlFor(entry);
 
 // --- canvas geometry -------------------------------------------------------
 const W = 440;
@@ -285,6 +290,10 @@ const clockConfig = {
   clockLabel,
   encProvenance,
   planetCitation: PLANET_GEOMETRY_CITATION,
+  // viz-2c: only the URL (a small string) is serialised; the polyline is fetched
+  // lazily on 3D open so it costs zero initial-payload bytes. null when no
+  // sampled file is published for this row.
+  sampledUrl,
 };
 
 // Static a11y description of what the figure shows.
@@ -762,6 +771,21 @@ const svgDesc =
       try {
         const { mountThreeView } = await import("../lib/three-view");
         const cfg = JSON.parse(cfgEl.textContent!);
+        // viz-2c lazy fetch: if this row has a published sampled trajectory, load
+        // it NOW (only on intent) and hand it to the renderer as cfg.craftSampled.
+        // The polyline never shipped in the page HTML — zero bytes until this
+        // click. A fetch failure degrades gracefully to the analytic ellipse.
+        if (cfg.sampledUrl) {
+          try {
+            const res = await fetch(cfg.sampledUrl);
+            if (res.ok) {
+              const sampled = await res.json();
+              if (sampled && sampled.kind === "sampled") cfg.craftSampled = sampled;
+            }
+          } catch (e) {
+            console.warn("[orbit-3d] sampled trajectory fetch failed; using analytic ellipse", e);
+          }
+        }
         await mountThreeView(host, cfg, svgId);
       } catch (err) {
         host.textContent = "3D view failed to load.";
