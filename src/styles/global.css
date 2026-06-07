@@ -536,6 +536,18 @@ ul.bare li { margin: 0.25rem 0; }
 .orbit-3d canvas { display: block; width: 100%; height: 100%; }
 .orbit-3d-canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .orbit-3d-note { margin: 0.5rem 0; font-size: 0.8rem; }
+.orbit-3d-caption {
+  position: absolute;
+  left: 0.4rem;
+  bottom: 0.4rem;
+  right: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  line-height: 1.35;
+  color: var(--fg-muted);
+  pointer-events: none;
+  white-space: pre-line;
+}
 
 /* Motion is user-controlled; under reduced-motion we never auto-loop. The
    island already honours this (no requestAnimationFrame loop on play); this
