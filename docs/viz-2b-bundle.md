@@ -1,4 +1,8 @@
-# viz-2b bundle baseline + zero-cost-when-unused proof
+# viz-2b / 2c bundle baseline + zero-cost-when-unused proof
+
+> Extended for viz phase 2c (sampled trajectories) — see the "Slice 2c" note in
+> the post-button section below for the new chunk sizes, the sampled-vs-analytic
+> coincidence tolerance, and the n-body-exporter adapter point.
 
 This is the measured record the Three.js camera (viz phase 2b) is held against:
 the detail page must ship **zero WebGL bytes until the user clicks "View in 3D"**
@@ -69,6 +73,52 @@ Measured after `npm run build` with the full orbit-cam scene + controls + a11y.
 > (home / launch-windows) reference no three chunk. Only the 7 single-ellipse
 > rows render the button; CR3BP / multi-arc rows show the honest "3D view not
 > available" note instead.
+
+> **Slice 2c (sampled trajectories) update:** viz phase 2c adds a sampled-
+> trajectory geometry source (numerically-integrated / multi-arc craft curves
+> rendered as an interpolated polyline in the same SVG + 3D system). The new pure
+> modules — `three-clock-sampled.ts` (linear-interpolation clock),
+> `three-geometry.ts` sampled helpers, `three-caption.ts` (per-curve honesty
+> caption) — are imported **only** by the lazy `three-view.ts`, so they ride the
+> on-click chunk and add **zero** initial-payload bytes. The lazy
+> `three-view.*.js` chunk grew from **12809 → 13838 bytes** (+1029: the sampled
+> clock + sampled craft path/SVG-path builders + the per-curve caption builder).
+> The `three.module.*.js` core is byte-unchanged (704691 raw / 180161 gzip). The
+> gating helper `sampled-availability.ts` is the only new code that touches the
+> build-time island (`OrbitView.astro`), and it is tree-shaken to a constant
+> `false` today (no row has sampled data), so the OrbitView island chunk is
+> effectively unchanged (6275 → 6282). Re-verified in the Playwright network log
+> on a fresh load: **0** `three` requests before the "View in 3D" click;
+> `three-view` + `three.module` fetched only after (both 200). The initial
+> OrbitView island chunk contains **no** sampled-module code, **no** `THREE`
+> token, and only the dynamic-import string `three-view.*` — confirmed by grep on
+> `dist/_astro/OrbitView.*.js`. Other routes (home / launch-windows) still
+> reference no three chunk. Multi-arc rows show the **updated** honest note
+> (sampled-data-availability gate, closed until the Phase-C exporter lands); CR3BP
+> rows stay excluded (rotating frame). a11y/keyboard re-verified intact: canvas
+> focus on open, `]` steps time + announces proximity + moves the SVG craft (one
+> clock), `?` toggles help, `Esc` destroys the canvas and returns focus to the
+> SVG.
+>
+> **Sampled-vs-analytic coincidence (the slice-2 regression):** the synthetic
+> fixture (`src/lib/__fixtures__/sampled-fixture.ts`) resamples a known analytic
+> ellipse at 5-day steps (289 samples over one period). At the stored grid times
+> the sampled projected points are bit-identical to the analytic ones (tolerance
+> 1e-12 AU). Across a dense 2000-point interpolated scan the max projected error
+> is **1.41e-3 AU (~210,936 km)**, under the documented **5e-3 AU** chord-error
+> bound — visually coincident at the line widths drawn. The interpolant is
+> deliberately **linear** (documented in `three-clock-sampled.ts`): it invents no
+> curvature the integrator did not produce; a future exporter wanting smoother
+> motion emits denser samples rather than the renderer upgrading the interpolant.
+>
+> **Adapter point for the future n-body exporter:** the one thin seam is the
+> `SampledTrajectory` interface in `src/lib/three-types.ts` (`timesSec` seconds,
+> `positionsAU` AU, `frame: "eclipJ2000"`, plus `fidelity` / `provenance`
+> caption strings). The Phase-C exporter emits exactly this shape and the loader
+> drops it into `clockConfig.craftSampled`; `sampled-availability.ts`
+> (`sampledTrajectoryFor`) is the single function that flips from `null` to real
+> data, opening the multi-arc gate. Nothing in the renderers changes — they
+> already consume the shape.
 
 > **Deviation from the literal "byte-identical initial payload" wording:** once the
 > button handler contains a dynamic `import("../lib/three-view")`, Astro/Vite
