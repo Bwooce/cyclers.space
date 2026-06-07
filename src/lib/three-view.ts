@@ -10,9 +10,12 @@
 // is in AU world units (3D drops the SVG's px/AU scale).
 
 import type * as THREE_NS from "three";
+import type { Vec3 } from "./kepler-time";
 import { stateAt, distance } from "./kepler-time";
+import { sampledStateAt } from "./three-clock-sampled";
 import { markerWorldPos, defaultStartTime } from "./three-clock";
-import { buildOrbitLinePoints, buildCraftPathPoints } from "./three-geometry";
+import { toThree } from "./three-axis";
+import { buildOrbitLinePoints, buildCraftPathPoints, buildSampledPathPoints } from "./three-geometry";
 import { makeOrbitControls, type OrbitControls } from "./three-controls";
 import { chaseCameraPose } from "./three-view-chase";
 import { tourKeyframes, type TourKeyframe } from "./three-tour";
@@ -57,6 +60,18 @@ export async function mountThreeView(
   const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const col = palette(dark);
 
+  // viz-2c: the craft can be described two ways — the analytic Kepler ellipse
+  // (cfg.craft, the 2b default) or a numerically-sampled polyline
+  // (cfg.craftSampled). craftPosAt is the ONE craft-position rule the marker and
+  // the proximity readout key off, mirroring how the SVG island keys off a
+  // single stateAt; it interpolates the sampled source when present, else solves
+  // Kepler. The camera framing (chase/tour) stays on cfg.craft, which remains
+  // populated as the time-base/aphelion fallback.
+  const sampled = cfg.craftSampled;
+  const craftPosAt = (tDay: number): Vec3 =>
+    sampled ? sampledStateAt(sampled, tDay) : stateAt(cfg.craft, tDay);
+  const craftWorldAt = (tDay: number): Vec3 => toThree(craftPosAt(tDay));
+
   const width = host.clientWidth || 480;
   const height = host.clientHeight || 480;
 
@@ -88,8 +103,10 @@ export async function mountThreeView(
     scene.add(new THREE.Line(geom, planetMat));
   }
 
-  // Cycler inked trajectory.
-  const craftPts = buildCraftPathPoints(cfg);
+  // Cycler inked trajectory. From the sampled polyline when present (the
+  // integrator's own samples, per-point through toThree), else the analytic
+  // samplePath. Either way it is a Three.Line of the SAME craft curve.
+  const craftPts = sampled ? buildSampledPathPoints(sampled) : buildCraftPathPoints(cfg);
   const craftGeom = new THREE.BufferGeometry().setFromPoints(
     craftPts.map((p) => new THREE.Vector3(p.x, p.y, p.z)),
   );
@@ -172,8 +189,28 @@ export async function mountThreeView(
   // reduced-motion, though chase is itself disabled there).
   const lookEased = { x: 0, y: 0, z: 0 };
   let lookInit = false;
+  // Sampled-craft chase pose: ride the SAME sampled position the marker uses
+  // (so the camera does not drift off the drawn curve), looking along a
+  // finite-diff of the sampled positions. Analytic rows keep the closed-form
+  // chaseCameraPose. The trailing offset + lift mirror the analytic helper.
+  const sampledChasePose = () => {
+    const span = cfg.t1 - cfg.t0 || 1;
+    const dt = span / 4000;
+    const lookAt = craftWorldAt(t);
+    const ahead = craftWorldAt(t + dt);
+    let vx = ahead.x - lookAt.x;
+    let vy = ahead.y - lookAt.y;
+    let vz = ahead.z - lookAt.z;
+    const m = Math.hypot(vx, vy, vz) || 1;
+    vx /= m; vy /= m; vz /= m;
+    const lift = chaseTrail * 0.35;
+    return {
+      position: { x: lookAt.x - vx * chaseTrail, y: lookAt.y - vy * chaseTrail + lift, z: lookAt.z - vz * chaseTrail },
+      lookAt,
+    };
+  };
   const applyChase = () => {
-    const pose = chaseCameraPose(cfg.craft, t, chaseTrail);
+    const pose = sampled ? sampledChasePose() : chaseCameraPose(cfg.craft, t, chaseTrail);
     camera.position.set(pose.position.x, pose.position.y, pose.position.z);
     camera.up.set(0, 1, 0);
     if (!lookInit) {
@@ -319,7 +356,10 @@ export async function mountThreeView(
   const setTime = (next: number) => {
     t = next;
     let nearest: { code: string; d: number } | null = null;
-    const craftState = stateAt(cfg.craft, t);
+    // Craft position comes from the sampled clock when present, else Kepler;
+    // proximity is therefore measured from the SAME sampled positions the marker
+    // and the line draw (the proximity indicator stays honest to the curve).
+    const craftState = craftPosAt(t);
     for (const [code, mesh] of planetMarkers) {
       const el = cfg.planets.find((p) => p.code === code)!.el;
       const w = markerWorldPos(el, t);
@@ -329,7 +369,7 @@ export async function mountThreeView(
         if (!nearest || d < nearest.d) nearest = { code, d };
       }
     }
-    const c = markerWorldPos(cfg.craft, t);
+    const c = craftWorldAt(t);
     craftMarker.position.set(c.x, c.y, c.z);
     if (nearest) {
       const d = nearest.d;
