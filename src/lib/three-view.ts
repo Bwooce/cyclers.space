@@ -14,6 +14,7 @@ import { stateAt, distance } from "./kepler-time";
 import { markerWorldPos, defaultStartTime } from "./three-clock";
 import { buildOrbitLinePoints, buildCraftPathPoints } from "./three-geometry";
 import { makeOrbitControls, type OrbitControls } from "./three-controls";
+import { chaseCameraPose } from "./three-view-chase";
 import { PLANETS, PLANET_GEOMETRY_CITATION } from "./orbit";
 import type { ClockConfig } from "./three-types";
 
@@ -25,6 +26,8 @@ const KEY_HELP: [string, string][] = [
   ["+ / -", "dolly in / out"],
   ["[ / ]", "step time backward / forward"],
   ["Space", "play / pause (inert under reduced-motion)"],
+  ["1", "orbit-cam (look down on the system)"],
+  ["2", "chase-cam (ride the spacecraft; disabled under reduced-motion)"],
   ["?", "toggle this help"],
   ["Esc", "exit 3D, return to the 2D view"],
 ];
@@ -153,6 +156,38 @@ export async function mountThreeView(
   const controls: OrbitControls = makeOrbitControls(camera, cfg, reduced);
   controls.attachPointer(renderer.domElement);
 
+  // --- camera mode (Slice 2): "orbit" (default) or "chase" ------------------
+  // Chase-cam rides the spacecraft and looks along its velocity (a finite-diff
+  // of stateAt, design §4.2). Under reduced-motion chase-cam is DISABLED (the
+  // motion-sickness guard) — key `2` is ignored and we announce it. The chase
+  // pose is applied each frame in the render loop; switching back to `1` hands
+  // the orbit controller back. The trailing distance is framed off the craft's
+  // own aphelion so the camera sits a sensible distance behind.
+  type CamMode = "orbit" | "chase";
+  let mode: CamMode = "orbit";
+  const chaseTrail = Math.max(0.25, cfg.craft.a * (1 + cfg.craft.e) * 0.18);
+  // Damped look-at so the craft motion does not snap the gaze (skipped on
+  // reduced-motion, though chase is itself disabled there).
+  const lookEased = { x: 0, y: 0, z: 0 };
+  let lookInit = false;
+  const applyChase = () => {
+    const pose = chaseCameraPose(cfg.craft, t, chaseTrail);
+    camera.position.set(pose.position.x, pose.position.y, pose.position.z);
+    camera.up.set(0, 1, 0);
+    if (!lookInit) {
+      lookEased.x = pose.lookAt.x;
+      lookEased.y = pose.lookAt.y;
+      lookEased.z = pose.lookAt.z;
+      lookInit = true;
+    } else {
+      const k = reduced ? 1 : 0.25;
+      lookEased.x += (pose.lookAt.x - lookEased.x) * k;
+      lookEased.y += (pose.lookAt.y - lookEased.y) * k;
+      lookEased.z += (pose.lookAt.z - lookEased.z) * k;
+    }
+    camera.lookAt(lookEased.x, lookEased.y, lookEased.z);
+  };
+
   // --- the shared clock (one clock, two renderers) --------------------------
   // The 3D view opens PAUSED at the first encounter (design §4.2). Stepping time
   // here dispatches an "orbit-time" CustomEvent on the host so the 2a SVG island
@@ -194,7 +229,8 @@ export async function mountThreeView(
     if (nearest) {
       const d = nearest.d;
       const txt = d < 0.01 ? `${(d * AU_KM).toFixed(0)} km` : `${d.toFixed(3)} AU`;
-      announce(`Orbit-cam. Nearest: ${planetName(nearest.code)}, ${txt}.`);
+      const modeLabel = mode === "chase" ? "Chase-cam" : "Orbit-cam";
+      announce(`${modeLabel}. Nearest: ${planetName(nearest.code)}, ${txt}.`);
     }
   };
 
@@ -244,7 +280,19 @@ export async function mountThreeView(
         if (reduced) announce("Manual step only under reduced-motion; use [ and ] to step time.");
         else { playing = !playing; announce(playing ? "Playing." : "Paused."); }
         break;
-      case "1": announce("Orbit-cam."); break;
+      case "1":
+        mode = "orbit";
+        announce("Orbit-cam.");
+        break;
+      case "2":
+        if (reduced) {
+          announce("Chase-cam disabled under reduced-motion; staying in orbit-cam.");
+        } else if (mode !== "chase") {
+          mode = "chase";
+          lookInit = false;
+          announce("Chase-cam: riding the spacecraft, looking along its velocity.");
+        }
+        break;
       case "?": toggleHelp(); break;
       case "Escape": closeView(); break;
       default: return;
@@ -256,7 +304,7 @@ export async function mountThreeView(
   renderer.domElement.setAttribute("role", "application");
   renderer.domElement.setAttribute(
     "aria-label",
-    "3D orbit camera. Arrow keys orbit, plus and minus dolly, brackets step time, question mark for help, Escape to exit.",
+    "3D orbit camera. Arrow keys orbit, plus and minus dolly, brackets step time, 1 for orbit-cam, 2 for chase-cam, question mark for help, Escape to exit.",
   );
   renderer.domElement.addEventListener("keydown", onKey);
   // Move focus into the canvas on open; announce entry + reduced-motion state.
@@ -270,7 +318,6 @@ export async function mountThreeView(
   // Render loop: ease the camera, advance the clock if playing, then paint.
   let raf = 0;
   const render = (now: number) => {
-    controls.update();
     if (playing && !reduced) {
       if (!lastNow) lastNow = now;
       const dtMs = now - lastNow;
@@ -282,6 +329,14 @@ export async function mountThreeView(
       broadcast();
     } else {
       lastNow = 0;
+    }
+    // Orbit-cam runs the hand-rolled spherical controller; chase-cam rides the
+    // craft (pose recomputed each frame so Earth/Mars sweep past as flyby
+    // geometry). Both end with the same render call.
+    if (mode === "chase") {
+      applyChase();
+    } else {
+      controls.update();
     }
     renderer.render(scene, camera);
     raf = requestAnimationFrame(render);
