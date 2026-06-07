@@ -38,6 +38,52 @@ inlined into the page HTML by Astro, not split into an external chunk.
 - Other routes (home / catalogue / launch-windows / about) reference **no** three
   chunk.
 
-## Post-button measurement
+## Post-button measurement (Task-1.7 gate)
 
-Filled in at the Task-1.7 gate after the scene + controls land.
+Measured after `npm run build` with the full orbit-cam scene + controls + a11y.
+
+### Initial payload (before the click) — unchanged in kind
+
+| Metric | Bytes |
+|---|---|
+| External `_astro/*.js` referenced by the detail page (initial payload) | 1 file, **6275** (the OrbitView island chunk) |
+| Any `three` chunk referenced via `src=` on the detail page | **none** (0) |
+| `three` chunks reachable only via dynamic `import()` (on disk) | `three.module.*.js` 704691 raw / **180161 gzip**, `three-view.*.js` 9086 |
+
+> **Deviation from the literal "byte-identical initial payload" wording:** once the
+> button handler contains a dynamic `import("../lib/three-view")`, Astro/Vite
+> stops inlining the OrbitView island into the page HTML and emits it as an
+> external `_astro/OrbitView.*.js` chunk (~6.3 KB) referenced by `src=`. The
+> chunk is the SAME 2a island code plus the tiny eager launcher wiring; **no
+> three bytes are in it** (verified: the only `three` token is the dynamic-import
+> string `import("./three-view.*.js")`). The invariant the proof actually
+> protects — *zero WebGL bytes until intent* — holds exactly. The literal
+> "byte-identical" phrasing pre-dated knowing Vite would externalise the island;
+> the honest restatement is "the initial payload gains no WebGL bytes and grows
+> only by the few-KB launcher wiring, which Vite chose to split into its own
+> chunk."
+
+### The click-only fetch (network-log proof, Playwright MCP)
+
+- Before the click: **0** network requests matching `three`.
+- After the click: `three-view.*.js` **and** `three.module.*.js` fetched (both
+  HTTP 200) — and nothing else three-related earlier.
+
+### Other routes — zero new bytes
+
+Home / catalogue / launch-windows / about reference **no** three chunk. (The
+string `three` appears once in home/catalogue/launch-windows HTML only inside the
+prose "low-energy three-synodic ballistic" cycler description — not a script
+reference.)
+
+### Regression + a11y (browser-verified)
+
+- 2a SVG renders; play/scrub moves the craft; tilt morph applies its matrix
+  transform; both proximity sparklines + the live readout work — unchanged.
+- 3D: focus moves into the canvas on open (role=application); `?` toggles the key
+  help; `[`/`]` step time and the live region announces nearest-body proximity;
+  `Esc` destroys the canvas and returns focus to the SVG; re-clicking re-mounts.
+- Reduced-motion: no autoplay, `Space` inert (announces manual-step), `[`/`]`
+  still step. Dark mode: clear color = `0x161616` (the dark material set).
+- SVG <-> 3D time sync: stepping time in the 3D canvas moves the SVG craft marker
+  too (one clock, two renderers).
