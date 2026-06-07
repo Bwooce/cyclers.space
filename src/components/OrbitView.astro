@@ -31,12 +31,20 @@ import {
   meanMotionDegPerDay,
   type KeplerElements,
 } from "../lib/kepler-time";
+import { canRenderSampled3D } from "../lib/sampled-availability";
 
 interface Props {
   entry: CyclerEntry;
 }
 const { entry } = Astro.props;
 const cls = renderClassOf(entry);
+
+// viz-2c gating: multi-arc rows are un-gated for 3D ONLY when sampled-trajectory
+// data is available for them (the future Phase-C exporter). Today no row carries
+// sampled data, so this is false everywhere and multi-arc keeps its honest note;
+// the seam is wired so the gate opens the day the exporter lands, without faking
+// per-row data now. CR3BP stays excluded inside canRenderSampled3D.
+const hasSampled3D = canRenderSampled3D(entry);
 
 // --- canvas geometry -------------------------------------------------------
 const W = 440;
@@ -461,11 +469,15 @@ const svgDesc =
           <p class="visually-hidden orbit-3d-live" data-orbit-3d-live={`orbit-svg-${entry.id}`} aria-live="polite"></p>
         </div>
       )}
-      {cls === "multi-arc" && (
+      {cls === "multi-arc" && !hasSampled3D && (
         <p class="muted orbit-3d-note" role="note">
-          3D view not available for multi-arc trajectories yet (each leg is a
-          separate ellipse with honest gaps where elements are unpublished — the
-          2D view above shows them; a 3D multi-arc render is a future slice).
+          3D view not available for multi-arc trajectories yet. The 3D system can
+          now render a numerically-sampled polyline (n-body or multi-arc), but no
+          sampled trajectory is published for this row — each leg is a separate
+          ellipse with honest gaps where elements are unpublished (the 2D view
+          above shows them). The button will appear here once a sampled path is
+          exported for this trajectory; we never interpolate one from the
+          catalogue's per-leg (a, e).
         </p>
       )}
 
