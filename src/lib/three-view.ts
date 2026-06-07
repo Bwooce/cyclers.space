@@ -13,6 +13,7 @@ import type * as THREE_NS from "three";
 import { stateAt } from "./kepler-time";
 import { toThree } from "./three-axis";
 import { buildOrbitLinePoints, buildCraftPathPoints } from "./three-geometry";
+import { makeOrbitControls, type OrbitControls } from "./three-controls";
 import { PLANETS, PLANET_GEOMETRY_CITATION } from "./orbit";
 import type { ClockConfig } from "./three-types";
 
@@ -117,10 +118,27 @@ export async function mountThreeView(
   caption.textContent = `planets: ${PLANET_GEOMETRY_CITATION}`;
   host.appendChild(caption);
 
-  // --- fixed look-down camera (the controller arrives in Task 1.4) ----------
-  camera.up.set(0, 1, 0); // Three +Y = ecliptic north
-  camera.position.set(0, aphelion * 2.2, aphelion * 0.001);
-  camera.lookAt(0, 0, 0);
+  // --- orbit-cam controller (hand-rolled, damped; reduced-motion = snap) -----
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const controls: OrbitControls = makeOrbitControls(camera, cfg, reduced);
+  controls.attachPointer(renderer.domElement);
+
+  // Keyboard: arrows orbit, +/- dolly (the full key map lands in Task 1.6).
+  const onKey = (e: KeyboardEvent) => {
+    switch (e.key) {
+      case "ArrowLeft": controls.stepAzimuth(-1); break;
+      case "ArrowRight": controls.stepAzimuth(1); break;
+      case "ArrowUp": controls.stepElevation(1); break;
+      case "ArrowDown": controls.stepElevation(-1); break;
+      case "+": case "=": controls.dolly(1); break;
+      case "-": case "_": controls.dolly(-1); break;
+      default: return;
+    }
+    e.preventDefault();
+  };
+  renderer.domElement.tabIndex = 0;
+  renderer.domElement.classList.add("orbit-3d-canvas");
+  renderer.domElement.addEventListener("keydown", onKey);
 
   // Marker placement at the default instant (the shared clock arrives in 1.5).
   const setTime = (t: number) => {
@@ -134,9 +152,10 @@ export async function mountThreeView(
   };
   setTime(cfg.t0);
 
-  // Render loop (no auto motion yet; just paints the scene).
+  // Render loop: ease the camera toward its target each frame, then paint.
   let raf = 0;
   const render = () => {
+    controls.update();
     renderer.render(scene, camera);
     raf = requestAnimationFrame(render);
   };
@@ -155,6 +174,8 @@ export async function mountThreeView(
   const destroy = () => {
     cancelAnimationFrame(raf);
     window.removeEventListener("resize", onResize);
+    renderer.domElement.removeEventListener("keydown", onKey);
+    controls.detachPointer();
     renderer.dispose();
     scene.traverse((o) => {
       const mesh = o as THREE_NS.Mesh;
