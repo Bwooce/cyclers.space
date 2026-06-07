@@ -65,6 +65,23 @@ NOW = datetime.datetime.now(tz=datetime.UTC).replace(hour=0, minute=0, second=0,
 HORIZON_END = NOW + datetime.timedelta(days=int(365.25 * HORIZON_YEARS))
 
 
+def _vet_maintenance_dv(dv_kms: float) -> tuple[float | None, str | None]:
+    """Apply the publication-layer plausibility gate to a maintenance ΔV.
+
+    Returns ``(publishable_value, refusal_reason)``: a plausible ΔV is returned
+    rounded with ``refusal_reason=None``; an implausible one (the 55.32 km/s
+    off-family degenerate-basin class) returns ``(None, reason)`` so the caller
+    records the refusal instead of publishing the value. Imports the predicate
+    lazily so the deferred (non-E-M) path never needs cyclerfinder loaded.
+    """
+    from cyclerfinder.verify.plausibility import QuantityKind, check_publishable
+
+    verdict = check_publishable(QuantityKind.MAINTENANCE_DV_KMS, dv_kms)
+    if not verdict.ok:
+        return (None, f"refused: {verdict.reason}")
+    return (round(dv_kms, 4), None)
+
+
 def _eligible_for_maintenance(entry: dict) -> bool:
     """True when this catalogue row is a candidate for the maintenance solve.
 
@@ -106,6 +123,7 @@ def _populate_maintenance_dv(
     by_id = {r.row_id: r for r in results}
 
     n_ok = 0
+    n_refused = 0
     for out in entries_list:
         res = by_id.get(str(out["id"]))
         if res is None:
@@ -114,15 +132,25 @@ def _populate_maintenance_dv(
                 "deferred: only closed E-M (Aldrin) cyclers are solved today"
             )
             continue
-        out["maintenance_dv_kms"] = (
-            round(res.dv_kms, 4) if res.dv_kms is not None else None
-        )
+        if res.dv_kms is None:
+            out["maintenance_dv_kms"] = None
+            out["maintenance_dv_status"] = res.status
+            continue
+        # Refuse-with-reason: never write an implausible ΔV (the 55.32 km/s
+        # off-family degenerate-basin class) into windows.json.
+        value, refusal = _vet_maintenance_dv(res.dv_kms)
+        if refusal is not None:
+            out["maintenance_dv_kms"] = None
+            out["maintenance_dv_status"] = refusal
+            n_refused += 1
+            continue
+        out["maintenance_dv_kms"] = value
         out["maintenance_dv_status"] = res.status
-        if res.dv_kms is not None:
-            n_ok += 1
+        n_ok += 1
     print(
         f"maintenance-dv: {n_ok} rows got a real ΔV; "
-        f"{len(rows) - n_ok} eligible rows failed; "
+        f"{n_refused} refused as implausible (plausibility gate); "
+        f"{len(rows) - n_ok - n_refused} eligible rows failed; "
         f"{len(entries_list) - len(rows)} deferred (non-E-M)."
     )
 
