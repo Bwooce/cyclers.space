@@ -10,11 +10,24 @@
 // is in AU world units (3D drops the SVG's px/AU scale).
 
 import type * as THREE_NS from "three";
+import { stateAt, distance } from "./kepler-time";
 import { markerWorldPos, defaultStartTime } from "./three-clock";
 import { buildOrbitLinePoints, buildCraftPathPoints } from "./three-geometry";
 import { makeOrbitControls, type OrbitControls } from "./three-controls";
 import { PLANETS, PLANET_GEOMETRY_CITATION } from "./orbit";
 import type { ClockConfig } from "./three-types";
+
+const AU_KM = 149_597_870.7;
+
+/** The keyboard binding table (design §4.3), surfaced in the `?` overlay. */
+const KEY_HELP: [string, string][] = [
+  ["arrows", "orbit the camera (azimuth / elevation)"],
+  ["+ / -", "dolly in / out"],
+  ["[ / ]", "step time backward / forward"],
+  ["Space", "play / pause (inert under reduced-motion)"],
+  ["?", "toggle this help"],
+  ["Esc", "exit 3D, return to the 2D view"],
+];
 
 export interface ThreeView {
   destroy(): void;
@@ -31,7 +44,7 @@ function palette(dark: boolean) {
 export async function mountThreeView(
   host: HTMLElement,
   cfg: ClockConfig,
-  _svgId: string,
+  svgId: string,
 ): Promise<ThreeView> {
   const THREE = (await import("three")) as typeof THREE_NS;
   host.textContent = "";
@@ -111,11 +124,29 @@ export async function mountThreeView(
   const craftMarker = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12), markerMat);
   scene.add(craftMarker);
 
-  // Honesty caption overlay (model badge + planet citation + clock label).
+  // Honesty caption overlay (design §5): the SAME provenance strings the SVG
+  // figcaption shows — model badge, planet citation, clock regime — so 3D never
+  // claims more fidelity than 2D. Falls back to the build-time citation constant.
   const caption = document.createElement("div");
   caption.className = "orbit-3d-caption";
-  caption.textContent = `planets: ${PLANET_GEOMETRY_CITATION}`;
+  caption.textContent = [
+    cfg.fidelityBadge,
+    `planets: ${cfg.planetCitation ?? PLANET_GEOMETRY_CITATION}`,
+    cfg.clockLabel,
+    cfg.encProvenance,
+  ]
+    .filter(Boolean)
+    .join("\n");
   host.appendChild(caption);
+
+  // On-canvas key-help overlay (toggled by `?`), listing the binding table.
+  const keyHelp = document.createElement("div");
+  keyHelp.className = "orbit-3d-keyhelp";
+  keyHelp.hidden = true;
+  keyHelp.innerHTML =
+    "<strong>Keyboard</strong>" +
+    KEY_HELP.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
+  host.appendChild(keyHelp);
 
   // --- orbit-cam controller (hand-rolled, damped; reduced-motion = snap) -----
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -133,15 +164,38 @@ export async function mountThreeView(
   let t = defaultStartTime(cfg);
   let syncing = false;
 
+  // Off-canvas live region (design §4.3): announces mode + nearest-body
+  // proximity so a screen-reader user gets the narrative the canvas can't carry.
+  const live = document.querySelector<HTMLElement>(`[data-orbit-3d-live="${svgId}"]`);
+  let lastAnnounce = "";
+  const announce = (msg: string) => {
+    if (live && msg !== lastAnnounce) {
+      live.textContent = msg;
+      lastAnnounce = msg;
+    }
+  };
+  const planetName = (code: string) => PLANETS[code]?.name ?? code;
+
   const setTime = (next: number) => {
     t = next;
+    let nearest: { code: string; d: number } | null = null;
+    const craftState = stateAt(cfg.craft, t);
     for (const [code, mesh] of planetMarkers) {
       const el = cfg.planets.find((p) => p.code === code)!.el;
       const w = markerWorldPos(el, t);
       mesh.position.set(w.x, w.y, w.z);
+      if (cfg.bodies.includes(code)) {
+        const d = distance(craftState, stateAt(el, t));
+        if (!nearest || d < nearest.d) nearest = { code, d };
+      }
     }
     const c = markerWorldPos(cfg.craft, t);
     craftMarker.position.set(c.x, c.y, c.z);
+    if (nearest) {
+      const d = nearest.d;
+      const txt = d < 0.01 ? `${(d * AU_KM).toFixed(0)} km` : `${d.toFixed(3)} AU`;
+      announce(`Orbit-cam. Nearest: ${planetName(nearest.code)}, ${txt}.`);
+    }
   };
 
   const broadcast = () => {
@@ -168,8 +222,14 @@ export async function mountThreeView(
     broadcast();
   };
 
-  // Keyboard: arrows orbit, +/- dolly, [ / ] step time, Space play/pause (the
-  // remaining a11y keys — 1/2/T/?/Esc — land in Task 1.6).
+  const toggleHelp = () => {
+    keyHelp.hidden = !keyHelp.hidden;
+    announce(keyHelp.hidden ? "Key help hidden." : "Key help shown.");
+  };
+
+  // Keyboard (design §4.3): arrows orbit, +/- dolly, [ / ] step time, Space
+  // play/pause (inert under reduced-motion), 1 = orbit-cam (the only Slice-1
+  // mode), ? = key help, Esc = exit to the 2D SVG.
   const onKey = (e: KeyboardEvent) => {
     switch (e.key) {
       case "ArrowLeft": controls.stepAzimuth(-1); break;
@@ -181,15 +241,31 @@ export async function mountThreeView(
       case "[": stepTime(-1); break;
       case "]": stepTime(1); break;
       case " ":
-        if (!reduced) playing = !playing;
+        if (reduced) announce("Manual step only under reduced-motion; use [ and ] to step time.");
+        else { playing = !playing; announce(playing ? "Playing." : "Paused."); }
         break;
+      case "1": announce("Orbit-cam."); break;
+      case "?": toggleHelp(); break;
+      case "Escape": closeView(); break;
       default: return;
     }
     e.preventDefault();
   };
   renderer.domElement.tabIndex = 0;
   renderer.domElement.classList.add("orbit-3d-canvas");
+  renderer.domElement.setAttribute("role", "application");
+  renderer.domElement.setAttribute(
+    "aria-label",
+    "3D orbit camera. Arrow keys orbit, plus and minus dolly, brackets step time, question mark for help, Escape to exit.",
+  );
   renderer.domElement.addEventListener("keydown", onKey);
+  // Move focus into the canvas on open; announce entry + reduced-motion state.
+  renderer.domElement.focus();
+  announce(
+    reduced
+      ? "Entered 3D orbit-cam, paused at the first encounter. Reduced-motion: manual step with [ and ]."
+      : "Entered 3D orbit-cam, paused at the first encounter.",
+  );
 
   // Render loop: ease the camera, advance the clock if playing, then paint.
   let raf = 0;
@@ -238,11 +314,22 @@ export async function mountThreeView(
     });
     renderer.domElement.remove();
     caption.remove();
+    keyHelp.remove();
   };
 
-  // Avoid unused-suppression for PLANETS until markers use it (Task 1.5/1.6
-  // labels). Reference it so the import stays meaningful and tree-shake-safe.
-  void PLANETS;
+  // Esc exit (design §4.3): tear down WebGL, hide the host, and return focus to
+  // the 2D SVG (the accessible source of truth). A "Close 3D" button click could
+  // call the same path; the SVG is always the floor.
+  function closeView() {
+    destroy();
+    host.hidden = true;
+    if (live) live.textContent = "Exited 3D; returned to the 2D view.";
+    const svg = document.getElementById(svgId);
+    if (svg) {
+      svg.setAttribute("tabindex", "-1");
+      (svg as unknown as HTMLElement).focus();
+    }
+  }
 
   return { destroy };
 }

@@ -27,4 +27,9 @@ export interface ClockConfig {
   // to t0 when absent.
   encounterTimes?: number[];
   proximityMinima?: ProximityMinimumConfig[];
+  // Honesty strings (design §5), carried verbatim from the SVG figcaption.
+  fidelityBadge?: string;
+  clockLabel?: string;
+  encProvenance?: string;
+  planetCitation?: string;
 }

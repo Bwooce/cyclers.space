@@ -536,6 +536,35 @@ ul.bare li { margin: 0.25rem 0; }
 .orbit-3d canvas { display: block; width: 100%; height: 100%; }
 .orbit-3d-canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .orbit-3d-note { margin: 0.5rem 0; font-size: 0.8rem; }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.orbit-3d-keyhelp {
+  position: absolute;
+  inset: 0.4rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 0.6rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--fg);
+  overflow: auto;
+}
+.orbit-3d-keyhelp[hidden] { display: none; }
+.orbit-3d-keyhelp dt { font-weight: 600; display: inline; }
+.orbit-3d-keyhelp dd { display: inline; margin: 0 0 0 0.3rem; }
+.orbit-3d-keyhelp div { margin: 0.1rem 0; }
 .orbit-3d-caption {
   position: absolute;
   left: 0.4rem;
@@ -556,4 +585,7 @@ ul.bare li { margin: 0.25rem 0; }
 @media (prefers-reduced-motion: reduce) {
   .orbit-craft, .orbit-planet-marker { transition: none !important; }
   .orbit-tilt-group { transition: none !important; }
+  /* The 3D view reads matchMedia at init and snaps the camera (no easing, no
+     autoplay); this disables any incidental CSS transition on the host too. */
+  .orbit-3d, .orbit-3d * { transition: none !important; }
 }
