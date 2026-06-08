@@ -43,8 +43,8 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
     <tbody>
       <tr><td><span class="vlevel">V0</span></td><td>Internal consistency: hard constraints met, V∞ preserved across each flyby, idealized closure residual within tolerance. (Literature-sourced rows that have not been re-derived also sit at this floor.)</td></tr>
       <tr><td><span class="vlevel">V1</span></td><td>Solver cross-check: every leg re-solved with lamberthub (izzo + gooding) agreeing under 1e-3 m/s, and the full trajectory re-propagated with the Kepler propagator meeting planet positions.</td></tr>
-      <tr><td><span class="vlevel">V2</span></td><td>Multi-lap periodicity: ≥3 continuous laps with bounded drift in the dynamic rotating frame.</td></tr>
-      <tr><td><span class="vlevel">V3</span></td><td>Ephemeris realisation: phase-matched to a real launch window; multi-cycle horizon TCM bounded within ΔV budget.</td></tr>
+      <tr><td><span class="vlevel">V2</span></td><td>Multi-lap periodicity (class-split, §14). <strong>V2-ballistic:</strong> ≥3 continuous laps with bounded drift in the dynamic rotating frame of the row's defining model. <strong>V2-powered:</strong> ≥3 cycles where every planned encounter is met under documented maintenance, with bounded intra-cycle drift-vs-plan.</td></tr>
+      <tr><td><span class="vlevel">V3</span></td><td>Ephemeris realisation: phase-matched to a real launch window; ephemeris-mode horizon TCM over 3–5 laps (~20–30 yr) bounded within the ΔV budget.</td></tr>
       <tr><td><span class="vlevel">V4</span></td><td>High-fidelity external: an independent codebase + ephemeris (e.g. GMAT) reproduces the trajectory and maintenance ΔV.</td></tr>
       <tr><td><span class="vlevel">V5</span></td><td>Novelty + expert review: misses catalogue and literature, human-reviewed, ideally independently reproduced.</td></tr>
     </tbody>
