@@ -12,7 +12,7 @@
 import type * as THREE_NS from "three";
 import type { Vec3 } from "./kepler-time";
 import { stateAt, distance } from "./kepler-time";
-import { sampledStateAt } from "./three-clock-sampled";
+import { sampledStateAt, sampledSpanDays } from "./three-clock-sampled";
 import { markerWorldPos, defaultStartTime } from "./three-clock";
 import { toThree } from "./three-axis";
 import { buildOrbitLinePoints, buildCraftPathPoints, buildSampledPathPoints } from "./three-geometry";
@@ -69,6 +69,17 @@ export async function mountThreeView(
   // Kepler. The camera framing (chase/tour) stays on cfg.craft, which remains
   // populated as the time-base/aphelion fallback.
   const sampled = cfg.craftSampled;
+  // Stall fix (#192): a sampled trajectory carries its OWN time span (e.g. the
+  // Aldrin DE440 sample runs ~-1851..+341 d, 3 laps), which is disjoint from the
+  // analytic one-period clock cfg carries for the same row. Without this, the
+  // play loop runs over the analytic [t0,t1] while sampledStateAt clamps outside
+  // the sample, so the craft marker sticks at an endpoint and reads "frozen".
+  // Drive the clock from the sampled span; encounter/proximity overlays are
+  // analytic-clock artifacts and are dropped (they don't apply to the sample).
+  if (sampled) {
+    const span = sampledSpanDays(sampled);
+    cfg = { ...cfg, t0: span.t0, t1: span.t1, encounterTimes: undefined, proximityMinima: undefined };
+  }
   const craftPosAt = (tDay: number): Vec3 =>
     sampled ? sampledStateAt(sampled, tDay) : stateAt(cfg.craft, tDay);
   const craftWorldAt = (tDay: number): Vec3 => toThree(craftPosAt(tDay));
