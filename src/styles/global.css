@@ -370,6 +370,11 @@ ul.bare li { margin: 0.25rem 0; }
 
 .orbit-arc { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 2 3; }
 
+/* Multi-arc cyclers publish no per-segment (a,e); this sourced max-aphelion
+   reference ring gives the orbit scale without fabricating per-arc conics. */
+.orbit-aphelion-ring { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 1 4; opacity: 0.55; }
+.leg-aphelion { opacity: 0.7; }
+
 .orbit-sun circle, .orbit-sun-dot { fill: var(--warn-border); stroke: var(--fg); stroke-width: 0.5; }
 
 .orbit-label {

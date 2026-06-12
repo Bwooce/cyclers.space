@@ -15,6 +15,7 @@ import {
   PLANETS,
   PLANET_GEOMETRY_CITATION,
   sampleEllipse,
+  sampleCircle,
   sampleEdgeOn,
   samplePlanetEllipse,
   idealEncounters,
@@ -87,9 +88,19 @@ if (cls === "single-ellipse" && oe.a_au != null && oe.e != null) {
   ellipsePts = sampleEllipse(oe.a_au, oe.e, orient);
   maxR = Math.max(maxR, oe.a_au * (1 + oe.e));
 }
+// Multi-arc rows publish no per-segment (a,e) (0/236 in the catalogue), so the
+// per-arc branch below never fires and these rows used to draw a near-blank
+// frame. 215/236 DO carry a sourced cycler aphelion — draw it as a reference
+// ring so the orbit's scale is visible without fabricating per-arc conics.
+const aphelionAu = cls === "multi-arc" ? (oe.aphelion_au ?? null) : null;
+if (aphelionAu != null) {
+  maxR = Math.max(maxR, aphelionAu);
+}
 
 // One scale (px/AU) fits the largest radius into the padded canvas.
 const scale = (Math.min(W, H) / 2 - PAD) / maxR;
+const aphelionRingPath =
+  aphelionAu != null ? toSvgPath(sampleCircle(aphelionAu), scale, cx, cy) : "";
 
 const ellipsePath = toSvgPath(ellipsePts, scale, cx, cy);
 // Real J2000 planet ellipses (not circles).
@@ -303,7 +314,7 @@ const svgDesc =
         .map((c) => PLANETS[c]!.name)
         .join(", ")}, and the cycler's heliocentric ellipse (a=${oe.a_au}, e=${oe.e}).`
     : cls === "multi-arc"
-      ? `Top-down ecliptic view: the Sun at centre with planet reference circles. ${renderedArcs.length} of ${arcRows.length} trajectory segments carry published (a,e) and are drawn; ${gapArcs.length} are shown as "elements not published" gaps, never interpolated.`
+      ? `Top-down ecliptic view: the Sun at centre with planet reference circles${aphelionAu != null ? ` and the cycler's sourced max-aphelion ring (${aphelionAu} AU)` : ""}. ${renderedArcs.length} of ${arcRows.length} trajectory segments carry published (a,e) and are drawn; ${gapArcs.length} are shown as "elements not published" gaps, never interpolated.`
       : "This is a rotating-frame (CR3BP) periodic orbit; it is not renderable from the catalogue's current public data.";
 ---
 <section class="orbit-view" aria-labelledby={titleId}>
@@ -389,6 +400,11 @@ const svgDesc =
             </>
           )}
 
+          {aphelionRingPath && (
+            <path d={aphelionRingPath} class="orbit-aphelion-ring" fill="none">
+              <title>Cycler max aphelion {aphelionAu} AU (sourced)</title>
+            </path>
+          )}
           {cls === "multi-arc" && renderedArcs.map((a) => (
             <path d={a.path} class="orbit-arc" fill="none">
               <title>Segment {a.from} → {a.to}</title>
@@ -511,6 +527,7 @@ const svgDesc =
           <span class="leg">○ △ □ encounters ({encMarks.map((m) => m.body).join(", ")})</span>
         )}
         {cls === "multi-arc" && renderedArcs.length > 0 && <span class="leg leg-arc">··· segment arc</span>}
+        {aphelionRingPath && <span class="leg leg-aphelion">◌ max aphelion ring (sourced)</span>}
       </div>
 
       {cls === "multi-arc" && gapArcs.length > 0 && (
