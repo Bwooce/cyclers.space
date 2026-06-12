@@ -158,16 +158,20 @@ export async function mountThreeView(
   const craftMarker = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12), markerMat);
   scene.add(craftMarker);
 
-  // Honesty caption overlay (design §5, viz-2c binding): PER-CURVE fidelity —
+  // Honesty caption (design §5, viz-2c binding): PER-CURVE fidelity —
   // captionLines names the craft's own model (analytic badge, or "craft:
   // sampled (...)" + provenance for a sampled row) and ALWAYS states the planets
   // are Standish osculating ellipses, plus the clock regime + encounter-marker
   // provenance. So 3D never claims more fidelity than the data, and a sampled
   // craft can never be read as implying the planets are sampled too.
+  // Placed BELOW the canvas, not over it: sampled rows carry many provenance
+  // lines and the old absolute overlay covered half the scene (user-reported).
+  // Adjacency keeps the honesty binding (always visible with the view) without
+  // obstructing the render.
   const caption = document.createElement("div");
   caption.className = "orbit-3d-caption";
   caption.textContent = captionLines(cfg).join("\n");
-  host.appendChild(caption);
+  host.insertAdjacentElement("afterend", caption);
 
   // On-canvas key-help overlay (toggled by `?`), listing the binding table.
   const keyHelp = document.createElement("div");
