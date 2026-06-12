@@ -522,6 +522,11 @@ ul.bare li { margin: 0.25rem 0; }
 }
 .orbit-tilt-range { width: 10rem; max-width: 45vw; accent-color: var(--accent); }
 .orbit-tilt-group { transition: transform 0.15s ease; }
+/* Strokes stay uniform under the tilt's non-uniform y-scale; at 90° the
+   flattened orbits remain a visible line instead of a zero-height sliver. */
+.orbit-tilt-group path,
+.orbit-tilt-group circle,
+.orbit-tilt-group rect { vector-effect: non-scaling-stroke; }
 .orbit-tilt-note { font-size: 0.75rem; }
 
 /* encounter-proximity indicator (the pedagogical headline) */
@@ -617,16 +622,15 @@ ul.bare li { margin: 0.25rem 0; }
 .orbit-3d-keyhelp dt { font-weight: 600; display: inline; }
 .orbit-3d-keyhelp dd { display: inline; margin: 0 0 0 0.3rem; }
 .orbit-3d-keyhelp div { margin: 0.1rem 0; }
+/* Honesty caption: sits BELOW the canvas (was an absolute overlay that
+   covered the scene on provenance-heavy sampled rows). */
 .orbit-3d-caption {
-  position: absolute;
-  left: 0.4rem;
-  bottom: 0.4rem;
-  right: 0.4rem;
+  margin: 0.35rem 0 0.5rem;
+  max-width: 560px;
   font-family: var(--font-mono);
   font-size: 0.65rem;
   line-height: 1.35;
   color: var(--fg-muted);
-  pointer-events: none;
   white-space: pre-line;
 }
 

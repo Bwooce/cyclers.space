@@ -630,10 +630,14 @@ const svgDesc =
     const sy = (y: number) => (cfg.cy - y * cfg.scale).toFixed(2);
 
     const setTime = (t: number) => {
+      // Tilt counter-scale anchors on the marker's CURRENT cy — re-apply after
+      // every move (initTilt owns svg.dataset.tiltK; 1 = top-down/no-op).
+      const tiltK = Number(svg.dataset.tiltK || "1");
       const craftPos = stateAt(cfg.craft, t);
       if (craftMarker) {
         craftMarker.setAttribute("cx", sx(craftPos.x));
         craftMarker.setAttribute("cy", sy(craftPos.y));
+        tiltCounterScale(craftMarker, tiltK);
       }
       let nearest: { code: string; d: number } | null = null;
       for (const { code, el } of cfg.planets) {
@@ -642,6 +646,7 @@ const svgDesc =
         if (m) {
           m.setAttribute("cx", sx(p.x));
           m.setAttribute("cy", sy(p.y));
+          tiltCounterScale(m, tiltK);
         }
         if (cfg.bodies.includes(code)) {
           const d = distance(craftPos, p);
@@ -738,6 +743,30 @@ const svgDesc =
   // Tilt morph: continuous top-down (0°) -> edge-on (90°) projection applied as
   // an SVG transform on the tilt-group. y' = cy + (y - cy)*cos(tilt). Keyboard-
   // accessible (range input). Snaps under reduced-motion (no CSS transition).
+  //
+  // Glyphs (Sun, labels, encounter marks, planet/craft dots) are POSITIONED by
+  // the projection but never SQUASHED by it: each carries a counter-scale
+  // (1, 1/k) about its own y-anchor, so at 90° the orbits flatten to the
+  // correct edge-on line while the symbols stay legible on it. k is floored at
+  // TILT_K_MIN (pure cos hits 0 at 90° and made the whole scene vanish —
+  // user-reported; the floor keeps the counter-scale finite and the flattened
+  // orbit a visible line). Stroke widths stay uniform under the non-uniform
+  // scale via vector-effect: non-scaling-stroke (CSS below).
+  const TILT_K_MIN = 0.02;
+  const TILT_GLYPH_SEL =
+    ".orbit-planet > .orbit-label, .orbit-sun, .orbit-enc, .orbit-planet-marker, .orbit-craft";
+
+  function tiltCounterScale(el: SVGGraphicsElement, k: number) {
+    // Anchor y: live cy for animated circles, cached bbox/attr centre otherwise.
+    const y = Number(el.getAttribute("cy") ?? el.dataset.tiltY ?? "0");
+    if (k >= 0.9999) {
+      el.removeAttribute("transform");
+      return;
+    }
+    const inv = 1 / k;
+    el.setAttribute("transform", `matrix(1 0 0 ${inv.toFixed(4)} 0 ${(y * (1 - inv)).toFixed(2)})`);
+  }
+
   function initTilt(ctrl: HTMLElement) {
     const svgId = ctrl.getAttribute("data-orbit-tilt");
     if (!svgId) return;
@@ -750,12 +779,28 @@ const svgDesc =
     const vb = svg.viewBox.baseVal;
     const cyView = vb.height / 2;
 
+    // Cache the y-anchor for static glyphs (text/groups without a cy attribute).
+    const glyphs = Array.from(group.querySelectorAll<SVGGraphicsElement>(TILT_GLYPH_SEL));
+    for (const g of glyphs) {
+      if (g.getAttribute("cy") === null && !g.dataset.tiltY) {
+        const yAttr = g.getAttribute("y");
+        if (yAttr !== null) {
+          g.dataset.tiltY = yAttr;
+        } else {
+          const b = g.getBBox();
+          g.dataset.tiltY = (b.y + b.height / 2).toFixed(2);
+        }
+      }
+    }
+
     ctrl.hidden = false;
     const apply = () => {
       const deg = Number(range.value);
-      const k = Math.cos((deg * Math.PI) / 180);
+      const k = Math.max(Math.cos((deg * Math.PI) / 180), TILT_K_MIN);
       // Scale Y about the view centre: matrix(1,0,0,k, 0, cy*(1-k)).
+      svg.dataset.tiltK = k.toFixed(4);
       group.setAttribute("transform", `matrix(1 0 0 ${k.toFixed(4)} 0 ${(cyView * (1 - k)).toFixed(2)})`);
+      for (const g of glyphs) tiltCounterScale(g, k);
       if (tnote) {
         tnote.textContent = deg === 0 ? "0° (top-down)" : deg >= 90 ? "90° (edge-on)" : `${deg}°`;
       }
