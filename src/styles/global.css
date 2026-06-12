@@ -293,6 +293,53 @@ table.catalogue tr.hidden { display: none; }
 }
 .prov-chip .prov-val.mono { font-family: var(--font-mono); }
 
+/* Assumed-errata page (/errata): per-entry confidence badge, styled like the
+   validation-level pill (.vlevel), with a colour accent per confidence tier. */
+.conf-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  cursor: default;
+}
+.conf-badge.conf-confirmed-in-print { color: #a55f4a; }
+.conf-badge.conf-provable-internal-inconsistency { color: #7a5fa5; }
+.conf-badge.conf-unresolved-discrepancy { color: #4a7fa5; }
+.conf-badge.conf-minor,
+.conf-badge.conf-vor { font-style: italic; }
+
+.errata-paper { margin: 2.5rem 0; }
+.errata-paper > h2 { font-size: 1.05rem; }
+
+.erratum {
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 2px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+}
+.erratum > h3 { margin-top: 0; font-size: 0.95rem; }
+.erratum .anchor-link {
+  color: var(--fg-muted);
+  text-decoration: none;
+  margin-right: 0.35rem;
+}
+.erratum .anchor-link:hover { color: var(--fg); }
+.erratum-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0; }
+.erratum-value { white-space: pre-wrap; }
+.erratum-reasoning { font-size: 0.9rem; }
+.erratum-evidence summary { cursor: pointer; font-size: 0.85rem; }
+.erratum-evidence ul.bare li { margin: 0.2rem 0; font-size: 0.8rem; }
+
+/* Small back-link on cycler detail pages whose source carries assumed errata. */
+.errata-note {
+  font-size: 0.85rem;
+}
+
 /* Definition lists for cycler detail pages */
 dl.cycler {
   display: grid;

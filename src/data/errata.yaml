@@ -1,0 +1,529 @@
+# Assumed-errata ledger (task #228) — validated against data/errata.schema.json
+# by tests/data/test_errata.py.
+#
+# This project reproduces published cycler-trajectory values as part of its
+# golden-test discipline. The entries below are printed values our reproductions
+# or internal-consistency checks indicate are defective AS PRINTED. They are
+# ASSUMED errata: every reasoning field is a falsifiable argument the original
+# authors can check, and we would welcome verification, correction, or refutation
+# (all entries start status: open). Unresolved entries are explicitly questions.
+#
+# Citation rule: doi_or_url is publication-level only (DOI / arXiv / publisher or
+# author page). Evidence refs point only at this public repository's docs/notes/,
+# tests/, and src/ trees plus adjudication commit SHAs.
+
+- id: vallado-tr916-stumpff-z-neg39p47842
+  paper: >-
+    Vallado, D. A., "Methods of Astrodynamics, A Computer Approach", Version 3.0,
+    USAFA Technical Report TR-91-6, U.S. Air Force Academy, 1991 (DTIC AD-A239 662).
+  doi_or_url: "https://apps.dtic.mil/sti/citations/ADA239662"
+  location: "Appendix E, FindCandS Stumpff-function table, z = -39.47842 row (p. E-12)"
+  printed_value: "C = 5.83559577, S = 0.97444596"
+  derived_value: "C = 6.75677528, S = 1.05406777"
+  reasoning: >-
+    The printed C and S for z = -39.47842 appear inconsistent with the standard
+    Stumpff definitions (for z < 0: C(z) = (1 - cosh sqrt(-z))/z and
+    S(z) = (sinh sqrt(-z) - sqrt(-z))/(-z)^(3/2)). We derive
+    C = 6.75677528, S = 1.05406777 three independent ways — the project's
+    universal-variable implementation, a direct power-series evaluation, and the
+    closed cosh/sinh forms — all agreeing to better than 1e-9, and no nearby z
+    reproduces both printed values simultaneously. The page was re-read
+    character-by-character twice; the printed z itself is -39.47842 (not
+    mis-printed), and the other four rows of the same table (z = 0, 0.57483,
+    39.47842, 50.0) reproduce to <= 4e-9. We would welcome correction if a
+    different Stumpff convention explains the printed pair.
+  evidence_refs:
+    - "docs/notes/2026-06-12-load-bearing-numbers-verification.md (HEADLINE item 1 + PDF ADJUDICATION item 1)"
+    - "docs/notes/2026-06-10-vallado-1991-tr916-mining.md (section 4.1 correction block)"
+    - "tests/core/test_vallado_goldens.py (module-docstring DO-NOT-USE record, item 1)"
+    - "commit f4138d8 (PDF adjudication)"
+  confidence: confirmed-in-print
+  affected_catalogue_rows: []
+  vor_status: final-form
+  status: open
+
+- id: vallado-tr916-kepler-d33-hyperbolic-ry
+  paper: >-
+    Vallado, D. A., "Methods of Astrodynamics, A Computer Approach", Version 3.0,
+    USAFA Technical Report TR-91-6, U.S. Air Force Academy, 1991 (DTIC AD-A239 662).
+  doi_or_url: "https://apps.dtic.mil/sti/citations/ADA239662"
+  location: >-
+    Appendix E, KEPLER test case 4 (BMW example D.3-3, hyperbolic), propagated
+    position component R_y (p. E-14)
+  printed_value: "R = (13.9623306, -0.1172043, 0) DU; R_y = -0.1172043"
+  derived_value: "R_y = -0.11822049 (R_x agrees with print to ~5e-5 relative)"
+  reasoning: >-
+    For the printed inputs Ro = (0.3, 1, 0), Vo = (3, 0, 0), Dt = 5, mu = 1, the
+    printed propagated R_y appears inconsistent with the propagation itself: the
+    project's universal-variable propagator (single-shot AND 1000-substep), and an
+    independent high-precision RK4, all give R_y = -0.11822049 (delta ~= 1.0e-3).
+    The printed orbital elements a = -0.1411563, e = 8.0473056 reproduce exactly
+    from the same inputs, so the geometry is consistent; only the propagated R_y
+    disagrees, and by far more than the report's own stated ~1e-5 cross-machine
+    tolerance (p. iv). The page was re-read character-by-character twice; no
+    single-digit or sign variation of the printed R_y or any input closes the gap.
+    The report's four other Kepler cases reproduce cleanly.
+  evidence_refs:
+    - "docs/notes/2026-06-12-load-bearing-numbers-verification.md (HEADLINE item 2 + PDF ADJUDICATION item 2)"
+    - "docs/notes/2026-06-10-vallado-1991-tr916-mining.md (section 3 case 4 adjudication block)"
+    - "tests/core/test_vallado_goldens.py (module-docstring DO-NOT-USE record, item 2)"
+    - "commit f4138d8 (PDF adjudication)"
+  confidence: confirmed-in-print
+  affected_catalogue_rows: []
+  vor_status: final-form
+  status: open
+
+- id: vallado-tr916-interplanetary-mars-row
+  paper: >-
+    Vallado, D. A., "Methods of Astrodynamics, A Computer Approach", Version 3.0,
+    USAFA Technical Report TR-91-6, U.S. Air Force Academy, 1991 (DTIC AD-A239 662).
+  doi_or_url: "https://apps.dtic.mil/sti/citations/ADA239662"
+  location: "Appendix E, interplanetary Hohmann-transfer table, Mars row (p. E-36)"
+  printed_value: >-
+    Mars heliocentric distance 227,800,000 km with vh1 = 4.1745 km/s,
+    vh2 = 3.5696 km/s, transfer time 311.804 days
+  derived_value: >-
+    The printed outputs match a Mars distance of 277,800,000 km exactly; a Hohmann
+    transfer from 1 AU to the printed 227.8e6 km (with the table's own
+    mu_Sun = 132715440000.0 km^3/s^2 and stated 200-km burnout setup) gives
+    vh1 ~= 2.94 km/s and ~= 258.7 days
+  reasoning: >-
+    The Mars row is internally inconsistent under the table's own stated
+    construction: its printed outputs cannot follow from its printed input
+    distance, but follow exactly from 277.8e6 km — consistent with a 227.8/277.8
+    digit transposition somewhere in the run that produced the table. The
+    Venus, Mercury, and Jupiter rows of the same table agree with their printed
+    inputs and with the classic textbook Hohmann values. We would welcome the
+    authors' confirmation of which figure (input distance or outputs) the
+    transposition affected.
+  evidence_refs:
+    - "docs/notes/2026-06-10-vallado-1991-tr916-mining.md (section 6)"
+    - "docs/notes/2026-06-12-load-bearing-numbers-verification.md (HEADLINE item 4: re-confirmed)"
+    - "tests/core/test_vallado_goldens.py (module-docstring DO-NOT-USE record, item 3)"
+    - "commit f4138d8 (adjudication pass that re-confirmed the existing flag)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows: []
+  vor_status: final-form
+  status: open
+
+- id: mcconaghy-2004-table71-tail
+  paper: >-
+    McConaghy, T. T., "Design and Optimization of Interplanetary Spacecraft
+    Trajectories", Ph.D. dissertation, Purdue University, December 2004
+    (UMI/ProQuest no. 3166673).
+  doi_or_url: "https://docs.lib.purdue.edu/dissertations/AAI3166673/"
+  location: >-
+    Chapter 7, Table 7.1 (Outbound Cycler Vehicle 1, p. 148), encounters 20-24
+    (Mars-20 2031-07-15 through Earth-24 2038-05-06), V-infinity and
+    closest-approach columns
+  printed_value: >-
+    V-infinity 7.85 / 4.21 / 4.20 / 5.87 / 7.23 km/s; closest approach
+    8,802 / 24,870 / 2,756 / 1,770 / (blank) km, against Table 7.1's own
+    printed encounter dates
+  derived_value: >-
+    Table 7.5 (p. 159) prints, for encounter dates identical to the printed day,
+    V-infinity 7.70 / 3.78 / 3.76 / 4.68 / 5.54 km/s and closest approaches
+    10,573 / 22,970 / 9,633 / 15,695 km; a DE440 per-leg reproduction from
+    Table 7.1's own dates emerges Table 7.5's values
+  reasoning: >-
+    Tables 7.1 and 7.5 print encounter dates identical to the printed day from
+    Earth-3 through Earth-22, yet from Mars-20 they print incompatible
+    V-infinity and closest-approach values. Identical dates force the same
+    Lambert conics (the discrete alternative conics are 6.7-16.3 km/s apart), so
+    both tails cannot be right for these dates — Table 7.1's tail is internally
+    inconsistent with the table's own dates and times of flight. Our DE440
+    reproduction of the full 24-encounter itinerary from Table 7.1's printed
+    dates reproduces rows 1-19 cleanly and emerges Table 7.5's values for the
+    tail, as does the independent Russell 2004 Appendix C itinerary that overlaps
+    these dates. Our transcription of both tables was re-read
+    character-by-character against the page (image and embedded text layer
+    agree). Whether the production error sits in Table 7.1's date column or its
+    V-infinity/closest-approach columns is unresolvable from the print alone —
+    a question we would welcome the author's input on.
+  evidence_refs:
+    - "docs/notes/2026-06-10-mcconaghy-2004-dissertation-mining.md (section 2.2 VERIFICATION block, #193)"
+    - "docs/notes/2026-06-10-mcconaghy-table71-reproduction.md (DE440 reproduction + section 9 adjudication)"
+    - "commit a8c0928 (#193 adjudication)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows: []
+  vor_status: final-form
+  status: open
+
+- id: ross-rt-2025-c21-stable-bound
+  paper: >-
+    Ross, S. D., and Roberts-Tsoukkas, M., "Stable, Low-Energy Prograde
+    Earth-Moon Cycler Orbits", AAS 25-621, AAS/AIAA Astrodynamics Specialist
+    Conference, 2025.
+  doi_or_url: "https://ross.aoe.vt.edu/papers/ross-roberts-tsoukkas-2025-AAS-25-621.pdf"
+  location: >-
+    Table 3 (p. 11), C^stable lower bound for the (2,1) family, vs Eq. 8 with
+    Table 1's tangency constants (p. 8)
+  printed_value: "C^stable_(2,1) = 3.1297495000000 (Table 3; trailing zeros as printed)"
+  derived_value: >-
+    Eq. 8 evaluated with the paper's own Table 1 constants gives
+    3.129751730201047 (exact difference 2.2302e-6, Decimal arithmetic)
+  reasoning: >-
+    The printed Table 3 bound appears inconsistent with the paper's own Eq. 8 +
+    Table 1: evaluating the published formula with the published constants gives
+    a value 2.2302e-6 larger than the Table 3 entry. Table 4's
+    Delta-C_(2,1) = 5.859161e-2 reconciles with the Table 3 value
+    (C1 - 3.1297495 = 5.8591605e-2), so the paper is self-inconsistent between
+    Table 3/Table 4 on one side and Eq. 8 + Table 1 on the other. Both sides
+    were re-read twice; the discrepancy is pinned by a regression test so we
+    will notice if a corrected version changes either side. The family's
+    C^stable/C^max/T^stable golden columns are unaffected (they re-verify as
+    internally consistent). We would welcome the authors' indication of which
+    side carries the slip.
+  evidence_refs:
+    - "docs/notes/2026-06-11-ross-roberts-tsoukkas-2025-mining.md (section 4 item 1 + TRANSCRIPTION RESCAN item 1)"
+    - "tests/search/test_cr3bp_ross_families.py::test_data_gap_c21_bound_inconsistency"
+    - "commit 4be2375 (pinning tests + family reproduction, #212b)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows:
+    - ross-rt-em-cycler-21-2025
+  vor_status: preprint-may-be-fixed-in-vor
+  vor_note: >-
+    Read from the AAS 25-621 manuscript publicly posted by the authors. A 2026
+    journal version ("Stable Prograde Earth-Moon Multi-Orbiter Cyclers via
+    Three-Body Dynamics", Roberts-Tsoukkas & Ross) exists but has not yet been
+    acquired/checked.
+  status: open
+
+- id: ross-rt-2025-c31-table3-vs-table4
+  paper: >-
+    Ross, S. D., and Roberts-Tsoukkas, M., "Stable, Low-Energy Prograde
+    Earth-Moon Cycler Orbits", AAS 25-621, AAS/AIAA Astrodynamics Specialist
+    Conference, 2025.
+  doi_or_url: "https://ross.aoe.vt.edu/papers/ross-roberts-tsoukkas-2025-AAS-25-621.pdf"
+  location: "Table 3 (p. 11), C_(3,1) bound, vs Table 4 (p. 13) Delta-C reconciliation"
+  printed_value: >-
+    C_(3,1) = 3.1833333078762 (Table 3); Delta-C_(3,1) = 1.272710e-2 and
+    Delta-C^max_(3,1) = 1.381776e-2 (Table 4)
+  derived_value: >-
+    Table 4's two deltas reconcile only with C_(3,1) = 3.175614005
+    (C1 - 1.272710e-2 = 3.175614005; 3.175614005 - C^stable_(3,1) = 1.3817758e-2);
+    exact difference vs Table 3 is 7.7193e-3
+  reasoning: >-
+    Table 3's printed C_(3,1) equals C^(u2)_1, the Eq. 8 minimum, but it does not
+    reconcile with Table 4's printed Delta-C_(3,1) and Delta-C^max_(3,1), both of
+    which reconcile (to printed precision, Decimal arithmetic) only with
+    C_(3,1) = 3.175614005. The two tables are therefore self-inconsistent as
+    printed (difference 7.7193e-3). Both sides were re-read twice and the
+    discrepancy is pinned by a regression test. The family's
+    C^stable/C^max/T^stable golden columns are unaffected. We would welcome the
+    authors' indication of which table carries the intended value.
+  evidence_refs:
+    - "docs/notes/2026-06-11-ross-roberts-tsoukkas-2025-mining.md (section 4 item 2 + TRANSCRIPTION RESCAN item 2)"
+    - "tests/search/test_cr3bp_ross_families.py::test_data_gap_c31_bound_inconsistency"
+    - "commit 4be2375 (pinning tests + family reproduction, #212b)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows:
+    - ross-rt-em-cycler-31-2025
+  vor_status: preprint-may-be-fixed-in-vor
+  vor_note: >-
+    Read from the AAS 25-621 manuscript publicly posted by the authors. A 2026
+    journal version ("Stable Prograde Earth-Moon Multi-Orbiter Cyclers via
+    Three-Body Dynamics", Roberts-Tsoukkas & Ross) exists but has not yet been
+    acquired/checked.
+  status: open
+
+- id: liang-2024-eq16-synodic-subscript
+  paper: >-
+    Liang, G., Yang, H., Li, S., Bai, X., and Qin, L.,
+    "Callisto-Ganymede-Europa Triple Cyclers", Journal of Guidance, Control,
+    and Dynamics (Engineering Note), DOI 10.2514/1.G008387.
+  doi_or_url: "https://doi.org/10.2514/1.G008387"
+  location: "Eq. 16 (p. 11 of the 22-page author draft), t_e1 coefficient"
+  printed_value: "t_e1 = 22 * n_cycle * S_G,E (Ganymede-Europa synodic period)"
+  derived_value: >-
+    S_C,E (Callisto-Europa synodic period, ~4.511 d): Fig. 4 labels the same
+    interval "11*2 S_C,E" and the p. 10 text states "4 C-G synodic periods or
+    11 C-E synodic periods"
+  reasoning: >-
+    Eq. 16's printed subscript appears inconsistent with the paper's own figure
+    and text: Fig. 4 and the accompanying p. 10 prose both describe the t_e1
+    interval in Callisto-Europa synodic periods (11 per cycle, hence the 22 for
+    two cycles), while Eq. 16 prints the Ganymede-Europa synodic period S_G,E.
+    The cycle timing only closes with S_C,E. Both readings were confirmed in
+    two independent passes over the draft. No catalogue row ingests Eq. 16, so
+    this is recorded for reproducibility of the construction only. The defect
+    may already be corrected in the journal version of record.
+  evidence_refs:
+    - "docs/notes/2026-06-11-liang-2024-cge-triple-cyclers-mining.md (section 9 item 1 + 'Errata re-verification' in the TRANSCRIPTION RESCAN)"
+    - "commit 0b34886 (transcription-rescan annotations)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows: []
+  vor_status: preprint-may-be-fixed-in-vor
+  vor_note: >-
+    Page/equation numbers refer to the 22-page author draft; the JGCD version of
+    record (DOI 10.2514/1.G008387) is unchecked (paywalled).
+  status: open
+
+- id: liang-2024-eq13-denominator
+  paper: >-
+    Liang, G., Yang, H., Li, S., Bai, X., and Qin, L.,
+    "Callisto-Ganymede-Europa Triple Cyclers", Journal of Guidance, Control,
+    and Dynamics (Engineering Note), DOI 10.2514/1.G008387.
+  doi_or_url: "https://doi.org/10.2514/1.G008387"
+  location: >-
+    Eq. 13 (p. 6 of the 22-page author draft), denominator of the flyby-defect
+    angle gamma
+  printed_value: "gamma = arccos[(1+nu_1) / sqrt((1+nu_1)^2 + nu_2^2 + nu_2^2)] (nu_2^2 repeated)"
+  derived_value: >-
+    nu_2^2 + nu_3^2 in the last two denominator terms, per the Delta-v projection
+    definition of Eqs. 9-10 (components nu_1, nu_2, nu_3)
+  reasoning: >-
+    The printed denominator repeats nu_2^2 where the projection definition the
+    paper itself sets up in Eqs. 9-10 (a three-component decomposition nu_1,
+    nu_2, nu_3) requires the norm to include nu_3^2 — as printed, the nu_3
+    component never enters, which is inconsistent with the stated definition.
+    This reads as a subscript typo; any reproduction must use nu_2^2 + nu_3^2.
+    Confirmed in two independent passes over the draft. No catalogue row ingests
+    Eq. 13. The defect may already be corrected in the version of record.
+  evidence_refs:
+    - "docs/notes/2026-06-11-liang-2024-cge-triple-cyclers-mining.md ('NEW source defect found' in the TRANSCRIPTION RESCAN, section 9 item 6)"
+    - "commit 0b34886 (transcription-rescan annotations)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows: []
+  vor_status: preprint-may-be-fixed-in-vor
+  vor_note: >-
+    Page/equation numbers refer to the 22-page author draft; the JGCD version of
+    record (DOI 10.2514/1.G008387) is unchecked (paywalled).
+  status: open
+
+- id: liang-2024-citation-name-typos
+  paper: >-
+    Liang, G., Yang, H., Li, S., Bai, X., and Qin, L.,
+    "Callisto-Ganymede-Europa Triple Cyclers", Journal of Guidance, Control,
+    and Dynamics (Engineering Note), DOI 10.2514/1.G008387.
+  doi_or_url: "https://doi.org/10.2514/1.G008387"
+  location: "Introduction in-text citations and reference list (author draft)"
+  printed_value: >-
+    "Lynan and Longuski [9]"; "Drew et al. [6]"; "Naoya et al. [7]";
+    reference-list "Sttange" [8]
+  derived_value: >-
+    Lynam (ref. 9); Jones (ref. 6, "Drew" is the first name); Ozaki (ref. 7,
+    "Naoya" is the first name); Strange (ref. 8)
+  reasoning: >-
+    Minor/typographical only — no numerical content is affected. The in-text
+    names appear inconsistent with the cited works' author surnames: "Lynan"
+    for Lynam, "Sttange" for Strange, and two first-name citations ("Drew et
+    al." for Jones et al., "Naoya et al." for Ozaki et al.). All four were
+    confirmed in print in two independent passes. Recorded so that
+    forward-citation searches from this note resolve to the right authors; the
+    typos may already be corrected in the version of record.
+  evidence_refs:
+    - "docs/notes/2026-06-11-liang-2024-cge-triple-cyclers-mining.md (section 9 item 2 + 'Errata re-verification' in the TRANSCRIPTION RESCAN)"
+    - "commit 0b34886 (transcription-rescan annotations)"
+  confidence: confirmed-in-print
+  affected_catalogue_rows: []
+  vor_status: preprint-may-be-fixed-in-vor
+  vor_note: >-
+    Read from the 22-page author draft; the JGCD version of record
+    (DOI 10.2514/1.G008387) is unchecked (paywalled).
+  status: open
+  minor: true
+
+- id: saloglu-taheri-2025-p30-total-time
+  paper: >-
+    Saloglu, K., and Taheri, E., "Classification and Feasibility Assessment of
+    Infinitely Many Iso-Impulse Three-Dimensional Trajectories", The Journal of
+    the Astronautical Sciences (2025); preprint arXiv:2501.01583.
+  doi_or_url: "https://arxiv.org/abs/2501.01583"
+  location: >-
+    Sec. VI.A Earth-Mars example, p. 30 (arXiv pagination): prose total-time
+    statement vs the feasibility check on the same page
+  printed_value: >-
+    "becomes 701.2694 days and 1405.8939 days" (prose), then
+    "793 - 720.2694 = 72.7306 < T_0" (feasibility check, same page)
+  derived_value: >-
+    720.2694 days — the same-page subtraction 793 - 720.2694 = 72.7306 is
+    arithmetically consistent, so the prose 701.2694 appears to be the slip
+  reasoning: >-
+    The two printed statements of the same total time on p. 30 disagree
+    (701.2694 vs 720.2694 days) and cannot both be right; the page's own
+    feasibility arithmetic (793 - 720.2694 = 72.7306) supports 720.2694. Both
+    readings were confirmed in two independent passes over the arXiv PDF. We
+    would welcome the authors' confirmation of which figure was intended, and
+    whether the journal version of record already corrects it.
+  evidence_refs:
+    - "docs/notes/2026-06-10-saloglu-2025-iso-impulse-3d-mining.md (TRANSCRIPTION RESCAN + section 7)"
+    - "commit 0b34886 (transcription-rescan annotations)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows: []
+  vor_status: preprint-may-be-fixed-in-vor
+  vor_note: >-
+    Page numbers refer to arXiv:2501.01583; the J. Astronaut. Sci. version of
+    record (DOI 10.1007/s40295-025-00528-0) is unchecked (paywalled).
+  status: open
+
+- id: saloglu-taheri-2025-dv-total-mismatch
+  paper: >-
+    Saloglu, K., and Taheri, E., "Classification and Feasibility Assessment of
+    Infinitely Many Iso-Impulse Three-Dimensional Trajectories", The Journal of
+    the Astronautical Sciences (2025); preprint arXiv:2501.01583.
+  doi_or_url: "https://arxiv.org/abs/2501.01583"
+  location: >-
+    Sec. VI.A Earth-Mars example, pp. 30-31 (arXiv pagination): Delta-v total of
+    the iso-impulse solution (Fig. 21c sentence on p. 30 vs p. 31)
+  printed_value: "Delta-v_total = 5.6109 km/s (p. 30) vs 5.6108 km/s (p. 31)"
+  derived_value: >-
+    The two printed statements of the same quantity differ by 0.1 m/s; at most
+    one is correct (our independent bracket 5.5865 <= Delta-v <= 6.047 km/s is
+    consistent with either)
+  reasoning: >-
+    The same solution's total Delta-v is printed as 5.6109 km/s on p. 30 and
+    5.6108 km/s on p. 31 — a 0.1 m/s internal inconsistency, confirmed in two
+    independent passes over the arXiv PDF. Our reproduction cannot discriminate
+    at that precision (the value sits inside our independently computed
+    lower/upper bracket either way), so this is recorded purely as an
+    in-print inconsistency for the authors to adjudicate. The values wired as
+    goldens from this paper (the 3.9618011 km/s two-impulse base and its
+    breakdown) are unaffected and reproduce cleanly.
+  evidence_refs:
+    - "docs/notes/2026-06-10-saloglu-2025-iso-impulse-3d-mining.md (TRANSCRIPTION RESCAN + section 7)"
+    - "tests/verify/test_dv_bracket.py (the unaffected wired goldens)"
+    - "commit 0b34886 (transcription-rescan annotations)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows: []
+  vor_status: preprint-may-be-fixed-in-vor
+  vor_note: >-
+    Page numbers refer to arXiv:2501.01583; the J. Astronaut. Sci. version of
+    record (DOI 10.1007/s40295-025-00528-0) is unchecked (paywalled).
+  status: open
+
+- id: shakouri-2019-table3-ce-mi-label-swap
+  paper: >-
+    Shakouri, A., Kiani, M., and Pourtakdoust, S. H., "A New Shape-Based
+    Multiple-Impulse Strategy for Coplanar Orbital Maneuvers",
+    arXiv:1905.04543v1 [math.OC], 2019 (preprint submitted to Acta Astronautica).
+  doi_or_url: "https://arxiv.org/abs/1905.04543"
+  location: >-
+    Table 3 (p. 18), 2-Impulse Lambert (a) rows: cost-effective (J_c*) and
+    minimum-impulse (J_m*) labels
+  printed_value: "J_c* = 5.1176 km/s (at t_f = 2894 s); J_m* = 7.9455 km/s"
+  derived_value: >-
+    Labels exchanged: 5.1176 km/s reproduces as the min-over-t_f of the MAX
+    impulse norm (J_m, Eq. 27) at exactly the printed t_f = 2894 s, and
+    7.9455 km/s as the min-over-t_f of the SUM of impulse norms (J_c, Eq. 26)
+  reasoning: >-
+    As printed the row pair is mathematically impossible: by the paper's own
+    definitions the maximum impulse norm (J_m, Eq. 27) can never exceed the sum
+    of impulse norms (J_c, Eq. 26) on the same transfer, yet the printed
+    J_m* = 7.9455 exceeds J_c* = 5.1176. Both values reproduce exactly (at
+    printed precision) with the labels exchanged, using our independent Lambert
+    solver on the case-2 fixed-endpoint geometry; the paper's own discussion on
+    p. 19 (Lambert (a) gives the "worst (highest) costs") matches the exchanged
+    reading. The reproduction is wired as regression tests. We would welcome the
+    authors' confirmation that the two labels were transposed in production.
+  evidence_refs:
+    - "tests/verify/test_primer_published_goldens.py::test_shakouri_case2_lambert_a_min_max_golden"
+    - "tests/verify/test_primer_published_goldens.py::test_shakouri_case2_lambert_a_min_sum_golden"
+    - "tests/verify/test_primer_published_goldens.py (module-docstring DO-NOT-USE record)"
+    - "commit 68b06c4 (golden wiring)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows: []
+  vor_status: preprint-may-be-fixed-in-vor
+  vor_note: >-
+    Values cite arXiv:1905.04543v1; any Acta Astronautica version of record is
+    unchecked.
+  status: open
+
+- id: shakouri-2019-unresolved-cells
+  paper: >-
+    Shakouri, A., Kiani, M., and Pourtakdoust, S. H., "A New Shape-Based
+    Multiple-Impulse Strategy for Coplanar Orbital Maneuvers",
+    arXiv:1905.04543v1 [math.OC], 2019 (preprint submitted to Acta Astronautica).
+  doi_or_url: "https://arxiv.org/abs/1905.04543"
+  location: >-
+    Table 2 (p. 14) and Table 3 (p. 18): the 1-Impulse row; the Remark-2.7 row's
+    t_f cell; the 2-Impulse Lambert (b) rows; and the t_f = 3570 s cell of
+    Table 3's 7.9455 km/s optimum
+  printed_value: >-
+    (a) Table 2, 1-Impulse row: J_c = 2.6305 km/s, coast times 2631 / 3463 s;
+    (b) Table 2, 2-Impulse (Remark 2.7) row: t_f = 2315 s;
+    (c) Tables 2-3, 2-Impulse Lambert (b) rows: 1.4677 / 0.7831 km/s (case 1)
+    and 2.5604 / 1.3344 km/s (case 2);
+    (d) Table 3: t_f = 3570 s for the 7.9455 km/s cell
+  derived_value: >-
+    Our reproductions: (a) single-impulse cost 2.7864 km/s at BOTH orbit
+    intersections (true anomaly 120/240 deg), coast times 4039 / 14623 s;
+    (b) the transfer is a half revolution of the a_2 = 10317 km intermediate
+    ellipse, half-period 5214 s; (c) with the departure point fixed at
+    theta_12 our optimum is 1.93 km/s, and with the departure anomaly also free
+    our optima fall BELOW the printed values (1.337 / 0.782; 2.508 / 1.283 km/s);
+    (d) our minimiser of the impulse sum sits at t_f ~= 5126 s, and our
+    J_c(3570 s) = 8.2459 km/s
+  reasoning: >-
+    These cells are open QUESTIONS for the authors, not claimed errata: our
+    reproductions disagree with the printed values, but we hold no
+    internal-consistency proof and a convention difference may explain them.
+    Specifically we would ask: (a) under what geometry does the 1-Impulse row
+    reach J_c = 2.6305 km/s with coast times 2631 / 3463 s? No interpretation we
+    tried (either omega sign convention, either coast direction, time measured
+    from perigee) reproduces the printed row, and the same row's orbits
+    intersect where our single-impulse cost is 2.7864 km/s. (b) How is the
+    Remark-2.7 transfer time t_f = 2315 s defined, given the closed-form
+    transfer is a half revolution of the intermediate ellipse (half-period
+    5214 s) and the row's J_c / J_m cells reproduce exactly? (c) What feasible
+    set defines the Lambert (b) rows ("allows the spacecraft to remain in its
+    initial orbit before applying the first impulse", p. 12)? With the departure
+    fixed we land above the printed optima and with it free we land below them.
+    (d) For Table 3's 7.9455 km/s value (see the label-swap entry), is the
+    printed t_f = 3570 s a typo? Our minimiser of the impulse sum sits near
+    5126 s. The reproduction code paths are public and we would welcome
+    correction of any mistaken assumption on our side.
+  evidence_refs:
+    - "tests/verify/test_primer_published_goldens.py (module-docstring DO-NOT-USE record)"
+    - "docs/notes/2026-06-12-load-bearing-numbers-verification.md (HEADLINE item 3: Remark-2.7 t_f derivation hazard)"
+    - "docs/notes/2026-06-10-shakouri-2019-shape-based-mining.md"
+    - "commit 68b06c4 (golden wiring + DO-NOT-USE record)"
+  confidence: unresolved-discrepancy
+  affected_catalogue_rows: []
+  vor_status: preprint-may-be-fixed-in-vor
+  vor_note: >-
+    Values cite arXiv:1905.04543v1; any Acta Astronautica version of record is
+    unchecked.
+  status: open
+
+- id: ellison-2018-appendix-gradient-scaling
+  paper: >-
+    Ellison, D. H., Conway, B. A., Englander, J. A., and Ozimek, M. T.,
+    "Analytic Gradient Computation for Bounded-Impulse Trajectory Models Using
+    Two-Sided Shooting", Journal of Guidance, Control, and Dynamics, Vol. 41,
+    No. 7, 2018, pp. 1449-1462, DOI 10.2514/1.G003077.
+  doi_or_url: "https://doi.org/10.2514/1.G003077"
+  location: >-
+    Appendix, Eqs. A1-A6 (gradients of the Eq. 4 flyby minimum-altitude
+    constraint w.r.t. the v-infinity vectors)
+  printed_value: >-
+    Each printed term carries an additional 1/r_periapse factor (A1-A3 and the
+    first terms of A4-A6) or 1/r_flyby factor (final terms of A4-A6) relative to
+    the gradient of Eq. 4 as printed
+  derived_value: >-
+    The unscaled gradient d(c_alt)/d(v-infinity) of Eq. 4 (units km per km/s);
+    the printed expressions match it term by term — same numerator vectors, same
+    cos(acos(alpha)/2), (alpha - 1), and power factors — except for the extra
+    radius factors
+  reasoning: >-
+    The printed appendix gradients appear to be of an r-scaled
+    (nondimensionalised) form of the Eq. 4 constraint rather than of Eq. 4 as
+    printed — and the scaling radius is printed inconsistently between terms of
+    the same gradient (1/r_periapse in some terms, 1/r_flyby in others), so as
+    printed the expressions are not the gradient of any single scaling of Eq. 4
+    and are dimensionally inconsistent with it. Our unscaled implementation of
+    d(c_alt)/d(v-infinity) matches the printed expressions term by term once the
+    extra radius factors are removed, and validates against central differences
+    — the paper's own recommended verification pattern for derivative code
+    (Sec. VI). The paper prints no unit-level numeric gradient values, so a
+    direct numeric check against the print is not possible; we would welcome the
+    authors' statement of the intended constraint scaling.
+  evidence_refs:
+    - "src/cyclerfinder/nbody/flyby_gradients.py (module-docstring TRANSCRIPTION NOTE)"
+    - "docs/notes/2026-06-10-ellison-2018-analytic-gradients-mining.md (section 4)"
+    - "tests/nbody/test_flyby_gradients.py (FD-vs-analytic consistency tests)"
+    - "commit dffff5e (implementation + FD agreement tests, #189)"
+  confidence: provable-internal-inconsistency
+  affected_catalogue_rows: []
+  vor_status: final-form
+  status: open
