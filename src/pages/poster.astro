@@ -1,0 +1,31 @@
+---
+// /poster/ — the hero montage as a standalone page (task #227, spec §3):
+// the same build-time SVG the front page uses, inlined at full size on a
+// minimal page so a manual (or future automated) screenshot needs no app
+// chrome. The SVG is self-styled; this page adds nothing but a centred stage.
+import { buildPosterSvg } from "../lib/poster-svg";
+import { reproducedCount } from "../lib/hero-data";
+
+const svg = buildPosterSvg();
+const count = reproducedCount();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Poster — cyclers.space</title>
+    <meta name="description" content={`Hero poster: ${count} independently reproduced cycler orbits, drawn per-system with honest fidelity captions.`} />
+    <meta name="robots" content="noindex" />
+    <style>
+      html, body { margin: 0; background: #0b0e14; }
+      main { display: grid; place-items: center; min-height: 100vh; }
+      .poster { width: min(1200px, 100vw); height: auto; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="poster" set:html={svg} />
+    </main>
+  </body>
+</html>
