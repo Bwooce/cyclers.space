@@ -31,12 +31,20 @@
     character-by-character twice; the printed z itself is -39.47842 (not
     mis-printed), and the other four rows of the same table (z = 0, 0.57483,
     39.47842, 50.0) reproduce to <= 4e-9. We would welcome correction if a
-    different Stumpff convention explains the printed pair.
+    different Stumpff convention explains the printed pair. EXTERNAL
+    CONFIRMATION (2026-06-13): the author's own current code release
+    ("Fundamentals of Astrodynamics and Applications" 5th-ed companion,
+    github.com/CelesTrak/fundamentals-of-astrodynamics, findc2c3) evaluated at
+    z = -39.47842 returns C = 6.756775284482481, S = 1.0540677718375635 —
+    bit-identical to our derived values, agreeing with this erratum and not
+    with the 1991 print.
   evidence_refs:
     - "docs/notes/2026-06-12-load-bearing-numbers-verification.md (HEADLINE item 1 + PDF ADJUDICATION item 1)"
     - "docs/notes/2026-06-10-vallado-1991-tr916-mining.md (section 4.1 correction block)"
     - "tests/core/test_vallado_goldens.py (module-docstring DO-NOT-USE record, item 1)"
     - "commit f4138d8 (PDF adjudication)"
+    - "tests/core/test_vallado_code_oracle.py (author-code external confirmation)"
+    - "commit 5208a2a (oracle adjudication)"
   confidence: confirmed-in-print
   affected_catalogue_rows: []
   vor_status: final-form
@@ -62,12 +70,19 @@
     disagrees, and by far more than the report's own stated ~1e-5 cross-machine
     tolerance (p. iv). The page was re-read character-by-character twice; no
     single-digit or sign variation of the printed R_y or any input closes the gap.
-    The report's four other Kepler cases reproduce cleanly.
+    The report's four other Kepler cases reproduce cleanly. EXTERNAL
+    CONFIRMATION (2026-06-13): the author's own current code release
+    ("Fundamentals of Astrodynamics and Applications" 5th-ed companion,
+    github.com/CelesTrak/fundamentals-of-astrodynamics, kepler) run at the
+    same canonical inputs returns R_y = -0.11822048981640433 — agreeing with
+    our derived value to 1.8e-15 and not with the 1991 print.
   evidence_refs:
     - "docs/notes/2026-06-12-load-bearing-numbers-verification.md (HEADLINE item 2 + PDF ADJUDICATION item 2)"
     - "docs/notes/2026-06-10-vallado-1991-tr916-mining.md (section 3 case 4 adjudication block)"
     - "tests/core/test_vallado_goldens.py (module-docstring DO-NOT-USE record, item 2)"
     - "commit f4138d8 (PDF adjudication)"
+    - "tests/core/test_vallado_code_oracle.py (author-code external confirmation)"
+    - "commit 5208a2a (oracle adjudication)"
   confidence: confirmed-in-print
   affected_catalogue_rows: []
   vor_status: final-form
