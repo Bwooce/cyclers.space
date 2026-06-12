@@ -25,7 +25,7 @@ const rowName = (id: string): string => getEntryById(id)?.name ?? id;
 ---
 <Base
   title="Assumed errata"
-  description="Printed values in published cycler-trajectory sources that our reproductions indicate are defective — published so the original authors can verify or refute them."
+  description="Printed values in published cycler-trajectory sources that our reproductions could not match — published with full reasoning so the original authors can verify or refute them. Typesetting slips happen to everyone; the underlying work in these papers is excellent."
 >
   <h1>Assumed errata</h1>
 
@@ -33,8 +33,11 @@ const rowName = (id: string): string => getEntryById(id)?.name ?? id;
     The upstream <a href="https://github.com/Bwooce/cyclers">cyclers</a> project reproduces
     published cycler-trajectory values as part of its golden-test discipline: every number it
     relies on is independently re-derived before being trusted. Occasionally a printed value
-    resists reproduction, or a source contradicts itself between its own tables and equations.
-    This page is the ledger of those findings.
+    resists reproduction, or a source's tables and equations appear to disagree with each other.
+    This page is the ledger of those findings. To be clear about the spirit of it: these are
+    almost always typesetting or transcription slips of the kind that happen to every author and
+    every publisher — the underlying work in these papers is excellent, and this project depends
+    on it gratefully.
   </p>
   <p>
     These are <strong>assumed</strong> errata, not verdicts. Each entry states exactly what is
