@@ -57,6 +57,35 @@ try {
   }
 }
 
+// --- errata.yaml (committed; soft-fail on a stale remote) --------------------
+// The assumed-errata ledger (upstream data/errata.yaml, validated against
+// data/errata.schema.json by upstream tests). Like planet-elements.json it IS
+// committed (small) so the build is reproducible offline; the sync merely keeps
+// it current from the same single source of truth.
+const ERRATA_URL =
+  process.env.ERRATA_URL ??
+  "https://raw.githubusercontent.com/Bwooce/cyclers/main/data/errata.yaml";
+const ERRATA_OUT = "src/data/errata.yaml";
+try {
+  const erRes = await fetch(ERRATA_URL);
+  if (!erRes.ok) throw new Error(`HTTP ${erRes.status}`);
+  const erBody = await erRes.text();
+  if (!erBody.includes("- id:")) {
+    throw new Error("fetched content does not look like the errata ledger (no '- id:')");
+  }
+  await writeFile(ERRATA_OUT, erBody);
+  console.log(`sync-catalogue: wrote ${ERRATA_OUT} (${erBody.length} bytes) from ${ERRATA_URL}`);
+} catch (err) {
+  // Soft fail: keep the committed copy (must exist). Only hard-fail if missing.
+  try {
+    await access(ERRATA_OUT);
+    console.warn(`sync-catalogue: ${ERRATA_URL} unavailable (${err.message}); keeping committed ${ERRATA_OUT}.`);
+  } catch {
+    console.error(`sync-catalogue: ${ERRATA_URL} unavailable AND ${ERRATA_OUT} missing. Cannot build the errata page.`);
+    process.exit(1);
+  }
+}
+
 // --- sampled trajectories (viz-2c; committed, soft-fail on a stale remote) ----
 // Per-row numerically-propagated craft polylines emitted upstream by
 // cyclers/scripts/export_sampled_trajectories.py. Committed under public/data so

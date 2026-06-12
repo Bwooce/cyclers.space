@@ -1,0 +1,121 @@
+---
+import Base from "../layouts/Base.astro";
+import { errataByPaper, loadErrata, CONFIDENCE_LABEL, CONFIDENCE_TITLE } from "../lib/errata";
+import { getEntryById } from "../lib/catalogue";
+
+const groups = errataByPaper();
+const entries = loadErrata();
+
+const counts = {
+  "confirmed-in-print": 0,
+  "provable-internal-inconsistency": 0,
+  "unresolved-discrepancy": 0,
+};
+for (const e of entries) counts[e.confidence] += 1;
+
+const STATUS_LABEL: Record<string, string> = {
+  open: "open",
+  "author-confirmed": "author confirmed",
+  "author-refuted": "author refuted — withdrawn",
+  "fixed-in-vor": "fixed in version of record",
+};
+
+// Resolve affected catalogue rows to names for cross-links.
+const rowName = (id: string): string => getEntryById(id)?.name ?? id;
+---
+<Base
+  title="Assumed errata"
+  description="Printed values in published cycler-trajectory sources that our reproductions indicate are defective — published so the original authors can verify or refute them."
+>
+  <h1>Assumed errata</h1>
+
+  <p>
+    The upstream <a href="https://github.com/Bwooce/cyclers">cyclers</a> project reproduces
+    published cycler-trajectory values as part of its golden-test discipline: every number it
+    relies on is independently re-derived before being trusted. Occasionally a printed value
+    resists reproduction, or a source contradicts itself between its own tables and equations.
+    This page is the ledger of those findings.
+  </p>
+  <p>
+    These are <strong>assumed</strong> errata, not verdicts. Each entry states exactly what is
+    printed, what we derive instead, and the full falsifiable argument — reproduction method
+    and/or internal-consistency proof — so the original authors (or anyone else) can check the
+    reasoning and refute it. Entries read from preprints may already be fixed in the version of
+    record (marked below). Unresolved entries are explicitly questions, not claims.
+  </p>
+  <p>
+    If you are an author of one of these sources, or can confirm or refute an entry, please
+    open an issue on the
+    <a href="https://github.com/Bwooce/cyclers">upstream repo</a> (or the
+    <a href="https://github.com/Bwooce/cyclers.space">site repo</a>) — corrections are very
+    welcome, and refuted entries are marked as such rather than deleted. The machine-readable
+    ledger is
+    <a href="https://github.com/Bwooce/cyclers/blob/main/data/errata.yaml"><code>data/errata.yaml</code></a>,
+    schema-validated and test-enforced upstream.
+  </p>
+
+  <p class="muted">
+    {entries.length} entries:
+    {counts["confirmed-in-print"]} confirmed in print &middot;
+    {counts["provable-internal-inconsistency"]} provable internal inconsistencies &middot;
+    {counts["unresolved-discrepancy"]} unresolved questions for the authors.
+  </p>
+
+  {groups.map((group) => (
+    <section class="errata-paper">
+      <h2>{group.entries[0]!.paper}</h2>
+      <p class="muted">
+        <a href={group.doi_or_url} rel="noopener noreferrer">{group.doi_or_url}</a>
+      </p>
+      {group.entries.map((e) => (
+        <article class="erratum" id={e.id}>
+          <h3>
+            <a href={`#${e.id}`} class="anchor-link" aria-label="Anchor link">#</a>
+            {e.location}
+          </h3>
+          <p class="erratum-badges">
+            <span class={`conf-badge conf-${e.confidence}`} title={CONFIDENCE_TITLE[e.confidence]}>
+              {CONFIDENCE_LABEL[e.confidence]}
+            </span>
+            {e.minor && <span class="conf-badge conf-minor">minor / typographical</span>}
+            <span class="conf-badge" title="Lifecycle status of this assumed erratum">
+              {STATUS_LABEL[e.status] ?? e.status}
+            </span>
+            {e.vor_status === "preprint-may-be-fixed-in-vor" && (
+              <span
+                class="conf-badge conf-vor"
+                title={e.vor_note ?? "Read from a preprint/author draft; may already be fixed in the version of record."}
+              >
+                preprint — may be fixed in VoR
+              </span>
+            )}
+          </p>
+          <dl class="cycler">
+            <dt>Printed</dt>
+            <dd><code class="erratum-value">{e.printed_value}</code></dd>
+            <dt>We derive</dt>
+            <dd><code class="erratum-value">{e.derived_value}</code></dd>
+          </dl>
+          <p class="erratum-reasoning">{e.reasoning}</p>
+          {e.vor_note && <p class="muted">Version of record: {e.vor_note}</p>}
+          {e.affected_catalogue_rows.length > 0 && (
+            <p>
+              Affected catalogue {e.affected_catalogue_rows.length === 1 ? "entry" : "entries"}:
+              {e.affected_catalogue_rows.map((rid, i) => (
+                <>{i > 0 ? ", " : " "}<a href={`/cycler/${rid}/`}>{rowName(rid)}</a></>
+              ))}
+            </p>
+          )}
+          <details class="erratum-evidence">
+            <summary class="muted">Evidence trail ({e.evidence_refs.length})</summary>
+            <ul class="bare">
+              {e.evidence_refs.map((ref) => (
+                <li><code class="erratum-value">{ref}</code></li>
+              ))}
+            </ul>
+          </details>
+        </article>
+      ))}
+    </section>
+  ))}
+</Base>
