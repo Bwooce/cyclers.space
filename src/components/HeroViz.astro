@@ -1,0 +1,144 @@
+---
+// Front-page hero (task #227, spec §4): a build-time SVG poster that loads
+// instantly, with an opt-in "View in 3D" button that lazily mounts the cycling
+// Three.js gallery (hero-gallery.ts) — the SAME zero-WebGL-until-click pattern
+// as OrbitView's initThreeLaunch.
+//
+// The poster SVG is inlined (set:html) so it paints with the first byte of the
+// page — no extra request, no layout shift. The headline count comes from the
+// LIVE filter (reproducedCount), never hard-coded. The gallery's scene specs
+// ride an inline JSON island (the clockConfig pattern); the gallery chunk
+// regenerates the geometry client-side, so the page ships zero geometry bytes
+// (and zero three.js bytes) until the button is clicked.
+//
+// prefers-reduced-motion and mobile keep the static poster — the gallery is
+// click-only everywhere, and when it does mount under reduced-motion it runs in
+// static mode (no auto-cycle, no drift). Honesty: per-curve fidelity lives in
+// the legend + the caption BELOW the canvas (the 3c79bd9 binding); rows whose
+// data supports no curve are badges, never invented geometry.
+import { buildPosterSvg } from "../lib/poster-svg";
+import { buildHeroScenes } from "../lib/hero-scenes";
+import { reproducedCount } from "../lib/hero-data";
+
+const posterSvg = buildPosterSvg();
+const count = reproducedCount();
+const scenes = buildHeroScenes();
+---
+<section class="hero" aria-labelledby="hero-heading">
+  <h1 id="hero-heading" class="hero-heading">cyclers.space</h1>
+  <p class="hero-count">
+    <strong>{count}</strong> independently reproduced orbits — and counting.
+    <a href="/about/#validation-levels">What "reproduced" means &rsaquo;</a>
+  </p>
+
+  <div class="hero-stage" data-hero-stage>
+    {/* Instant-loading static poster (inline SVG, no extra request). It is the
+        accessible floor and stays the default under reduced-motion / mobile. */}
+    <div class="hero-poster" data-hero-poster set:html={posterSvg} />
+
+    {/* Lazy 3D gallery host — hidden until "View in 3D" is clicked. */}
+    <div class="hero-gallery" data-hero-gallery hidden>
+      <div class="hero-gallery-bar">
+        <button type="button" class="hero-nav" data-hero-prev aria-label="Previous scene">&lsaquo; Prev</button>
+        <span class="hero-gallery-title" data-hero-title aria-live="polite"></span>
+        <span class="hero-gallery-counter" data-hero-counter></span>
+        <button type="button" class="hero-nav" data-hero-next aria-label="Next scene">Next &rsaquo;</button>
+      </div>
+      <div class="hero-canvas" data-hero-canvas></div>
+      <ul class="hero-legend" data-hero-legend></ul>
+      <p class="hero-caption" data-hero-caption></p>
+    </div>
+
+    <div class="hero-controls">
+      <button type="button" class="hero-3d-btn" data-hero-launch
+              title="Loads a Three.js 3D gallery (~150 KB WebGL, fetched only on this click). The static poster above remains the accessible source of truth.">
+        ▶ View in 3D
+      </button>
+      <button type="button" class="hero-3d-btn hero-close" data-hero-close hidden>
+        ✕ Close 3D
+      </button>
+    </div>
+  </div>
+
+  {/* Scene specs for the gallery: a few KB of generator parameters (Kepler
+      elements, ring radii, CR3BP tuples), NEVER sampled polylines. The gallery
+      chunk regenerates the geometry from them client-side. */}
+  <script type="application/json" data-hero-scenes set:html={JSON.stringify(scenes)} />
+</section>
+
+<script>
+  // Hero launcher: the ONLY entry to the gallery's three.js chunk. Tiny + eager
+  // (ships with the page); the WebGL code is behind the dynamic import inside
+  // the click handler, so the front page ships ZERO WebGL bytes until intent —
+  // exactly OrbitView's initThreeLaunch contract.
+  import type { HeroGallery } from "../lib/hero-gallery";
+
+  function initHero(stage: HTMLElement) {
+    const launch = stage.querySelector<HTMLButtonElement>("[data-hero-launch]");
+    const close = stage.querySelector<HTMLButtonElement>("[data-hero-close]");
+    const poster = stage.querySelector<HTMLElement>("[data-hero-poster]");
+    const gallery = stage.querySelector<HTMLElement>("[data-hero-gallery]");
+    const canvas = stage.querySelector<HTMLElement>("[data-hero-canvas]");
+    const legend = stage.querySelector<HTMLElement>("[data-hero-legend]");
+    const caption = stage.querySelector<HTMLElement>("[data-hero-caption]");
+    const title = stage.querySelector<HTMLElement>("[data-hero-title]");
+    const counter = stage.querySelector<HTMLElement>("[data-hero-counter]");
+    const prevBtn = stage.querySelector<HTMLButtonElement>("[data-hero-prev]");
+    const nextBtn = stage.querySelector<HTMLButtonElement>("[data-hero-next]");
+    const cfgEl = document.querySelector<HTMLScriptElement>("[data-hero-scenes]");
+    if (!launch || !close || !poster || !gallery || !canvas || !legend || !caption || !title || !counter || !prevBtn || !nextBtn || !cfgEl) {
+      return;
+    }
+
+    let view: HeroGallery | null = null;
+    let mounting = false;
+
+    launch.addEventListener("click", async () => {
+      if (mounting || view) return;
+      mounting = true;
+      launch.disabled = true;
+      try {
+        const scenes = JSON.parse(cfgEl.textContent || "[]");
+        const { mountHeroGallery } = await import("../lib/hero-gallery");
+        poster.hidden = true;
+        gallery.hidden = false;
+        launch.hidden = true;
+        close.hidden = false;
+        view = await mountHeroGallery(canvas, scenes, {
+          legend,
+          caption,
+          title,
+          prevBtn,
+          nextBtn,
+          counter,
+        });
+      } catch (err) {
+        // Failure degrades back to the poster (the accessible floor).
+        poster.hidden = false;
+        gallery.hidden = true;
+        launch.hidden = false;
+        close.hidden = true;
+        console.error("[hero-3d] mount failed", err);
+      } finally {
+        mounting = false;
+        launch.disabled = false;
+      }
+    });
+
+    close.addEventListener("click", () => {
+      if (view) {
+        view.destroy();
+        view = null;
+      }
+      gallery.hidden = true;
+      poster.hidden = false;
+      close.hidden = true;
+      launch.hidden = false;
+      launch.focus();
+    });
+  }
+
+  for (const s of document.querySelectorAll<HTMLElement>("[data-hero-stage]")) {
+    initHero(s);
+  }
+</script>
