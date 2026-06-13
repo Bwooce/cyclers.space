@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import CatalogueTable from "../components/CatalogueTable.astro";
+import HeroViz from "../components/HeroViz.astro";
 import { loadCatalogue, validationLevelCounts } from "../lib/catalogue";
 
 const entries = loadCatalogue();
@@ -12,7 +13,7 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
   .map((lvl) => `${levelCounts[lvl]} at ${lvl}`);
 ---
 <Base title="Home" description="cyclers.space — an open, validated catalogue of planetary cycler trajectories.">
-  <h1>cyclers.space</h1>
+  <HeroViz />
 
   <p>
     A public, reproducible catalogue of <strong>planetary cycler trajectories</strong> — Earth-Mars and

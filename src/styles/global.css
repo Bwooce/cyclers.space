@@ -634,6 +634,107 @@ ul.bare li { margin: 0.25rem 0; }
   white-space: pre-line;
 }
 
+/* --- Front-page hero (task #227) ----------------------------------------- */
+.hero { margin: 0 0 1.5rem; }
+.hero-heading { margin: 0 0 0.2rem; }
+.hero-count { margin: 0 0 0.8rem; font-size: 1.05rem; }
+.hero-count strong { font-size: 1.2em; }
+.hero-count a { font-size: 0.85rem; white-space: nowrap; }
+
+.hero-stage { position: relative; }
+.hero-poster { width: 100%; max-width: 1200px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.hero-poster[hidden] { display: none; }
+.hero-poster svg { display: block; width: 100%; height: auto; }
+
+.hero-gallery { width: 100%; max-width: 1200px; }
+.hero-gallery[hidden] { display: none; }
+.hero-gallery-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.hero-gallery-title { font-weight: 600; color: var(--fg); }
+.hero-gallery-counter { color: var(--fg-muted); margin-left: auto; }
+.hero-nav {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  cursor: pointer;
+}
+.hero-nav:hover, .hero-nav:focus-visible { border-color: var(--accent); color: var(--accent); }
+.hero-nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.hero-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg-alt);
+}
+.hero-canvas .hero-gallery-canvas { display: block; width: 100%; height: 100%; }
+.hero-gallery-canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.hero-legend {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+}
+.hero-leg-item { display: flex; align-items: baseline; gap: 0.35rem; max-width: 28rem; }
+.hero-leg-swatch { width: 0.7rem; height: 0.7rem; border-radius: 50%; flex: none; align-self: center; }
+.hero-leg-tier { font-weight: 600; color: var(--fg); }
+.hero-leg-tierbox {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  padding: 0 0.25rem;
+  font-weight: 600;
+  flex: none;
+}
+.hero-leg-badge { color: var(--fg-muted); }
+.hero-leg-fid { color: var(--fg-faint); font-size: 0.92em; }
+
+/* Honesty caption: BELOW the canvas (the 3c79bd9 caption-below binding). */
+.hero-caption {
+  margin: 0.4rem 0 0;
+  max-width: 1200px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  line-height: 1.4;
+  color: var(--fg-muted);
+  white-space: pre-line;
+}
+
+.hero-controls { margin: 0.6rem 0 0; display: flex; gap: 0.5rem; }
+.hero-3d-btn {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  cursor: pointer;
+}
+.hero-3d-btn:hover, .hero-3d-btn:focus-visible { border-color: var(--accent); color: var(--accent); }
+.hero-3d-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hero-3d-btn[disabled] { opacity: 0.6; cursor: progress; }
+.hero-3d-btn[hidden] { display: none; }
+
 /* Motion is user-controlled; under reduced-motion we never auto-loop. The
    island already honours this (no requestAnimationFrame loop on play); this
    block disables any incidental SVG transitions as a belt-and-braces default,
@@ -644,4 +745,7 @@ ul.bare li { margin: 0.25rem 0; }
   /* The 3D view reads matchMedia at init and snaps the camera (no easing, no
      autoplay); this disables any incidental CSS transition on the host too. */
   .orbit-3d, .orbit-3d * { transition: none !important; }
+  /* The hero gallery reads matchMedia at init: no auto-cycle, no camera drift,
+     no marker animation (static curves + manual prev/next only). */
+  .hero-canvas, .hero-canvas * { transition: none !important; }
 }
