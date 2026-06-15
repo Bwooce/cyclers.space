@@ -1,6 +1,17 @@
 ---
-import { fmt, fmtBodies, fmtIdentity, fmtVinfMultiset, isFullyDefined } from "../lib/catalogue";
-import type { CyclerEntry } from "../lib/types";
+import {
+  ORBIT_CLASS_LABEL,
+  effectiveOrbitClass,
+  fmt,
+  fmtBodies,
+  fmtIdentity,
+  fmtVinfMultiset,
+  formatValidityWindow,
+  getEntryById,
+  isFullyDefined,
+  nReturnsValue,
+} from "../lib/catalogue";
+import type { CyclerEntry, OrbitClass } from "../lib/types";
 
 interface Props {
   entries: CyclerEntry[];
@@ -29,13 +40,61 @@ const completeness = (e: CyclerEntry): number => {
   const present = keys.filter((v) => v !== null && v !== undefined).length;
   return keys.length === 0 ? 0 : present / keys.length;
 };
+
+const fmtNReturns = (e: CyclerEntry): string => {
+  const v = nReturnsValue(e);
+  if (v === null) return "—";
+  if (v === "infinite") return "∞";
+  return String(v);
+};
+
+// Sort value for n_returns column: ∞ → +Infinity; missing → -Infinity.
+const sortNReturns = (e: CyclerEntry): number => {
+  const v = nReturnsValue(e);
+  if (v === null) return -Infinity;
+  if (v === "infinite") return Infinity;
+  return v;
+};
+
+// Schema-v5 (2026-06-15): the four-class taxonomy gives epoch-locked rows a
+// validity window. Add the column iff any epoch-locked row is present so the
+// cyclers-only catalogue (during the migration window) keeps its compact shape.
+const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
 ---
 <div class="filter-bar" id="filter-bar">
   <div class="group" role="group" aria-label="Filter by encounter body">
-    <span>Filter:</span>
+    <span>Bodies:</span>
     <label><input type="checkbox" class="planet-filter" value="V" checked /> Venus</label>
     <label><input type="checkbox" class="planet-filter" value="E" checked /> Earth</label>
     <label><input type="checkbox" class="planet-filter" value="M" checked /> Mars</label>
+  </div>
+  <div class="group" role="group" aria-label="Filter by orbit class">
+    <label for="class-filter">Class:</label>
+    <select id="class-filter" class="class-filter">
+      <option value="all">All</option>
+      <option value="cycler">Cyclers</option>
+      <option value="quasi_cycler">Quasi-cyclers</option>
+      <option value="precursor_mga">Precursors</option>
+      <option value="mga_tour">Tours</option>
+    </select>
+  </div>
+  <div class="group" role="group" aria-label="Filter by validity window">
+    <label for="window-filter">Window:</label>
+    <select id="window-filter" class="window-filter" aria-describedby="window-filter-hint">
+      <option value="all">All</option>
+      <option value="open-now">Open now</option>
+      <option value="future">Future</option>
+      <option value="past">Past</option>
+    </select>
+    <span id="window-filter-hint" class="muted" style="font-size:0.75rem;">
+      epoch-locked only
+    </span>
+  </div>
+  <div class="group" role="group" aria-label="Filter by n returns">
+    <label for="nreturns-min">n_returns:</label>
+    <input type="number" id="nreturns-min" class="nreturns-min" min="0" step="1" placeholder="min" inputmode="numeric" />
+    <span class="muted">–</span>
+    <input type="number" id="nreturns-max" class="nreturns-max" min="0" step="1" placeholder="max" inputmode="numeric" />
   </div>
   <span class="count" id="filter-count" aria-live="polite">{entries.length} entries</span>
   <span class="count" title="Orbits with all core fields present and no tracked known-unknowns">
@@ -48,11 +107,16 @@ const completeness = (e: CyclerEntry): number => {
     <thead>
       <tr>
         <th data-sort="name" scope="col">Name</th>
+        <th data-sort="orbit_class" scope="col">Class</th>
         <th data-sort="bodies" scope="col">Bodies</th>
-        <th data-sort="class" scope="col">Class</th>
+        <th data-sort="class" scope="col">Struct</th>
         <th data-sort="period" scope="col" aria-sort="ascending">Period (yr)</th>
         <th data-sort="identity" scope="col">Identity</th>
         <th data-sort="vinf" scope="col">V∞ (km/s)</th>
+        <th data-sort="nreturns" scope="col">Returns</th>
+        {hasEpochLocked && (
+          <th data-sort="validity" scope="col">Validity</th>
+        )}
         <th data-sort="completeness" scope="col">Data</th>
         <th data-sort="defined" scope="col">Defined</th>
         <th data-sort="validation" scope="col">Validation</th>
@@ -69,12 +133,25 @@ const completeness = (e: CyclerEntry): number => {
           const defined = isFullyDefined(e);
           const cls = e.cycler_class ?? "single-ellipse";
           const clsShort = cls === "single-ellipse" ? "SE" : cls === "multi-arc" ? "MA" : "NK";
+          const orbitClass: OrbitClass = effectiveOrbitClass(e);
+          const orbitClassLabel = ORBIT_CLASS_LABEL[orbitClass];
           const identity = fmtIdentity(e);
+          const validityStr = formatValidityWindow(e.validity_window);
+          const insertsInto = e.inserts_into ?? null;
+          const insertsTarget = insertsInto ? getEntryById(insertsInto) : null;
+          const launchEpoch = e.launch_epoch ?? null;
+          // Sort-value for the validity column: start date (lex order) when present,
+          // empty string otherwise (sorts to the bottom of asc).
+          const validitySort = e.validity_window?.start ?? "";
           return (
             <tr
               data-bodies={e.bodies.join(",")}
               data-name={e.name}
               data-class={cls}
+              data-orbit-class={orbitClass}
+              data-validity-start={e.validity_window?.start ?? ""}
+              data-validity-end={e.validity_window?.end ?? ""}
+              data-nreturns={sortNReturns(e)}
               data-period={e.period.years}
               data-identity={identity}
               data-vinf={Math.max(
@@ -83,17 +160,52 @@ const completeness = (e: CyclerEntry): number => {
                   .filter((x): x is number => x !== null),
                 0,
               )}
+              data-validity={validitySort}
               data-completeness={completePct}
               data-defined={defined ? 1 : 0}
               data-validation={e.validation_level ?? "V0"}
               data-citation={`${cite.authors[0] ?? "?"} ${cite.year}`}
             >
               <td><a href={`/cycler/${e.id}/`}>{e.name}</a></td>
+              <td>
+                <span
+                  class={`orbit-class-badge oc-${orbitClass}`}
+                  title={orbitClassLabel}
+                >
+                  {orbitClassLabel}
+                </span>
+              </td>
               <td>{fmtBodies(e.bodies)}</td>
               <td><span class={`cls-badge cls-${cls.replace("-", "")}`} title={cls}>{clsShort}</span></td>
               <td class="right">{fmt(e.period.years, 2)}</td>
               <td class="identity">{identity}</td>
               <td>{fmtVinfMultiset(e.vinf_kms_at_encounters)}</td>
+              <td class="right">{fmtNReturns(e)}</td>
+              {hasEpochLocked && (
+                <td class="validity-col">
+                  {validityStr ? (
+                    <span
+                      class="validity-window"
+                      title={launchEpoch ? `Launch epoch: ${launchEpoch}` : undefined}
+                    >
+                      {validityStr}
+                    </span>
+                  ) : (
+                    <span class="muted">—</span>
+                  )}
+                  {insertsInto && (
+                    <div class="muted" style="font-size:0.75rem;">
+                      inserts into
+                      {" "}
+                      {insertsTarget ? (
+                        <a href={`/cycler/${insertsInto}/`}>{insertsTarget.name}</a>
+                      ) : (
+                        <code>{insertsInto}</code>
+                      )}
+                    </div>
+                  )}
+                </td>
+              )}
               <td class="right">{completePct}%</td>
               <td>{defined ? "yes" : <span class="muted">no</span>}</td>
               <td><span class="vlevel">{e.validation_level ?? "V0"}</span></td>
@@ -118,14 +230,18 @@ const completeness = (e: CyclerEntry): number => {
 </div>
 
 <script>
-  // Planet filter + sort island. Vanilla TS — no framework.
+  // Planet filter + class filter + window filter + n_returns range + sort island.
+  // Vanilla TS — no framework.
   type SortKey =
     | "name"
+    | "orbit_class"
     | "bodies"
     | "class"
     | "period"
     | "identity"
     | "vinf"
+    | "nreturns"
+    | "validity"
     | "completeness"
     | "defined"
     | "validation"
@@ -134,6 +250,27 @@ const completeness = (e: CyclerEntry): number => {
   const table = document.getElementById("catalogue-table") as HTMLTableElement | null;
   const countEl = document.getElementById("filter-count");
   const filterInputs = document.querySelectorAll<HTMLInputElement>(".planet-filter");
+  const classSelect = document.getElementById("class-filter") as HTMLSelectElement | null;
+  const windowSelect = document.getElementById("window-filter") as HTMLSelectElement | null;
+  const nMinInput = document.getElementById("nreturns-min") as HTMLInputElement | null;
+  const nMaxInput = document.getElementById("nreturns-max") as HTMLInputElement | null;
+
+  // The "Window" and "n_returns" filters are meaningful only when the class is
+  // not Cyclers (strict cyclers have no window and infinite returns). When the
+  // user selects Class=Cyclers we grey them out + zero them, but the filter
+  // state remains "all" so a switch back to All restores prior intent.
+  const setEpochOnlyFiltersEnabled = (enabled: boolean) => {
+    for (const el of [windowSelect, nMinInput, nMaxInput] as Array<HTMLElement | null>) {
+      if (!el) continue;
+      if (enabled) {
+        el.removeAttribute("disabled");
+        el.classList.remove("disabled");
+      } else {
+        el.setAttribute("disabled", "disabled");
+        el.classList.add("disabled");
+      }
+    }
+  };
 
   if (!table) {
     // Hostile environment — bail.
@@ -143,6 +280,16 @@ const completeness = (e: CyclerEntry): number => {
       // No rows; nothing to do.
     } else {
       const allRows = Array.from(tbody.rows);
+      // Today as ISO date for the window classifier; matches the schema (ISO-8601
+      // lexicographic sort works).
+      const todayIso = new Date().toISOString().slice(0, 10);
+
+      const classifyWindow = (start: string, end: string): "open-now" | "past" | "future" | "unknown" => {
+        if (!start || !end) return "unknown";
+        if (todayIso < start) return "future";
+        if (todayIso > end) return "past";
+        return "open-now";
+      };
 
       const applyFilter = () => {
         const checked = new Set(
@@ -150,12 +297,67 @@ const completeness = (e: CyclerEntry): number => {
             .filter((i) => i.checked)
             .map((i) => i.value),
         );
+        const classFilter = classSelect?.value ?? "all";
+        const windowFilter = (windowSelect?.value ?? "all") as
+          | "all"
+          | "open-now"
+          | "past"
+          | "future";
+        const minStr = nMinInput?.value.trim() ?? "";
+        const maxStr = nMaxInput?.value.trim() ?? "";
+        const min = minStr === "" ? null : parseInt(minStr, 10);
+        const max = maxStr === "" ? null : parseInt(maxStr, 10);
+
+        // Grey out window+n_returns when the user has fixed Class=Cyclers.
+        setEpochOnlyFiltersEnabled(classFilter !== "cycler");
+
         let visible = 0;
         for (const row of allRows) {
           const bodies = (row.dataset.bodies ?? "").split(",").filter(Boolean);
           // Show the row iff every body it encounters is in the checked set.
           // (If you uncheck Mars, you want to see cyclers that don't touch Mars.)
-          const ok = bodies.length > 0 && bodies.every((b) => checked.has(b));
+          const bodiesOk = bodies.length > 0 && bodies.every((b) => checked.has(b));
+
+          const orbitClass = row.dataset.orbitClass ?? "cycler";
+          const classOk = classFilter === "all" || orbitClass === classFilter;
+
+          // Window filter only applies to epoch-locked rows; Cyclers fail any
+          // non-"all" window filter by design (they have no window). When the
+          // user selects Class=Cyclers we've already disabled the input, so its
+          // value stays as last set; honour it anyway for correctness.
+          let windowOk = true;
+          if (windowFilter !== "all") {
+            if (orbitClass === "cycler") {
+              windowOk = false;
+            } else {
+              const w = classifyWindow(
+                row.dataset.validityStart ?? "",
+                row.dataset.validityEnd ?? "",
+              );
+              windowOk = w === windowFilter;
+            }
+          }
+
+          // n_returns range. data-nreturns is +Infinity for cyclers,
+          // -Infinity for unknown; the comparison logic handles both.
+          let returnsOk = true;
+          if (min !== null || max !== null) {
+            const v = parseFloat(row.dataset.nreturns ?? "");
+            if (!Number.isFinite(v)) {
+              // -Infinity / NaN → unknown count; fail any explicit bound.
+              if (v === -Infinity || Number.isNaN(v)) {
+                returnsOk = false;
+              } else if (v === Infinity) {
+                // ∞ ≥ any min; ∞ ≤ no finite max.
+                returnsOk = max === null;
+              }
+            } else {
+              if (min !== null && v < min) returnsOk = false;
+              if (max !== null && v > max) returnsOk = false;
+            }
+          }
+
+          const ok = bodiesOk && classOk && windowOk && returnsOk;
           row.classList.toggle("hidden", !ok);
           if (ok) visible++;
         }
@@ -163,15 +365,19 @@ const completeness = (e: CyclerEntry): number => {
       };
 
       for (const input of filterInputs) input.addEventListener("change", applyFilter);
+      classSelect?.addEventListener("change", applyFilter);
+      windowSelect?.addEventListener("change", applyFilter);
+      nMinInput?.addEventListener("input", applyFilter);
+      nMaxInput?.addEventListener("input", applyFilter);
 
       // Sort handling
       const headers = table.querySelectorAll<HTMLTableCellElement>("thead th[data-sort]");
       let currentSort: { key: SortKey; dir: "asc" | "desc" } = { key: "period", dir: "asc" };
 
       const sortValue = (row: HTMLTableRowElement, key: SortKey): string | number => {
-        const raw = row.dataset[key] ?? "";
+        const raw = row.dataset[key === "orbit_class" ? "orbitClass" : key] ?? "";
         // Numeric columns
-        if (["period", "vinf", "completeness", "defined"].includes(key)) {
+        if (["period", "vinf", "nreturns", "completeness", "defined"].includes(key)) {
           const n = parseFloat(raw);
           return Number.isFinite(n) ? n : -Infinity;
         }
