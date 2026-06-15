@@ -95,6 +95,33 @@ What it does:
 
 Manual trigger: Actions → Refresh windows → Run workflow.
 
+## Catalogue taxonomy (schema v5, 2026-06-15)
+
+The catalogue's scope expanded from "strict cyclers only" to a four-class
+taxonomy. Each row carries an `orbit_class` field; rows that pre-date the
+migration default to `cycler` (the original scope).
+
+| Class             | Type case                              | Epoch-locked? | Returns  |
+| ----------------- | -------------------------------------- | ------------- | -------- |
+| **Cycler**        | Aldrin EM, Russell-Ocampo, Braik-Ross  | no            | infinite |
+| **Quasi-cycler**  | cyclers-of-opportunity (10-15 yr win)  | yes           | 3-15     |
+| **Precursor**     | one-shot MGA chain inserting a cycler  | yes           | 1        |
+| **Tour**          | Galileo VEEGA, Cassini VVEJGA, Tito    | yes           | 1        |
+
+Strict cyclers are still the gold standard. The other three classes are
+admitted because they are *mission-actionable* — the cycler itself needs an
+insertion trajectory, and a VEEGA-style tour is the kind of unique-launch
+opportunity a planner cares about even if it never repeats.
+
+The catalogue table on `/catalogue/` exposes per-row filters for
+**Class** (All / Cyclers / Quasi-cyclers / Precursors / Tours),
+**Window** (Open now / Past / Future), and an **n_returns** numeric range.
+The Window and n_returns filters are meaningful only for the epoch-locked
+classes and are automatically greyed out when Class=Cyclers.
+
+Full spec lives in the upstream cyclers repo at
+[docs/notes/2026-06-16-catalogue-scope-taxonomy.md](https://github.com/Bwooce/cyclers/blob/main/docs/notes/2026-06-16-catalogue-scope-taxonomy.md).
+
 ## Status
 
 Bootstrap (v1):
