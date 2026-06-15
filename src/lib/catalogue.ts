@@ -1,5 +1,5 @@
 import yaml from "js-yaml";
-import type { CyclerEntry, Leg } from "./types";
+import type { CyclerEntry, Leg, OrbitClass, ValidityWindow } from "./types";
 import windowsData from "../data/windows.json";
 // Vite raw-import: at build time the YAML file's contents are inlined as a
 // string into the bundle. This is robust against Astro's prerender file
@@ -19,11 +19,123 @@ export function loadCatalogue(): CyclerEntry[] {
   // spec §16.7.12): it is now back-filled mechanically upstream from recorded
   // test evidence. An absent tag is the explicit V0 internal-consistency floor,
   // so default to V0 when a row carries no validation_level.
-  cache = parsed.map((entry) => ({
-    ...entry,
-    validation_level: entry.validation_level ?? ("V0" as const),
-  }));
+  cache = parsed.map((entry) => {
+    // Schema v5 (2026-06-15): four-class taxonomy. Rows that pre-date the
+    // upstream migration carry no `orbit_class`; they default to "cycler" — the
+    // original scope — and `epoch_locked` follows from the class. The site
+    // continues to work unchanged while the schema-migration PR is in flight.
+    const orbit_class: OrbitClass = entry.orbit_class ?? "cycler";
+    const epoch_locked = entry.epoch_locked ?? orbit_class !== "cycler";
+    const n_returns =
+      entry.n_returns ?? (orbit_class === "cycler" ? ("infinite" as const) : entry.n_returns);
+    return {
+      ...entry,
+      validation_level: entry.validation_level ?? ("V0" as const),
+      orbit_class,
+      epoch_locked,
+      n_returns,
+    };
+  });
   return cache;
+}
+
+/**
+ * Read the orbit class, applying the schema-v5 default. Use this rather than
+ * `entry.orbit_class` directly so call sites stay consistent during the upstream
+ * migration window when many rows still carry no explicit class.
+ */
+export function effectiveOrbitClass(entry: CyclerEntry): OrbitClass {
+  return entry.orbit_class ?? "cycler";
+}
+
+/** Human-readable label for each of the four orbit classes. */
+export const ORBIT_CLASS_LABEL: Record<OrbitClass, string> = {
+  cycler: "Cycler",
+  quasi_cycler: "Quasi-cycler",
+  precursor_mga: "Precursor",
+  mga_tour: "Tour",
+};
+
+/** Long-form label used in tooltips and the detail page. */
+export const ORBIT_CLASS_LONG_LABEL: Record<OrbitClass, string> = {
+  cycler: "strict cycler (infinite returns)",
+  quasi_cycler: "quasi-cycler (epoch-locked, finite returns)",
+  precursor_mga: "precursor MGA (one-shot insertion into a cycler)",
+  mga_tour: "MGA tour (one-shot terminal arrival)",
+};
+
+/**
+ * Format a validity window for the catalogue table — compact `YYYY-MM-DD →
+ * YYYY-MM-DD`. Returns null when the input is missing so callers can omit the
+ * cell content rather than rendering "—".
+ */
+export function formatValidityWindow(w: ValidityWindow | null | undefined): string | null {
+  if (!w || !w.start || !w.end) return null;
+  return `${w.start.slice(0, 10)} → ${w.end.slice(0, 10)}`;
+}
+
+/**
+ * Schema-v5 epoch-window filter: classify a validity window relative to `now`.
+ * `open-now` means now is between start and end (inclusive); `past` means end is
+ * before now; `future` means start is after now. Rows without a window match
+ * the `all` filter only — they fall out of past/future/open-now buckets.
+ */
+export type EpochWindowFilter = "all" | "open-now" | "past" | "future";
+
+export function classifyValidityWindow(
+  w: ValidityWindow | null | undefined,
+  nowIso: string,
+): "open-now" | "past" | "future" | "unknown" {
+  if (!w || !w.start || !w.end) return "unknown";
+  // ISO strings sort lexicographically when zero-padded — true for ISO-8601
+  // YYYY-MM-DD or full timestamps, which is what the schema requires.
+  if (nowIso < w.start) return "future";
+  if (nowIso > w.end) return "past";
+  return "open-now";
+}
+
+export function inEpochWindow(
+  entry: CyclerEntry,
+  filter: EpochWindowFilter,
+  nowIso: string,
+): boolean {
+  if (filter === "all") return true;
+  // Cyclers have no window — they pass `all` only.
+  if (effectiveOrbitClass(entry) === "cycler") return false;
+  const cls = classifyValidityWindow(entry.validity_window, nowIso);
+  if (cls === "unknown") return false;
+  return cls === filter;
+}
+
+/**
+ * Schema-v5 n_returns filter. "infinite" passes any min, fails any explicit
+ * max. Absent values fail both bounds (be honest about missing data). Cyclers
+ * are infinite by definition and pass `all` only — set min/max to null to
+ * disable the filter.
+ */
+export function nReturnsValue(entry: CyclerEntry): number | "infinite" | null {
+  const v = entry.n_returns;
+  if (v === undefined || v === null) {
+    return effectiveOrbitClass(entry) === "cycler" ? "infinite" : null;
+  }
+  return v;
+}
+
+export function inNReturnsRange(
+  entry: CyclerEntry,
+  min: number | null,
+  max: number | null,
+): boolean {
+  if (min === null && max === null) return true;
+  const v = nReturnsValue(entry);
+  if (v === null) return false;
+  if (v === "infinite") {
+    // Infinite ≥ any min, infinite ≤ no finite max.
+    return max === null;
+  }
+  if (min !== null && v < min) return false;
+  if (max !== null && v > max) return false;
+  return true;
 }
 
 export function getEntryById(id: string): CyclerEntry | undefined {

@@ -1,6 +1,19 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { loadCatalogue, fmt, fmtBodies, legsOf, isFullyDefined, resolveLinks } from "../../lib/catalogue";
+import {
+  ORBIT_CLASS_LABEL,
+  ORBIT_CLASS_LONG_LABEL,
+  effectiveOrbitClass,
+  fmt,
+  fmtBodies,
+  formatValidityWindow,
+  getEntryById,
+  isFullyDefined,
+  legsOf,
+  loadCatalogue,
+  nReturnsValue,
+  resolveLinks,
+} from "../../lib/catalogue";
 import { errataForRow } from "../../lib/errata";
 import OrbitView from "../../components/OrbitView.astro";
 import type { CyclerEntry, Citation } from "../../lib/types";
@@ -58,6 +71,18 @@ const supersedes = resolveLinks(entry.supersedes);
 
 // Schema v4.1 (spec §16.7.7): Russell free-return arc descriptors.
 const freeReturnArcs = entry.free_return_arcs ?? [];
+
+// Schema v5 (2026-06-15): four-class taxonomy surface — orbit_class, validity
+// window, n_returns, inserts_into link. Defaults applied in loadCatalogue() so
+// cycler-class rows render the same as before the migration.
+const orbitClass = effectiveOrbitClass(entry);
+const orbitClassLabel = ORBIT_CLASS_LABEL[orbitClass];
+const orbitClassLong = ORBIT_CLASS_LONG_LABEL[orbitClass];
+const validityStr = formatValidityWindow(entry.validity_window);
+const nReturns = nReturnsValue(entry);
+const insertsInto = entry.inserts_into ?? null;
+const insertsTarget = insertsInto ? getEntryById(insertsInto) : null;
+const launchEpoch = entry.launch_epoch ?? null;
 
 // Schema v4.4 (spec §16.7.11): per-field provenance tags. Absent ⇒ omitted.
 const provenanceTags: { label: string; value: string; mono?: boolean }[] = [];
@@ -135,12 +160,48 @@ const formatCite = (c: Citation): string => {
     </dd>
     <dt>Sequence (canonical)</dt><dd><code>{entry.sequence_canonical}</code></dd>
     <dt>Sense</dt><dd>{entry.sense}</dd>
+    <dt>Orbit class</dt>
+    <dd>
+      <span class={`orbit-class-badge oc-${orbitClass}`}>{orbitClassLabel}</span>
+      <div class="muted" style="font-size:0.85em">{orbitClassLong}</div>
+    </dd>
     <dt>Cycler class</dt>
     <dd>
       <span class={`cls-badge cls-${(entry.cycler_class ?? "single-ellipse").replace("-", "")}`}>
         {CLS_LABEL[entry.cycler_class ?? "single-ellipse"] ?? (entry.cycler_class ?? "single-ellipse")}
       </span>
     </dd>
+    {orbitClass !== "cycler" && (
+      <>
+        <dt>Returns</dt>
+        <dd>
+          {nReturns === "infinite" ? "∞" : nReturns === null ? <span class="muted">— (not published)</span> : nReturns}
+          <span class="muted"> — finite for epoch-locked classes</span>
+        </dd>
+        <dt>Validity window</dt>
+        <dd>
+          {validityStr ?? <span class="muted">— (not published)</span>}
+        </dd>
+        {launchEpoch && (
+          <>
+            <dt>Launch epoch</dt>
+            <dd>{launchEpoch}</dd>
+          </>
+        )}
+        {insertsInto && (
+          <>
+            <dt>Inserts into</dt>
+            <dd>
+              {insertsTarget ? (
+                <a href={`/cycler/${insertsInto}/`}>{insertsTarget.name}</a>
+              ) : (
+                <span><code>{insertsInto}</code> <span class="muted">(unresolved — V0 check fails)</span></span>
+              )}
+            </dd>
+          </>
+        )}
+      </>
+    )}
     <dt>Trajectory regime</dt>
     <dd>
       {entry.trajectory_regime ?? "ballistic"}

@@ -44,6 +44,30 @@ export interface VinfEncounter {
 // Schema v4 (2026-06-03): cycler structural class, invariants, and CR3BP identity.
 export type CyclerClass = "single-ellipse" | "multi-arc" | "non-keplerian";
 
+// Schema v5 (2026-06-15): catalogue scope expanded from cyclers-only to a four-
+// class taxonomy (see project_catalogue_scope_expanded_2026-06-15). `orbit_class`
+// is additive-optional; rows without it default to "cycler" for backward compat
+// during the upstream migration window (loadCatalogue applies the default).
+//
+// The classes:
+//   - cycler        : strictly periodic, NOT epoch-locked, infinite returns
+//                     (Aldrin, Russell-Ocampo, Braik-Ross — the gold standard).
+//   - quasi_cycler  : closes-up-to-rotation INSIDE an epoch-locked 10-15 yr window;
+//                     finite returns (3-15). "Cyclers-of-opportunity."
+//   - precursor_mga : non-repeating one-shot MGA chain that inserts a spacecraft
+//                     into an extant cycler. Single insertion. `inserts_into`
+//                     points at the cycler row it feeds.
+//   - mga_tour      : non-repeating MGA tour with a terminal arrival
+//                     (Galileo VEEGA, Cassini VVEJGA, Tito 2018).
+export type OrbitClass = "cycler" | "quasi_cycler" | "precursor_mga" | "mga_tour";
+
+// Schema v5 validity window — when the trajectory is reachable for the epoch-
+// locked classes (quasi_cycler / precursor_mga / mga_tour). ISO-8601 dates.
+export interface ValidityWindow {
+  start: string;
+  end: string;
+}
+
 // Cycle-level identity descriptors for multi-arc cyclers (spec §16.7.4).
 export interface Invariants {
   aphelion_ratio: number | null;
@@ -197,6 +221,27 @@ export interface CyclerEntry {
   model_assumption?: ModelAssumption;
   // Schema v4 (2026-06-03). Defaults: cycler_class "single-ellipse".
   cycler_class?: CyclerClass;
+  // Schema v5 (2026-06-15): four-class taxonomy. Defaults to "cycler" via
+  // loadCatalogue() for any row that pre-dates the upstream migration. Rows
+  // produced after the migration MUST set this explicitly. See OrbitClass docs.
+  orbit_class?: OrbitClass;
+  // Always false for `cycler`; always true for the other three. Defaulted in
+  // loadCatalogue() to mirror orbit_class (cycler ⇒ false).
+  epoch_locked?: boolean;
+  // Integer count of returns, or "infinite" for the strict cycler class. Absent
+  // ⇒ "infinite" when orbit_class resolves to "cycler". For the epoch-locked
+  // classes a finite integer is expected (1 for one-shot precursor/tour rows).
+  n_returns?: number | "infinite";
+  // When the trajectory is reachable. Only meaningful for epoch-locked classes;
+  // absent for `cycler` rows (a strict cycler has no validity window — it
+  // repeats forever once established).
+  validity_window?: ValidityWindow | null;
+  // Specific launch date for `mga_tour` / `precursor_mga` rows. ISO-8601.
+  launch_epoch?: string | null;
+  // For `precursor_mga` rows: the catalogue id of the `cycler` row this MGA
+  // chain inserts a spacecraft into. The V0 check requires this id to resolve
+  // to an extant cycler row.
+  inserts_into?: string | null;
   // Cycle-level identity for multi-arc entries (spec §16.7.4).
   invariants?: Invariants | null;
   // Schema v4.1 (spec §16.7.7): Russell free-return arc descriptors.
