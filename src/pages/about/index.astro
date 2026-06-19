@@ -50,6 +50,103 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
     </tbody>
   </table>
 
+  <h2 id="search-methodology">How we search</h2>
+  <p>
+    The companion <a href="https://github.com/Bwooce/cyclers">cyclers</a> project runs
+    a multi-stage automated pipeline — the <em>Forge</em> — to find, score, and
+    verify candidate trajectories. Every candidate that makes it into the catalogue has
+    passed the <a href="#validation-levels">V0–V5 gauntlet</a> described above; the
+    pipeline is designed to reproduce published results before trusting its own
+    discoveries, and a clean negative (no cycler found in a region) is treated as a
+    valid, reportable result.
+  </p>
+
+  <h3>Orbit generation (the "genome" correctors)</h3>
+  <p>
+    The pipeline maintains a family of numerical correctors that each know how to
+    close a particular class of orbit:
+  </p>
+  <ul>
+    <li><strong>Planar and 3-D periodic-orbit differential correctors</strong> — the
+      standard multiple-shooting monodromy-based correctors used in CR3BP families.</li>
+    <li><strong>BCR4BP genome</strong> — extends the search into the bicircular
+      restricted four-body problem (Sun–Earth–Moon) for orbits that live in the
+      coupled three-body regime.</li>
+    <li><strong>Quasi-periodic 2-torus (GMOS) genome</strong> — targets invariant 2-tori
+      around the libration-point periodic orbits, admitting trajectories that are
+      bounded but not strictly periodic.</li>
+    <li><strong>Tulip-orbit genome</strong> — period-multiplying and family-switching
+      corrector for trajectories that visit more than one unstable orbit before
+      returning, analogous to the "petal" families seen in rotating-frame plots.</li>
+    <li><strong>Asymmetric-branch corrector</strong> — handles orbits that break the
+      Jacobi-symmetry of the standard formulation, needed for certain Venus–Earth–Mars
+      configurations.</li>
+    <li><strong>Heteroclinic-cycle corrector</strong> — finds closed chains of
+      invariant-manifold connections between two or more unstable periodic orbits
+      (a "periodic-up-to-rotation" closure). This corrector was validated against
+      the computer-assisted proof of Wilczak &amp; Zgliczyński for the
+      Sun–Jupiter–Oterma system.</li>
+  </ul>
+
+  <h3>Candidate ranking (the accessibility scorer stack)</h3>
+  <p>
+    Before spending computation on full correction, candidates are ranked by a
+    multi-layer scorer that estimates the cost of reaching one orbit from another:
+  </p>
+  <ul>
+    <li><strong>Neural reachability prefilter</strong> — a fast learned classifier
+      that screens out geometrically unreachable pairings before any deterministic
+      solver is invoked.</li>
+    <li><strong>Energy-preserving and impulsive reachable-set scorers</strong> — analytic
+      bounds on Δ<em>V</em> based on Jacobi-constant level sets and impulsive
+      maneuver geometry.</li>
+    <li><strong>Resonant-manifold heteroclinic scorer</strong> — measures how closely
+      the unstable manifold of the departure orbit approaches the stable manifold of
+      the target, using resonant-passage intersections in phase space.</li>
+    <li><strong>FTLE (chaos-field) scorer</strong> — uses finite-time Lyapunov exponent
+      maps of the transfer region to flag chaotic corridors that are likely to yield
+      low-cost connections.</li>
+    <li><strong>Lobe-overlap graph scorer</strong> — applies lobe-dynamics accounting
+      to estimate the phase-space volume exchanged between the two orbit families per
+      synodic period.</li>
+  </ul>
+
+  <h3>Ephemeris grounding</h3>
+  <p>
+    For mission-heritage entries, the pipeline extracts V∞ directly from NASA SPICE /
+    JPL Horizons ephemerides at the documented flyby epochs. Flown trajectories
+    checked this way include Voyager&nbsp;1&nbsp;&amp;&nbsp;2, Pioneer&nbsp;10&nbsp;&amp;&nbsp;11,
+    Galileo (VEEGA), Cassini (VVEJGA), Juno, Mariner&nbsp;10, and BepiColombo.
+    Matching a new candidate's V∞ sequence against these benchmarks is one of the
+    first things the pipeline does when a literature entry is loaded.
+  </p>
+
+  <h3>Work in progress</h3>
+  <p>
+    Several search campaigns are actively running or planned:
+  </p>
+  <ul>
+    <li><strong>Cross-system cycler search (in progress).</strong> We are building a
+      search that chains Sun–Earth libration-point manifolds with Earth–Moon
+      manifolds ("patched CR3BP", in the spirit of the "Shoot the Moon" low-energy
+      transfer literature) to look for a trajectory that closes periodically across
+      both regimes. No published closed cross-system cycler exists; this is a
+      genuinely open question, and a clean negative is a valid outcome.</li>
+    <li><strong>Earth–Mars multi-arc closer (planned).</strong> A dedicated multi-arc
+      trajectory closer that joins patched-conic legs at a Mars gravity-assist to
+      validate the Aldrin and S<em>n</em>L<em>m</em> families at higher fidelity.</li>
+    <li><strong>BCR4BP refinement and petal-plot visualisation (planned).</strong>
+      Candidate cross-system cycles will be lifted into the BCR4BP for higher-fidelity
+      continuation, and rotating-frame rosette ("petal") plots will be added to
+      catalogue entries where the corrector converges.</li>
+  </ul>
+  <p>
+    The literature-novelty check (spec §16.5) is a hard gate: no trajectory is
+    labelled novel until it has been searched against the published record and found
+    absent. Reproduced known trajectories are tagged <code>known-reproduction</code>;
+    the original authors keep the credit.
+  </p>
+
   <h2>Attribution policy</h2>
   <p>
     For every entry, attribution goes to the <strong>earliest published source</strong>. Later
