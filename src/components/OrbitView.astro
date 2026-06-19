@@ -149,11 +149,10 @@ function craftTimeAtTrueAnomaly(el: KeplerElements, nu: number): number {
 }
 const encounterTimes: number[] = [];
 if (clockRegime === "idealized-phase" && craftElems && oe.a_au != null && oe.e != null) {
-  const geomMarks = idealEncounters(oe.a_au, oe.e, bodies);
+  const geomMarks = idealEncounters(oe.a_au, oe.e, orient, bodies);
   for (const m of geomMarks) {
     if (!planetElems[m.body]) continue;
-    const nu = Math.atan2(m.pos.y, m.pos.x);
-    const tEnc = craftTimeAtTrueAnomaly(craftElems, nu);
+    const tEnc = craftTimeAtTrueAnomaly(craftElems, m.nu);
     encounterTimes.push(tEnc);
     planetElems[m.body] = rephaseToEncounter(planetElems[m.body]!, { x: m.pos.x, y: m.pos.y, z: 0 }, tEnc);
   }

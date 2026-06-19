@@ -64,6 +64,8 @@ export type CurvePlan =
       aAu: number;
       e: number;
       inclinationDeg: number;
+      lanDeg: number;
+      argpDeg: number;
       fidelity: string;
     }
   | { kind: "aphelion-ring"; radiusAu: number; fidelity: string }
@@ -108,12 +110,17 @@ export function curvePlanFor(entry: CyclerEntry): CurvePlan {
   }
 
   if (cls === "single-ellipse" && oe.a_au != null && oe.e != null) {
+    const hasOrient = oe.raan_deg != null || oe.arg_periapsis_deg != null || (oe.inclination_deg != null && oe.inclination_deg !== 0);
     return {
       kind: "kepler-ellipse",
       aAu: oe.a_au,
       e: oe.e,
       inclinationDeg: oe.inclination_deg ?? 0,
-      fidelity: "sourced (a, e); coplanar-idealized orientation (no Ω/ω published)",
+      lanDeg: oe.raan_deg ?? 0,
+      argpDeg: oe.arg_periapsis_deg ?? 0,
+      fidelity: hasOrient 
+        ? "sourced (a, e); orientation from published angles (i/Ω/ω)" 
+        : "sourced (a, e); coplanar-idealized orientation (no Ω/ω published)",
     };
   }
 
