@@ -108,8 +108,8 @@ function heliocentricScene(entries: CyclerEntry[]): HeroSceneSpec {
             a: plan.aAu,
             e: plan.e,
             i_deg: plan.inclinationDeg,
-            lan_deg: 0,
-            argp_deg: 0,
+            lan_deg: plan.lanDeg,
+            argp_deg: plan.argpDeg,
             M0_deg: 0,
             t_epoch_day: 0,
           },
@@ -153,16 +153,19 @@ function heliocentricScene(entries: CyclerEntry[]): HeroSceneSpec {
   if (ellipseRows.length > 0) {
     const shapes = new Map<string, CyclerEntry[]>();
     for (const e of ellipseRows) {
-      const k = `${e.orbit_elements.a_au}|${e.orbit_elements.e}`;
+      const plan = curvePlanFor(e);
+      if (plan.kind !== "kepler-ellipse") continue;
+      const k = `${plan.aAu}|${plan.e}|${plan.inclinationDeg}|${plan.lanDeg}|${plan.argpDeg}`;
       shapes.set(k, [...(shapes.get(k) ?? []), e]);
     }
     for (const [k, rows] of shapes) {
-      const [a, ecc] = k.split("|");
+      const [a, ecc, inc, lan, argp] = k.split("|");
       const who = rows.map((r) => `${labelOf(r)} (${tierOf(r)})`).join(" + ");
+      const isCoplanar = Number(inc) === 0 && Number(lan) === 0 && Number(argp) === 0;
       captionLines.push(
         rows.length > 1
-          ? `${who}: sourced (a, e) = (${a}, ${ecc}) AU, coplanar-idealized — the rows publish the same shape and no orientation, so their curves coincide.`
-          : `${who}: sourced (a, e) = (${a}, ${ecc}) AU, coplanar-idealized (no Ω/ω published).`,
+          ? `${who}: sourced (a, e) = (${a}, ${ecc}) AU, ${isCoplanar ? "coplanar-idealized" : "with orientation"} — the rows publish the same geometry, so their curves coincide.`
+          : `${who}: sourced (a, e) = (${a}, ${ecc}) AU, ${isCoplanar ? "coplanar-idealized (no Ω/ω published)" : "orientation from published angles (i/Ω/ω)"}.`,
       );
     }
   }

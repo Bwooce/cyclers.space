@@ -148,12 +148,26 @@ export function sampleCircle(radius: number, n = 180): Vec2[] {
 export interface EncounterMark {
   body: string;
   pos: Vec2;
+  nu: number;
 }
 
-export function idealEncounters(a: number, e: number, bodies: string[]): EncounterMark[] {
+export function idealEncounters(
+  a: number,
+  e: number,
+  opts: { inclination_deg?: number | null; raan_deg?: number | null; arg_periapsis_deg?: number | null },
+  bodies: string[]
+): EncounterMark[] {
   const peri = a * (1 - e);
   const apo = a * (1 + e);
   const p = a * (1 - e * e);
+  
+  const i = Number.isFinite(opts.inclination_deg as number) ? (opts.inclination_deg as number) * Math.PI / 180 : 0;
+  const om = Number.isFinite(opts.raan_deg as number) ? (opts.raan_deg as number) * Math.PI / 180 : 0;
+  const w = Number.isFinite(opts.arg_periapsis_deg as number) ? (opts.arg_periapsis_deg as number) * Math.PI / 180 : 0;
+  const cosO = Math.cos(om);
+  const sinO = Math.sin(om);
+  const cosI = Math.cos(i);
+
   const marks: EncounterMark[] = [];
   const seen = new Set<string>();
   for (const b of bodies) {
@@ -169,11 +183,15 @@ export function idealEncounters(a: number, e: number, bodies: string[]): Encount
     const planetCurve = samplePlanetEllipse(b, 180);
     let best: Vec2 = { x: 0, y: 0 };
     let bestD = Infinity;
+    let bestNu = 0;
     for (let k = 0; k < 360; k++) {
       const nu = (TWO_PI * k) / 360;
       const r = p / (1 + e * Math.cos(nu));
-      const cx = r * Math.cos(nu);
-      const cy = r * Math.sin(nu);
+      const u = w + nu;
+      const cosU = Math.cos(u);
+      const sinU = Math.sin(u);
+      const cx = r * (cosO * cosU - sinO * sinU * cosI);
+      const cy = r * (sinO * cosU + cosO * sinU * cosI);
       for (const q of planetCurve) {
         const dx = cx - q.x;
         const dy = cy - q.y;
@@ -181,10 +199,11 @@ export function idealEncounters(a: number, e: number, bodies: string[]): Encount
         if (d < bestD) {
           bestD = d;
           best = { x: cx, y: cy };
+          bestNu = nu;
         }
       }
     }
-    marks.push({ body: b, pos: best });
+    marks.push({ body: b, pos: best, nu: bestNu });
   }
   return marks;
 }
