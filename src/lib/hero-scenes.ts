@@ -67,7 +67,7 @@ const tierOf = (e: CyclerEntry): string => e.validation_level ?? "V0";
 /** Short legend label: CR3BP rows use their family name; others get the row
  *  name clipped at the first parenthetical/em-dash qualifier. */
 function labelOf(e: CyclerEntry): string {
-  const fam = e.orbit_elements.cr3bp?.family;
+  const fam = e.orbit_elements?.cr3bp?.family;
   if ((e.cycler_class ?? "single-ellipse") === "non-keplerian" && fam) return fam;
   const name = e.name;
   const cut = Math.min(

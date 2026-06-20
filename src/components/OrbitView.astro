@@ -59,7 +59,11 @@ const cx = W / 2;
 const cy = H / 2;
 const PAD = 28; // px margin so labels at the rim are not clipped
 
-const oe = entry.orbit_elements;
+// orbit_elements is optional (four-class scope: mga_tour / precursor rows, and
+// Aldrin rows whose (a,e) were retired). Default to an empty object so the many
+// field-level guards below (oe.X ?? …, Number.isFinite(oe.X)) degrade to a blank
+// frame instead of crashing the prerender.
+const oe = entry.orbit_elements ?? ({} as NonNullable<typeof entry.orbit_elements>);
 const bodies = entry.bodies ?? [];
 // Planets to draw as real ellipses: every encountered known planet plus Earth
 // as the universal anchor (Phase 1 drew reference circles; Phase 2 draws the

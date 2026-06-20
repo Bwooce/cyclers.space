@@ -219,8 +219,10 @@ const formatCite = (c: Citation): string => {
     </dd>
     <dt>Period</dt>
     <dd>
-      {fmt(entry.period.years, 3)} yr ({entry.period.k} × {entry.period.pair} synodic)
-      {entry.period.note && <div class="muted">{entry.period.note}</div>}
+      {entry.period
+        ? <>{fmt(entry.period.years, 3)} yr ({entry.period.k} × {entry.period.pair} synodic)
+            {entry.period.note && <div class="muted">{entry.period.note}</div>}</>
+        : <span class="muted">not strictly periodic (no published period)</span>}
     </dd>
     {entry.delta_v_kms !== undefined && entry.delta_v_kms !== null && (
       <>
@@ -274,7 +276,7 @@ const formatCite = (c: Citation): string => {
     </dl>
   )}
 
-  {(entry.cycler_class ?? "single-ellipse") === "single-ellipse" && (
+  {(entry.cycler_class ?? "single-ellipse") === "single-ellipse" && entry.orbit_elements && (
     <>
       <h2>Orbit elements (heliocentric)</h2>
       <dl class="cycler">
@@ -284,7 +286,7 @@ const formatCite = (c: Citation): string => {
         <dt>Aphelion</dt><dd>{fmt(entry.orbit_elements.aphelion_au, 3)} AU</dd>
         <dt>Inclination</dt><dd>{fmt(entry.orbit_elements.inclination_deg, 2)}°</dd>
       </dl>
-      {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
+      {entry.orbit_elements?.note && <p class="muted">{entry.orbit_elements?.note}</p>}
     </>
   )}
 
@@ -308,14 +310,14 @@ const formatCite = (c: Citation): string => {
       ) : (
         <p class="muted">No invariants block recorded for this entry.</p>
       )}
-      {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
+      {entry.orbit_elements?.note && <p class="muted">{entry.orbit_elements?.note}</p>}
     </>
   )}
 
   {(entry.cycler_class === "non-keplerian") && (
     <>
       <h2>CR3BP orbit identity</h2>
-      {entry.orbit_elements.cr3bp ? (
+      {entry.orbit_elements?.cr3bp ? (
         <dl class="cycler">
           {entry.orbit_elements.cr3bp.family && (
             <><dt>Family</dt><dd>{entry.orbit_elements.cr3bp.family}</dd></>
@@ -336,7 +338,7 @@ const formatCite = (c: Citation): string => {
       ) : (
         <p class="muted">No CR3BP identity block recorded for this entry.</p>
       )}
-      {entry.orbit_elements.note && <p class="muted">{entry.orbit_elements.note}</p>}
+      {entry.orbit_elements?.note && <p class="muted">{entry.orbit_elements?.note}</p>}
     </>
   )}
 
