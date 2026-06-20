@@ -759,6 +759,27 @@ ul.bare li { margin: 0.25rem 0; }
 }
 .hero-leg-badge { color: var(--fg-muted); }
 .hero-leg-fid { color: var(--fg-faint); font-size: 0.92em; }
+/* #410: curve legend rows are click-through links to /cycler/{id}; the inner
+   flex matches the old .hero-leg-item layout, and hover (pointer OR synced from
+   the 3D canvas via .is-hover) highlights the row. */
+.hero-leg-link {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  flex: 1 1 auto;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 3px;
+  padding: 0.05rem 0.25rem;
+  margin: -0.05rem -0.25rem;
+  transition: background-color 0.12s ease;
+}
+.hero-leg-link:hover,
+.hero-leg-link.is-hover {
+  background: rgba(127, 168, 224, 0.18);
+  text-decoration: none;
+}
+.hero-leg-link:focus-visible { outline: 2px solid rgba(127, 168, 224, 0.9); outline-offset: 1px; }
 
 /* Honesty caption: BELOW the canvas (the 3c79bd9 caption-below binding). */
 .hero-caption {

@@ -33,6 +33,7 @@ import type { HeroSceneSpec } from "./hero-scenes";
 import { samplePath, stateAt, type KeplerElements } from "./kepler-time";
 import { propagateCr3bp } from "./cr3bp-propagate";
 import { toThree } from "./three-axis";
+import { cyclerHref, legendBadgeItemHtml, legendCurveItemHtml } from "./hero-legend";
 
 // Tier colours mirror the poster's palette so the two renderers agree.
 const TIER_COLOR: Record<string, number> = {
@@ -54,6 +55,18 @@ function palette(dark: boolean) {
     : { clear: 0xf2f4f8, planet: 0x33567a, sun: 0xcc8800, earth: 0x2a6299, moon: 0x707888, star: 0x999999 };
 }
 
+/** A curve the user can hover/click: its Line, the catalogue row it represents,
+ *  and its material + resting opacity (so hover-highlight can dim the others and
+ *  restore). #410. */
+interface Pickable {
+  line: THREE_NS.Line;
+  id: string;
+  label: string;
+  fidelity: string;
+  mat: THREE_NS.LineBasicMaterial;
+  baseOpacity: number;
+}
+
 /** A built scene: three.js objects + the per-frame updater + the framing extent. */
 interface BuiltScene {
   group: THREE_NS.Group;
@@ -64,6 +77,8 @@ interface BuiltScene {
   /** Longest period (days) across this scene's curves, for the clock span. */
   periodDays: number;
   spec: HeroSceneSpec;
+  /** Hoverable/clickable curves (empty for badge-only scenes). #410. */
+  pickables: Pickable[];
 }
 
 export interface HeroGallery {
@@ -147,6 +162,20 @@ export async function mountHeroGallery(
     return new THREE.Mesh(track(new THREE.SphereGeometry(r, 16, 12)), meshMatFor(color));
   }
 
+  /** Register a curve line as hoverable/clickable (#410). Makes its material
+   *  transparent so hover-highlight can dim the non-hovered curves and restore. */
+  function registerPickable(
+    line: THREE_NS.Line,
+    c: { id: string; label: string; fidelity: string },
+    arr: Pickable[],
+    baseOpacity = 1,
+  ): void {
+    const mat = line.material as THREE_NS.LineBasicMaterial;
+    mat.transparent = true;
+    mat.opacity = baseOpacity;
+    arr.push({ line, id: c.id, label: c.label, fidelity: c.fidelity, mat, baseOpacity });
+  }
+
   /** Heliocentric scene: planet ellipses + Kepler curves + honest aphelion rings. */
   function buildHelio(spec: HeroSceneSpec): BuiltScene {
     const group = new THREE.Group();
@@ -170,11 +199,14 @@ export async function mountHeroGallery(
 
     // Curves: kepler ellipses (true) and aphelion rings (honest scale-only).
     const craftMarkers: { el: KeplerElements; mesh: THREE_NS.Mesh }[] = [];
+    const pickables: Pickable[] = [];
     spec.curves.forEach((c, i) => {
       const color = TIER_COLOR[c.tier] ?? CURVE_COLORS[i % CURVE_COLORS.length]!;
       if (c.geom.kind === "kepler-ellipse") {
         const el = c.geom.el;
-        group.add(lineFromPoints(samplePath(el, 240).map(toThree), color));
+        const line = lineFromPoints(samplePath(el, 240).map(toThree), color);
+        group.add(line);
+        registerPickable(line, c, pickables);
         extent = Math.max(extent, el.a * (1 + el.e));
         maxPeriod = Math.max(maxPeriod, periodOf(el));
         const m = sphere(0.04, color);
@@ -188,9 +220,8 @@ export async function mountHeroGallery(
           pts.push(toThree({ x: r * Math.cos(a), y: r * Math.sin(a), z: 0 }));
         }
         const line = lineFromPoints(pts, color);
-        (line.material as THREE_NS.LineBasicMaterial).transparent = true;
-        (line.material as THREE_NS.LineBasicMaterial).opacity = 0.4;
         group.add(line);
+        registerPickable(line, c, pickables, 0.4); // honest scale-only ring stays faint
         extent = Math.max(extent, r);
       }
     });
@@ -206,7 +237,7 @@ export async function mountHeroGallery(
       }
     };
     setTime(0);
-    return { group, extent, setTime, periodDays: maxPeriod, spec };
+    return { group, extent, setTime, periodDays: maxPeriod, spec, pickables };
   }
 
   /** Earth-Moon scene: rotating-frame PCR3BP propagations + fixed primaries. */
@@ -219,11 +250,14 @@ export async function mountHeroGallery(
     // rotating frame's (x, y) plane maps onto the ecliptic z=0 plane via the
     // same toThree swap so the camera convention is identical.
     const orbits: { pts: { x: number; y: number }[]; times: number[]; periodNd: number; marker: THREE_NS.Mesh; periodDays: number | null }[] = [];
+    const pickables: Pickable[] = [];
     spec.curves.forEach((c, i) => {
       if (c.geom.kind !== "cr3bp") return;
       const color = CURVE_COLORS[i % CURVE_COLORS.length]!;
       const orbit = propagateCr3bp(c.geom.mu, c.geom.stateNd, c.geom.periodNd);
-      group.add(lineFromPoints(orbit.points.map((p) => toThree({ x: p.x, y: p.y, z: 0 })), color));
+      const line = lineFromPoints(orbit.points.map((p) => toThree({ x: p.x, y: p.y, z: 0 })), color);
+      group.add(line);
+      registerPickable(line, c, pickables);
       for (const p of orbit.points) extent = Math.max(extent, Math.hypot(p.x, p.y));
       const m = sphere(0.03, color);
       group.add(m);
@@ -254,7 +288,7 @@ export async function mountHeroGallery(
       }
     };
     setTime(0);
-    return { group, extent, setTime, periodDays: maxPeriod, spec };
+    return { group, extent, setTime, periodDays: maxPeriod, spec, pickables };
   }
 
   /** Badge-only scene (Jovian / other): no curve drawn — handled by the DOM
@@ -263,7 +297,7 @@ export async function mountHeroGallery(
   function buildBadgeOnly(spec: HeroSceneSpec): BuiltScene {
     const group = new THREE.Group();
     group.add(sphere(0.08, col.sun));
-    return { group, extent: 1, setTime: () => {}, periodDays: 0, spec };
+    return { group, extent: 1, setTime: () => {}, periodDays: 0, spec, pickables: [] };
   }
 
   function periodOf(el: KeplerElements): number {
@@ -286,24 +320,26 @@ export async function mountHeroGallery(
   let current = -1;
   let activeGroup: THREE_NS.Group | null = null;
 
+  const hexColor = (tier: string) =>
+    `#${(TIER_COLOR[tier] ?? 0x888888).toString(16).padStart(6, "0")}`;
+
+  // id -> legend <a> element, rebuilt each renderLegend, for hover-highlight sync (#410).
+  const legendItemById = new Map<string, HTMLElement>();
+
   function renderLegend(b: BuiltScene) {
     const parts: string[] = [];
     b.spec.curves.forEach((c) => {
-      const color = `#${(TIER_COLOR[c.tier] ?? 0x888888).toString(16).padStart(6, "0")}`;
-      parts.push(
-        `<li class="hero-leg-item"><span class="hero-leg-swatch" style="background:${color}"></span>` +
-          `<span class="hero-leg-tier">${esc(c.tier)}</span> ${esc(c.label)}` +
-          `<span class="hero-leg-fid">${esc(c.fidelity)}</span></li>`,
-      );
+      parts.push(legendCurveItemHtml(c, hexColor(c.tier)));
     });
     for (const bd of b.spec.badges) {
-      const color = `#${(TIER_COLOR[bd.tier] ?? 0x888888).toString(16).padStart(6, "0")}`;
-      parts.push(
-        `<li class="hero-leg-item hero-leg-badge"><span class="hero-leg-tierbox" style="border-color:${color};color:${color}">${esc(bd.tier)}</span>` +
-          ` ${esc(bd.label)} <span class="hero-leg-fid">${esc(bd.detail)} — no curve drawn</span></li>`,
-      );
+      parts.push(legendBadgeItemHtml(bd, hexColor(bd.tier)));
     }
     ui.legend.innerHTML = parts.join("");
+    legendItemById.clear();
+    ui.legend.querySelectorAll<HTMLElement>(".hero-leg-link").forEach((el) => {
+      const id = el.dataset.curveId;
+      if (id) legendItemById.set(id, el);
+    });
   }
 
   function frameCamera(b: BuiltScene) {
@@ -329,7 +365,70 @@ export async function mountHeroGallery(
     renderLegend(b);
     azimuth = 0;
     b.setTime(0);
+    resetHighlight();
   }
+
+  // --- hover-highlight + click-through (#410) --------------------------------
+  // Pointer-only enhancement: hovering a curve dims the others + syncs its legend
+  // row and the caption; clicking opens /cycler/{id}. The static poster, the DOM
+  // legend links, and keyboard nav remain the accessible floor (this adds nothing
+  // a keyboard user loses — the same links live in the legend below the canvas).
+  const raycaster = new THREE.Raycaster();
+  const pointerNdc = new THREE.Vector2();
+  let hoveredId: string | null = null;
+
+  function resetHighlight(): void {
+    hoveredId = null;
+    const b = built[current];
+    if (b) for (const p of b.pickables) p.mat.opacity = p.baseOpacity;
+    legendItemById.forEach((el) => el.classList.remove("is-hover"));
+    renderer.domElement.style.cursor = "";
+  }
+
+  function setHighlight(id: string | null): void {
+    if (id === hoveredId) return;
+    hoveredId = id;
+    const b = built[current]!;
+    for (const p of b.pickables) {
+      p.mat.opacity = id == null ? p.baseOpacity : p.id === id ? 1 : p.baseOpacity * 0.22;
+    }
+    legendItemById.forEach((el, key) => el.classList.toggle("is-hover", key === id));
+    if (id == null) {
+      ui.caption.textContent = b.spec.captionLines.join("\n");
+    } else {
+      const p = b.pickables.find((q) => q.id === id);
+      if (p) ui.caption.textContent = `${p.label} — ${p.fidelity}\nClick to open this cycler.`;
+    }
+    renderer.domElement.style.cursor = id == null ? "" : "pointer";
+  }
+
+  function pickId(ev: PointerEvent | MouseEvent): string | null {
+    const b = built[current];
+    if (!b || b.pickables.length === 0) return null;
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointerNdc.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+    pointerNdc.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointerNdc, camera);
+    // Line picking needs a world-space threshold scaled to the scene's extent
+    // (curves are 1px lines; default threshold of 1 is far too coarse/fine).
+    raycaster.params.Line = { threshold: b.extent * 0.04 };
+    const hit = raycaster.intersectObjects(
+      b.pickables.map((p) => p.line),
+      false,
+    )[0];
+    if (!hit) return null;
+    return b.pickables.find((p) => p.line === hit.object)?.id ?? null;
+  }
+
+  const onPointerMove = (ev: PointerEvent) => setHighlight(pickId(ev));
+  const onPointerLeave = () => setHighlight(null);
+  const onCanvasClick = (ev: MouseEvent) => {
+    const id = pickId(ev);
+    if (id != null) window.location.href = cyclerHref(id);
+  };
+  renderer.domElement.addEventListener("pointermove", onPointerMove);
+  renderer.domElement.addEventListener("pointerleave", onPointerLeave);
+  renderer.domElement.addEventListener("click", onCanvasClick);
 
   // --- camera orbit + clock loop --------------------------------------------
   let azimuth = 0;
@@ -419,6 +518,9 @@ export async function mountHeroGallery(
     cancelAnimationFrame(raf);
     window.removeEventListener("resize", onResize);
     renderer.domElement.removeEventListener("keydown", onKey);
+    renderer.domElement.removeEventListener("pointermove", onPointerMove);
+    renderer.domElement.removeEventListener("pointerleave", onPointerLeave);
+    renderer.domElement.removeEventListener("click", onCanvasClick);
     ui.prevBtn.removeEventListener("click", onPrev);
     ui.nextBtn.removeEventListener("click", onNext);
     for (const b of built) {
@@ -433,12 +535,4 @@ export async function mountHeroGallery(
   };
 
   return { destroy };
-}
-
-function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
