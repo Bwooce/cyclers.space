@@ -263,9 +263,13 @@ export interface CyclerEntry {
   bodies: Body[];
   sequence_canonical: string;
   sense: "outbound" | "inbound" | "n/a" | string;
-  period: PeriodInfo;
+  // Optional since the four-class scope (schema v5): mga_tour / precursor rows are
+  // not strictly periodic and may omit a period.
+  period?: PeriodInfo;
   vinf_kms_at_encounters: VinfEncounter[];
-  orbit_elements: OrbitElements;
+  // Optional since the four-class scope (schema v5): mga_tour / precursor rows
+  // may omit heliocentric/CR3BP orbit elements.
+  orbit_elements?: OrbitElements;
   // Legacy flat legs[]; optional since schema v3 supersedes it with
   // trajectory.segments. Read both via legsOf() in lib/catalogue.
   legs?: Leg[];

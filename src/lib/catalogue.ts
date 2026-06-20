@@ -259,7 +259,7 @@ export function isFullyDefined(entry: CyclerEntry): boolean {
   const cls = entry.cycler_class ?? "single-ellipse";
 
   if (cls === "non-keplerian") {
-    const cr = entry.orbit_elements.cr3bp;
+    const cr = entry.orbit_elements?.cr3bp;
     if (!cr) return false;
     return (
       cr.jacobi_constant !== null &&
@@ -282,7 +282,7 @@ export function isFullyDefined(entry: CyclerEntry): boolean {
   } else {
     // single-ellipse
     const oe = entry.orbit_elements;
-    coreOk = oe.a_au !== null && oe.a_au !== undefined && oe.e !== null && oe.e !== undefined;
+    coreOk = oe != null && oe.a_au !== null && oe.a_au !== undefined && oe.e !== null && oe.e !== undefined;
   }
   if (!coreOk) return false;
 
@@ -319,8 +319,8 @@ export function fmtBodies(bodies: readonly string[]): string {
 export function fmtIdentity(entry: CyclerEntry): string {
   const cls = entry.cycler_class ?? "single-ellipse";
   if (cls === "single-ellipse") {
-    const a = entry.orbit_elements.a_au;
-    const e = entry.orbit_elements.e;
+    const a = entry.orbit_elements?.a_au;
+    const e = entry.orbit_elements?.e;
     if (a === null || a === undefined || e === null || e === undefined) return "—";
     return `a=${a.toFixed(2)} AU, e=${e.toFixed(3)}`;
   }
@@ -337,7 +337,7 @@ export function fmtIdentity(entry: CyclerEntry): string {
     return parts.length > 0 ? parts.join(", ") : "—";
   }
   // non-keplerian
-  const cr = entry.orbit_elements.cr3bp;
+  const cr = entry.orbit_elements?.cr3bp;
   if (!cr) return "—";
   const parts: string[] = [];
   if (cr.family) parts.push(cr.family);

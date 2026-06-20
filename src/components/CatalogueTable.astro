@@ -25,16 +25,17 @@ const completeness = (e: CyclerEntry): number => {
   // For multi-arc/non-keplerian, a/e are structurally absent — don't penalise.
   const cls = e.cycler_class ?? "single-ellipse";
   const keys: Array<number | null> = [
-    e.period.years,
+    e.period?.years ?? null,
     ...e.vinf_kms_at_encounters.map((v) => v.vinf_kms),
   ];
+  const oe = e.orbit_elements;
   if (cls === "single-ellipse") {
-    keys.push(e.orbit_elements.a_au, e.orbit_elements.e, e.orbit_elements.perihelion_au, e.orbit_elements.aphelion_au);
+    keys.push(oe?.a_au ?? null, oe?.e ?? null, oe?.perihelion_au ?? null, oe?.aphelion_au ?? null);
   } else if (cls === "multi-arc") {
     const inv = e.invariants;
     keys.push(inv?.aphelion_ratio ?? null, inv?.turn_ratio ?? null);
   } else if (cls === "non-keplerian") {
-    const cr = e.orbit_elements.cr3bp;
+    const cr = oe?.cr3bp;
     keys.push(cr?.jacobi_constant ?? null, cr?.period_nd ?? null, cr?.stability_index ?? null);
   }
   const present = keys.filter((v) => v !== null && v !== undefined).length;
@@ -126,7 +127,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
     <tbody>
       {entries
         .slice()
-        .sort((a, b) => a.period.years - b.period.years)
+        .sort((a, b) => (a.period?.years ?? Infinity) - (b.period?.years ?? Infinity))
         .map((e) => {
           const cite = e.first_published;
           const completePct = Math.round(completeness(e) * 100);
@@ -152,7 +153,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
               data-validity-start={e.validity_window?.start ?? ""}
               data-validity-end={e.validity_window?.end ?? ""}
               data-nreturns={sortNReturns(e)}
-              data-period={e.period.years}
+              data-period={e.period?.years ?? ""}
               data-identity={identity}
               data-vinf={Math.max(
                 ...e.vinf_kms_at_encounters
@@ -177,7 +178,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
               </td>
               <td>{fmtBodies(e.bodies)}</td>
               <td><span class={`cls-badge cls-${cls.replace("-", "")}`} title={cls}>{clsShort}</span></td>
-              <td class="right">{fmt(e.period.years, 2)}</td>
+              <td class="right">{e.period ? fmt(e.period.years, 2) : "—"}</td>
               <td class="identity">{identity}</td>
               <td>{fmtVinfMultiset(e.vinf_kms_at_encounters)}</td>
               <td class="right">{fmtNReturns(e)}</td>

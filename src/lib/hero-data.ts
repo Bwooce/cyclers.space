@@ -85,7 +85,9 @@ export type CurvePlan =
  */
 export function curvePlanFor(entry: CyclerEntry): CurvePlan {
   const cls = entry.cycler_class ?? "single-ellipse";
-  const oe = entry.orbit_elements;
+  // orbit_elements optional (four-class scope + retired-Aldrin (a,e)); default to
+  // an empty object so the field guards below fall through to a badge, not a crash.
+  const oe = entry.orbit_elements ?? ({} as NonNullable<typeof entry.orbit_elements>);
 
   if (cls === "non-keplerian") {
     const cr = oe.cr3bp;
