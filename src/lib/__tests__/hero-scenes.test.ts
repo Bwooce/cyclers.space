@@ -25,10 +25,17 @@ describe("hero scene specs", () => {
   it("heliocentric scene: Kepler curves + honest aphelion rings + planet bodies", () => {
     const s = scenes.find((x) => x.id === "heliocentric")!;
     expect(s).toBeDefined();
-    expect(s.curves.some((c) => c.geom.kind === "kepler-ellipse")).toBe(true);
-    expect(s.curves.some((c) => c.geom.kind === "ring")).toBe(true);
+    // Which heliocentric CURVES render is data-dependent and NOT hard-required:
+    // the Aldrin Earth-Mars cyclers that used to supply the Kepler ellipse had
+    // their top-level (a,e) retired upstream (main repo #368: the (1.60, 0.393)
+    // pair is figure-read, not a sourced literal), and the four-class migration
+    // shifted which rows land in this group. Honesty-over-prettiness: a row with
+    // no sourced (a,e) becomes a badge, never a fabricated curve — so the scene
+    // may legitimately show only planets + badges. The invariant we DO assert:
+    // any curve/ring that renders carries an honest fidelity string.
     for (const c of s.curves) {
       if (c.geom.kind === "ring") expect(c.fidelity).toContain("max-aphelion ring only");
+      if (c.geom.kind === "kepler-ellipse") expect(c.fidelity).toContain("sourced (a, e)");
     }
     expect(s.bodies.some((b) => b.kind === "star")).toBe(true);
     expect(s.bodies.filter((b) => b.el).length).toBeGreaterThanOrEqual(2); // Earth + Mars

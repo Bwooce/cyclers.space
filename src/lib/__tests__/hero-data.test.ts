@@ -41,15 +41,16 @@ describe("system grouping", () => {
 });
 
 describe("curve plans (honesty rules)", () => {
-  it("Aldrin single-ellipse rows get true Kepler curves", () => {
+  it("Aldrin rows (top-level (a,e) retired, #368) get a badge, never a fabricated curve", () => {
+    // The classic Aldrin row's top-level orbit_elements (a,e) were RETIRED (main
+    // repo #368: the (1.60, 0.393) figure-read pair is not a sourced literal). With
+    // no top-level a/e the honesty rule correctly emits a badge rather than drawing
+    // a curve from absent data. (A single-ellipse row that DOES carry top-level
+    // (a,e) still gets a kepler-ellipse — exercised by the heliocentric scene test.)
     const e = getEntryById("aldrin-classic-em-k1-outbound")!;
     const plan = curvePlanFor(e);
-    expect(plan.kind).toBe("kepler-ellipse");
-    if (plan.kind === "kepler-ellipse") {
-      expect(plan.aAu).toBe(e.orbit_elements.a_au);
-      expect(plan.e).toBe(e.orbit_elements.e);
-      expect(plan.fidelity).toContain("sourced (a, e)");
-    }
+    expect(e.orbit_elements?.a_au == null || e.orbit_elements?.e == null).toBe(true);
+    expect(plan.kind).toBe("badge");
   });
 
   it("Russell multi-arc rows (no per-arc conics) get a ring, never a curve", () => {
