@@ -40,26 +40,16 @@ describe("CR3BP propagation of the Ross Earth-Moon cycler rows", () => {
     for (const row of rossRows()) {
       const cr = row.orbit_elements.cr3bp!;
       const orbit = propagateCr3bp(cr.mass_ratio!, cr.state_nd!, cr.period_nd!);
-      // Closure at the sourced T. The floor is the catalogue's 10-decimal
-      // state_nd printing, not the integrator: at the default step count the
-      // Jacobi drift sits at <= ~3e-9 while the (2,1)/(3,1) rows' residuals
-      // hold at 1.0e-4 / 4.1e-4 nd (~39 / ~160 km at the Earth-Moon
-      // distance) no matter how many more steps are taken. The braik-ross-c11b
-      // row (added since) closes at ~1.45e-3 nd (~557 km) from its figure-read
-      // state_nd, so 2e-3 nd (~770 km) bounds every row with headroom for that
-      // printing-precision floor (NOT an integrator error — see Jacobi drift below).
-      expect(orbit.closureNd, `${row.id} closure`).toBeLessThan(2e-3);
-      // Integrator honesty: fixed-step RK4 holds the Jacobi constant tightly
-      // (<1e-8) for the smooth Ross rows. braik-ross-c11b is the long-period
-      // (1,1)b branch — a 6-lobe rosette whose lobes swing out to ~1.17 nd and
-      // back; at the default 160k steps RK4 drifts to ~7e-5 (it would need ~1.5M
-      // steps for 1e-8, too many for the client renderer). This is an integrator-
-      // STEP limitation, NOT an orbit or data defect: the SAME IC closes to
-      // 5e-10 nd and conserves C to 2e-11 under the main repo's adaptive DOP853
-      // (verified 2026-06-20). Upgrading this propagator to adaptive stepping
-      // (then this bound drops back to 1e-8 for all rows) is tracked separately.
-      const driftBound = row.id === "braik-ross-c11b-cycler-2026" ? 1e-4 : 1e-8;
-      expect(orbit.jacobiDrift, `${row.id} drift`).toBeLessThan(driftBound);
+      // Closure at the sourced T. With the adaptive DP45 integrator the residual
+      // floor is the catalogue's 10-decimal state_nd printing, not the integrator
+      // — every row (including the demanding (1,1)b/braik-ross-c11b 6-lobe rosette)
+      // closes well under 1e-3 nd (~380 km).
+      expect(orbit.closureNd, `${row.id} closure`).toBeLessThan(1e-3);
+      // Integrator honesty: the adaptive Dormand-Prince RK45 holds the Jacobi
+      // constant tightly for ALL rows, including the long-period multi-lobe ones
+      // that fixed-step RK4 could not (braik-ross-c11b drifted ~7e-5 under RK4 at
+      // 160k steps; DP45 holds it < 1e-8). One uniform bound, no per-row exception.
+      expect(orbit.jacobiDrift, `${row.id} drift`).toBeLessThan(1e-8);
       // Sanity: a real polyline came back.
       expect(orbit.points.length).toBeGreaterThan(500);
       expect(orbit.timesNd[orbit.timesNd.length - 1]).toBeCloseTo(cr.period_nd!, 9);
