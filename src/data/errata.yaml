@@ -362,15 +362,23 @@
     would welcome the authors' confirmation of which figure was intended, and
     whether the journal version of record already corrects it.
   evidence_refs:
-    - "docs/notes/2026-06-10-saloglu-2025-iso-impulse-3d-mining.md (TRANSCRIPTION RESCAN + section 7)"
+    - "docs/notes/2026-06-10-saloglu-2025-iso-impulse-3d-mining.md (TRANSCRIPTION RESCAN + section 7 + VoR DIFF 2026-06-13)"
     - "commit 0b34886 (transcription-rescan annotations)"
   confidence: provable-internal-inconsistency
   affected_catalogue_rows: []
-  vor_status: preprint-may-be-fixed-in-vor
+  vor_status: final-form
   vor_note: >-
-    Page numbers refer to arXiv:2501.01583; the J. Astronaut. Sci. version of
-    record (DOI 10.1007/s40295-025-00528-0) is unchecked (paywalled).
-  status: open
+    FIXED IN VoR (checked 2026-06-13). The J. Astronaut. Sci. version of record
+    (DOI 10.1007/s40295-025-00528-0, 38 journal pages) was diffed against the
+    arXiv:2501.01583 preprint: the entire Sec. VI.A Earth-Mars rendezvous worked
+    example that carried this cell was removed in production and replaced by a
+    new CAPSTONE-inspired orbit-raising example (VoR Sec. 5.4, pp. 29-32). The
+    prose total time, the same-page feasibility subtraction, and the mission time
+    of 793 days appear nowhere in the VoR, so the in-print inconsistency does not
+    survive. No fault is implied: this is the routine kind of section revision
+    between preprint and publication; the defect simply no longer exists in the
+    version of record.
+  status: fixed-in-vor
 
 - id: saloglu-taheri-2025-dv-total-mismatch
   paper: >-
@@ -396,16 +404,25 @@
     goldens from this paper (the 3.9618011 km/s two-impulse base and its
     breakdown) are unaffected and reproduce cleanly.
   evidence_refs:
-    - "docs/notes/2026-06-10-saloglu-2025-iso-impulse-3d-mining.md (TRANSCRIPTION RESCAN + section 7)"
+    - "docs/notes/2026-06-10-saloglu-2025-iso-impulse-3d-mining.md (TRANSCRIPTION RESCAN + section 7 + VoR DIFF 2026-06-13)"
     - "tests/verify/test_dv_bracket.py (the unaffected wired goldens)"
     - "commit 0b34886 (transcription-rescan annotations)"
   confidence: provable-internal-inconsistency
   affected_catalogue_rows: []
-  vor_status: preprint-may-be-fixed-in-vor
+  vor_status: final-form
   vor_note: >-
-    Page numbers refer to arXiv:2501.01583; the J. Astronaut. Sci. version of
-    record (DOI 10.1007/s40295-025-00528-0) is unchecked (paywalled).
-  status: open
+    FIXED IN VoR (checked 2026-06-13). The J. Astronaut. Sci. version of record
+    (DOI 10.1007/s40295-025-00528-0, 38 journal pages) was diffed against the
+    arXiv:2501.01583 preprint: the entire Sec. VI.A Earth-Mars rendezvous worked
+    example that carried both the p. 30 (5.6109) and p. 31 (5.6108) statements of
+    this quantity was removed in production and replaced by a new CAPSTONE-inspired
+    orbit-raising example (VoR Sec. 5.4, pp. 29-32). Neither 5.6109 nor 5.6108
+    appears anywhere in the VoR, so the 0.1 m/s in-print inconsistency does not
+    survive. No fault is implied: this is the routine kind of section revision
+    between preprint and publication; the defect simply no longer exists in the
+    version of record. The goldens wired from this paper (3.9618011 km/s and its
+    breakdown) survive verbatim in the VoR (Fig. 8 text, p. 19).
+  status: fixed-in-vor
 
 - id: shakouri-2019-table3-ce-mi-label-swap
   paper: >-
