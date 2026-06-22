@@ -377,3 +377,41 @@ export function fmtVinfMultiset(
   );
   return parts.join(", ");
 }
+
+// Provenance-source labels (shared by the catalogue table + the cycler detail
+// page). Rows added via the orbit_source/vinf_source provenance system carry no
+// `first_published` Citation (e.g. the bulk Russell-Ocampo 2006 census rows use
+// `russell-2006-table5`); the Source column falls back to these labels so they
+// render their real provenance instead of "?". Keep in sync with the upstream
+// ProvenanceSource union (src/lib/types.ts).
+export const SOURCE_LABEL: Record<string, string> = {
+  "rogers-2012-t1": "Rogers et al. 2012, Table 1",
+  "russell-2004-t34": "Russell 2004, Table 3.4",
+  "russell-2004-t39_311": "Russell 2004, Tables 3.9 / 3.11",
+  "russell-2004-t49_413": "Russell 2004, Tables 4.9 / 4.13",
+  "russell-2006-table5": "Russell & Ocampo 2006, Table 5",
+  "mcconaghy-2002": "McConaghy et al. 2002",
+  "mcconaghy-2006": "McConaghy et al. 2006",
+  "spec-9": "spec §9",
+  "hollister-1970-t3": "Hollister & Menning 1970, Table 3",
+  "friedlander-1986": "Friedlander et al. 1986",
+  derived: "derived",
+  computed: "computed",
+};
+
+export const sourceLabel = (k: string | null | undefined): string =>
+  k ? (SOURCE_LABEL[k] ?? k) : "";
+
+/**
+ * Best human label for a row's source in a compact column: the first author +
+ * year of `first_published` when present, else the provenance-source label
+ * (orbit_source), else "—". Centralises the four-class fallback so the table and
+ * detail pages agree.
+ */
+export function shortSourceLabel(entry: CyclerEntry): string {
+  const cite = entry.first_published;
+  if (cite && cite.authors.length > 0) {
+    return `${cite.authors[0].split(",")[0]} ${cite.year}`;
+  }
+  return sourceLabel(entry.orbit_source) || "—";
+}

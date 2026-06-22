@@ -13,6 +13,7 @@ import {
   loadCatalogue,
   nReturnsValue,
   resolveLinks,
+  sourceLabel,
 } from "../../lib/catalogue";
 import { errataForRow } from "../../lib/errata";
 import OrbitView from "../../components/OrbitView.astro";
@@ -24,22 +25,9 @@ const ARC_TYPE_LABEL: Record<string, string> = {
   "full-rev": "full-rev",
 };
 
-// Source-registry keys (schema v4.4, spec §16.7.11) → human labels.
-const SOURCE_LABEL: Record<string, string> = {
-  "rogers-2012-t1": "Rogers et al. 2012, Table 1",
-  "russell-2004-t34": "Russell 2004, Table 3.4",
-  "russell-2004-t39_311": "Russell 2004, Tables 3.9 / 3.11",
-  "russell-2004-t49_413": "Russell 2004, Tables 4.9 / 4.13",
-  "mcconaghy-2002": "McConaghy et al. 2002",
-  "mcconaghy-2006": "McConaghy et al. 2006",
-  "spec-9": "spec §9",
-  "hollister-1970-t3": "Hollister & Menning 1970, Table 3",
-  "friedlander-1986": "Friedlander et al. 1986",
-  derived: "derived",
-  computed: "computed",
-};
-
-const sourceLabel = (k: string | null | undefined): string => (k ? (SOURCE_LABEL[k] ?? k) : "");
+// Source-registry keys (schema v4.4, spec §16.7.11) → human labels: SOURCE_LABEL
+// + sourceLabel now live in lib/catalogue (shared with the catalogue table, and
+// kept in sync with the ProvenanceSource union — includes russell-2006-table5).
 
 const CLS_LABEL: Record<string, string> = {
   "single-ellipse": "single-ellipse",
