@@ -227,6 +227,27 @@ table.catalogue tr.hidden { display: none; }
 .orbit-class-badge.oc-precursor_mga  { color: #a58b4a; border-color: #a58b4a44; }
 .orbit-class-badge.oc-mga_tour       { color: #7a5fa5; border-color: #7a5fa544; }
 
+/* Axis-B maintenance-ΔV band badge (schema v4.8 / #417). Ballistic = green,
+   shading toward red as the maintenance cost rises. */
+.dv-band-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.dv-band-badge:hover { text-decoration: underline; }
+.dv-band-badge.db-strictly_ballistic    { color: #3f8f63; border-color: #3f8f6344; }
+.dv-band-badge.db-essentially_ballistic { color: #6a9a3f; border-color: #6a9a3f44; }
+.dv-band-badge.db-low_maintenance       { color: #a58b4a; border-color: #a58b4a44; }
+.dv-band-badge.db-powered_dsm           { color: #b3603f; border-color: #b3603f44; }
+.dv-band-badge.db-low_thrust_sep        { color: #7a5fa5; border-color: #7a5fa544; }
+
 /* Validity-window cell (schema v5): the compact YYYY-MM-DD → YYYY-MM-DD range
    for epoch-locked rows. Monospaced so the dates line up vertically in the
    table column. */

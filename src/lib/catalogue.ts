@@ -415,3 +415,26 @@ export function shortSourceLabel(entry: CyclerEntry): string {
   }
   return sourceLabel(entry.orbit_source) || "—";
 }
+
+// Axis-B maintenance-ΔV band labels (schema v4.8 / upstream #417). Short label
+// for the catalogue badge; long label (with the m/s tier) for tooltips. Mirrors
+// the /about#cycler-cost explainer. Most rows are unbanded (null) — the honest
+// default; only rows with a sourced per-row maintenance ΔV carry a band.
+export const DV_BAND_LABEL: Record<string, string> = {
+  strictly_ballistic: "Strictly ballistic",
+  essentially_ballistic: "Essentially ballistic",
+  low_maintenance: "Low-maintenance",
+  powered_dsm: "Powered",
+  low_thrust_sep: "Low-thrust / SEP",
+};
+
+export const DV_BAND_LONG: Record<string, string> = {
+  strictly_ballistic: "Strictly ballistic — < 1 m/s maintenance ΔV / 7 cycles",
+  essentially_ballistic: "Essentially ballistic — < 10 m/s / 7 cycles",
+  low_maintenance: "Low-maintenance — < 300 m/s / 7 cycles",
+  powered_dsm: "Powered — ≥ 300 m/s / 7 cycles (impulsive/DSM)",
+  low_thrust_sep: "Low-thrust / SEP maintenance",
+};
+
+export const dvBandLabel = (b: string | null | undefined): string =>
+  b ? (DV_BAND_LABEL[b] ?? b) : "";

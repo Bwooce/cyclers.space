@@ -1,6 +1,8 @@
 ---
 import {
+  DV_BAND_LONG,
   ORBIT_CLASS_LABEL,
+  dvBandLabel,
   effectiveOrbitClass,
   fmt,
   fmtBodies,
@@ -80,6 +82,18 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
       <option value="mga_tour">Tours</option>
     </select>
   </div>
+  <div class="group" role="group" aria-label="Filter by maintenance-ΔV band">
+    <label for="dvband-filter">ΔV band:</label>
+    <select id="dvband-filter" class="dvband-filter">
+      <option value="all">All</option>
+      <option value="strictly_ballistic">Strictly ballistic</option>
+      <option value="essentially_ballistic">Essentially ballistic</option>
+      <option value="low_maintenance">Low-maintenance</option>
+      <option value="powered_dsm">Powered</option>
+      <option value="low_thrust_sep">Low-thrust / SEP</option>
+      <option value="banded">Any band</option>
+    </select>
+  </div>
   <div class="group" role="group" aria-label="Filter by validity window">
     <label for="window-filter">Window:</label>
     <select id="window-filter" class="window-filter" aria-describedby="window-filter-hint">
@@ -115,6 +129,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
         <th data-sort="period" scope="col" aria-sort="ascending">Period (yr)</th>
         <th data-sort="identity" scope="col">Identity</th>
         <th data-sort="vinf" scope="col">V∞ (km/s)</th>
+        <th data-sort="dvband" scope="col" title="Axis-B maintenance-ΔV band (most rows unbanded)">ΔV band</th>
         <th data-sort="nreturns" scope="col">Returns</th>
         {hasEpochLocked && (
           <th data-sort="validity" scope="col">Validity</th>
@@ -166,6 +181,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
               data-completeness={completePct}
               data-defined={defined ? 1 : 0}
               data-validation={e.validation_level ?? "V0"}
+              data-dvband={e.dv_band ?? ""}
               data-citation={`${cite.authors[0] ?? "?"} ${cite.year}`}
             >
               <td><a href={`/cycler/${e.id}/`}>{e.name}</a></td>
@@ -182,6 +198,15 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
               <td class="right">{e.period ? fmt(e.period.years, 2) : "—"}</td>
               <td class="identity">{identity}</td>
               <td>{fmtVinfMultiset(e.vinf_kms_at_encounters)}</td>
+              <td>
+                {e.dv_band ? (
+                  <a href="/about/#cycler-cost" class={`dv-band-badge db-${e.dv_band}`} title={DV_BAND_LONG[e.dv_band] ?? e.dv_band}>
+                    {dvBandLabel(e.dv_band)}
+                  </a>
+                ) : (
+                  <span class="muted">—</span>
+                )}
+              </td>
               <td class="right">{fmtNReturns(e)}</td>
               {hasEpochLocked && (
                 <td class="validity-col">
@@ -242,6 +267,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
     | "period"
     | "identity"
     | "vinf"
+    | "dvband"
     | "nreturns"
     | "validity"
     | "completeness"
@@ -254,6 +280,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
   const filterInputs = document.querySelectorAll<HTMLInputElement>(".planet-filter");
   const classSelect = document.getElementById("class-filter") as HTMLSelectElement | null;
   const windowSelect = document.getElementById("window-filter") as HTMLSelectElement | null;
+  const dvbandSelect = document.getElementById("dvband-filter") as HTMLSelectElement | null;
   const nMinInput = document.getElementById("nreturns-min") as HTMLInputElement | null;
   const nMaxInput = document.getElementById("nreturns-max") as HTMLInputElement | null;
 
@@ -323,6 +350,14 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
           const orbitClass = row.dataset.orbitClass ?? "cycler";
           const classOk = classFilter === "all" || orbitClass === classFilter;
 
+          // ΔV-band filter. "all" passes everything; "banded" passes any row with
+          // a band; a specific band passes only that band.
+          const dvbandFilter = dvbandSelect?.value ?? "all";
+          const dvband = row.dataset.dvband ?? "";
+          const dvbandOk =
+            dvbandFilter === "all" ||
+            (dvbandFilter === "banded" ? dvband !== "" : dvband === dvbandFilter);
+
           // Window filter only applies to epoch-locked rows; Cyclers fail any
           // non-"all" window filter by design (they have no window). When the
           // user selects Class=Cyclers we've already disabled the input, so its
@@ -359,7 +394,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
             }
           }
 
-          const ok = bodiesOk && classOk && windowOk && returnsOk;
+          const ok = bodiesOk && classOk && dvbandOk && windowOk && returnsOk;
           row.classList.toggle("hidden", !ok);
           if (ok) visible++;
         }
@@ -368,6 +403,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
 
       for (const input of filterInputs) input.addEventListener("change", applyFilter);
       classSelect?.addEventListener("change", applyFilter);
+      dvbandSelect?.addEventListener("change", applyFilter);
       windowSelect?.addEventListener("change", applyFilter);
       nMinInput?.addEventListener("input", applyFilter);
       nMaxInput?.addEventListener("input", applyFilter);
