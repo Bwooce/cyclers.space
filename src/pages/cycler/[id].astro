@@ -1,8 +1,10 @@
 ---
 import Base from "../../layouts/Base.astro";
 import {
+  DV_BAND_LONG,
   ORBIT_CLASS_LABEL,
   ORBIT_CLASS_LONG_LABEL,
+  dvBandLabel,
   effectiveOrbitClass,
   fmt,
   fmtBodies,
@@ -194,6 +196,19 @@ const formatCite = (c: Citation): string => {
     <dd>
       {entry.trajectory_regime ?? "ballistic"}
       {!entry.trajectory_regime && <span class="muted"> (default)</span>}
+    </dd>
+    <dt>Maintenance ΔV band</dt>
+    <dd>
+      {entry.dv_band ? (
+        <a href="/about/#cycler-cost" class={`dv-band-badge db-${entry.dv_band}`} title={DV_BAND_LONG[entry.dv_band] ?? entry.dv_band}>
+          {dvBandLabel(entry.dv_band)}
+        </a>
+      ) : (
+        <span class="muted">unclassified</span>
+      )}
+      {entry.dv_band && entry.dv_band_source && (
+        <span class="muted"> · source: {entry.dv_band_source}</span>
+      )}
     </dd>
     <dt>Model assumption</dt>
     <dd>

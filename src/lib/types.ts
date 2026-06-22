@@ -61,6 +61,16 @@ export type CyclerClass = "single-ellipse" | "multi-arc" | "non-keplerian";
 //                     (Galileo VEEGA, Cassini VVEJGA, Tito 2018).
 export type OrbitClass = "cycler" | "quasi_cycler" | "precursor_mga" | "mga_tour";
 
+// Schema v4.8 Axis-B maintenance-ΔV band (upstream #417): total deterministic
+// maintenance ΔV over a 7-cycle real-ephemeris propagation, at the best launch
+// window. Orthogonal to TrajectoryRegime (the Axis-A geometric label).
+export type DvBand =
+  | "strictly_ballistic" // < 1 m/s / 7 cycles
+  | "essentially_ballistic" // < 10 m/s / 7 cycles
+  | "low_maintenance" // < 300 m/s / 7 cycles
+  | "powered_dsm" // >= 300 m/s / 7 cycles (impulsive/DSM)
+  | "low_thrust_sep"; // SEP / low-thrust maintenance
+
 // Schema v5 validity window — when the trajectory is reachable for the epoch-
 // locked classes (quasi_cycler / precursor_mga / mga_tour). ISO-8601 dates.
 export interface ValidityWindow {
@@ -259,6 +269,12 @@ export interface CyclerEntry {
   validation_tier?: ValidationTier | null;
   delta_v_kms?: number | null;
   v_infinity_leveraging_dv_kms?: number | null;
+  // Schema v4.8 (2026-06-22, upstream #417): Axis-B real-ephemeris maintenance-ΔV
+  // band (orthogonal to trajectory_regime, the Axis-A geometric label). Nullable —
+  // most rows carry no sourced per-row maintenance ΔV and stay null. dv_band_source
+  // is required upstream whenever dv_band is non-null. See /about/#cycler-cost.
+  dv_band?: DvBand | null;
+  dv_band_source?: string | null;
   fleet_size?: number | null;
   bodies: Body[];
   sequence_canonical: string;
