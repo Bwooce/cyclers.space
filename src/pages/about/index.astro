@@ -26,6 +26,164 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
     specific table or page in the cited source.
   </p>
 
+  <h2 id="cycler-types">The four kinds of trajectory</h2>
+  <p>
+    "Cycler" gets used loosely. The catalogue separates four genuinely different things,
+    because they suit very different missions. The headline distinction: a true cycler
+    repeats <em>forever</em>; the other three run <em>once</em>.
+  </p>
+  <table class="catalogue" style="margin-top:0.5rem;">
+    <thead>
+      <tr><th scope="col">Kind</th><th scope="col">In plain terms</th><th scope="col">Good for</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Cycler</strong></td>
+        <td>A heliocentric orbit that re-encounters its planets on a fixed schedule
+          <em>indefinitely</em> — a railway line in space. The vehicle never stops; small
+          taxis ferry crew and cargo on and off at each flyby. The
+          <a href="/cycler/aldrin-classic-em-k1-outbound/">Aldrin cycler</a> is the
+          canonical example (<a href="https://en.wikipedia.org/wiki/Mars_cycler" rel="external">Mars cycler ↗</a>).</td>
+        <td>A permanent, reusable Earth–Mars transport backbone. You pay to build the
+          railway once; the heavy radiation shielding and habitat ride forever.</td>
+      </tr>
+      <tr>
+        <td><strong>Quasi-cycler</strong></td>
+        <td>Repeats <em>nearly</em>, but only stays closed for a bounded window
+          (~10–15 yr) before the real-world geometry drifts it apart.</td>
+        <td>A medium-term shuttle when a true ballistic cycler doesn't exist for the
+          planet pair you want.</td>
+      </tr>
+      <tr>
+        <td><strong>Precursor</strong></td>
+        <td>A one-shot trajectory whose only job is to <em>place</em> a vehicle onto a
+          cycler in the first place.</td>
+        <td>Standing up the railway — the construction train, run once per vehicle.</td>
+      </tr>
+      <tr>
+        <td><strong>Tour</strong></td>
+        <td>A one-shot gravity-assist chain with a final destination — it does not repeat.
+          Most flown missions (Voyager, Cassini, Galileo) are tours.</td>
+        <td>A single science mission that strings flybys together to reach a target cheaply.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="cycler-cost">Ballistic, powered, and the maintenance-ΔV bands</h2>
+  <p>
+    The most useful thing to know about a cycler is <strong>how much propulsion the
+    railway itself needs to keep running</strong> — its maintenance Δ<em>V</em> (a speed
+    change, in metres or kilometres per second; the currency of spaceflight). This is
+    separate from what the taxis spend getting on and off. A cycler is called
+    <strong>ballistic</strong> if, in the idealised model, it needs <em>no</em>
+    deterministic engine burns to stay on schedule (the planets' gravity does all the
+    steering), and <strong>powered</strong> if it needs regular burns.
+  </p>
+  <p>
+    Measured over a standard <strong>7-cycle</strong> stretch in a realistic ephemeris,
+    at the best launch date, catalogue cyclers sort into bands. Real published numbers:
+  </p>
+  <table class="catalogue" style="margin-top:0.5rem;">
+    <thead>
+      <tr><th scope="col">Band</th><th scope="col">Maintenance ΔV</th><th scope="col">Real example</th><th scope="col">What it means for a mission</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Strictly ballistic</strong></td>
+        <td>&lt; 1 m/s / 7 cycles</td>
+        <td><a href="/cycler/liang-2024-cgcec-ephemeris-2033/">Liang 2024 CGE</a> — ~1×10⁻⁷ m/s per cycle in a SPICE ephemeris</td>
+        <td>Essentially free to run. The dream case: the railway costs nothing to keep
+          on rails (in the gravity model). Best possible reusable backbone.</td>
+      </tr>
+      <tr>
+        <td><strong>Essentially ballistic</strong></td>
+        <td>&lt; 10 m/s / 7 cycles</td>
+        <td><a href="/cycler/mcconaghy-2006-em-k2/">S1L1 Earth–Mars</a> — ~10 m/s over a 30-yr repeat (McConaghy 2006)</td>
+        <td>A few seconds of engine burn per decade — a thimble of propellant. A very
+          practical permanent Earth–Mars line.</td>
+      </tr>
+      <tr>
+        <td><strong>Low-maintenance</strong></td>
+        <td>&lt; 300 m/s / 7 cycles</td>
+        <td>Many Russell-Ocampo 2006 parent cyclers (74 of them fall under this)</td>
+        <td>Modest upkeep — a small solar-electric thruster topped up at each rendezvous
+          keeps it going. Still a reusable backbone.</td>
+      </tr>
+      <tr>
+        <td><strong>Powered (Aldrin-type)</strong></td>
+        <td>≥ 300 m/s — typically <strong>~1.5–2 km/s every 15 years</strong></td>
+        <td><a href="/cycler/aldrin-classic-em-k1-outbound/">Aldrin cycler</a> — three burns on 3 of every 7 orbits (Friedlander 1986; Byrnes-Aldrin 1993; Rauwolf 2002)</td>
+        <td>The vehicle needs real propulsion and refuelling. You accept that cost in
+          exchange for shorter, lower-energy crossings. Suits a smaller fleet where
+          transit time matters more than fuel.</td>
+      </tr>
+      <tr>
+        <td><strong>Low-thrust / SEP</strong></td>
+        <td>same burns, flown with ion engines</td>
+        <td>SEP Aldrin — ~3 tonnes of xenon over 15 yr, refuelled at each pass (Rauwolf 2002)</td>
+        <td>Trades chemical fuel for high-efficiency electric propulsion: ~4% of the
+          vehicle mass in propellant instead of ~38%.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top:0.5rem;">
+    The Earth–Moon cyclers sit in their own regime — e.g. the
+    <a href="/cycler/genova-aldrin-2015-em-3petal-cycler/">Genova-Aldrin 3-petal</a> needs
+    ~20–62 m/s <em>per ~26-day lunar cycle</em> (≈39 m/s/month) in a full ephemeris: a
+    short-period line is inherently more demanding to hold than a slow Earth–Mars one.
+  </p>
+
+  <h3 id="never-free">Is any cycler truly free, forever? No — and here's the honest part.</h3>
+  <p>
+    The word "ballistic" describes an <strong>idealised model</strong>, not a promise of
+    perpetual free flight. In a simplified solar system (circular, flat planetary orbits)
+    a ballistic cycler is an exact repeating orbit needing <em>zero</em> engine burns. The
+    real solar system is messier, and <strong>no cycler is genuinely zero-ΔV for all
+    time</strong>. Three things always cost something:
+  </p>
+  <ul>
+    <li><strong>Gravity that doesn't quite repeat (the big one).</strong> Real planets have
+      slightly elliptical, tilted orbits whose periods aren't exact whole-number ratios,
+      and the Moon and other planets tug as well. The geometry never lines up perfectly
+      twice, so the schedule needs periodic correction. <em>This is exactly what the
+      10–300 m/s figures in the table above are</em> — the price of the model's idealisation
+      meeting reality.</li>
+    <li><strong>Sunlight pushing on the vehicle.</strong> Solar radiation pressure — photons
+      from the Sun striking the spacecraft — is a small but relentless force that slowly
+      changes the orbit and must be trimmed out. (This is the dominant non-gravitational
+      effect; the actual solar <em>wind</em> of particles is far weaker but acts the same
+      way.) A big, lightweight habitat with lots of surface area feels this more.</li>
+    <li><strong>You never launch perfectly.</strong> Injection and navigation errors mean
+      every real cycler also carries a budget of small trajectory-correction maneuvers —
+      what Friedlander's 1986 paper called "navigation targeting maneuvers," needed even
+      for the otherwise-ballistic VISIT cyclers.</li>
+  </ul>
+  <p>
+    So the honest reading of the table: a <strong>strictly-ballistic</strong> cycler's
+    ~10⁻⁷ m/s is its <em>deterministic gravitational</em> residual in the model — a flown
+    mission would still add a (small) station-keeping budget for sunlight and navigation
+    on top. "Ballistic" means <em>the railway needs no engine to exist in the maths</em>,
+    not that a real vehicle on it never fires a thruster. The bands are best read as
+    <em>how big that budget is</em> — and they span seven orders of magnitude, which is why
+    different cyclers suit genuinely different missions.
+  </p>
+  <p class="muted" style="margin-top:0.5rem;">
+    <strong>Sources for the bands.</strong> The &lt;1 / &lt;10 / &lt;300 m/s-per-7-cycle tier
+    census: Russell &amp; Ocampo, <em>J. Guid. Control Dyn.</em> 29(2), 2006
+    (<a href="https://doi.org/10.2514/1.13652" rel="external">doi:10.2514/1.13652 ↗</a>).
+    Ballistic floor &amp; the ~200–300 m/s "correctable-to-ballistic" boundary, corroborated
+    independently across three systems: Friedlander, Niehoff, Byrnes &amp; Longuski 1986 (VISIT
+    "free orbit"); McConaghy, Landau, Yam &amp; Longuski, <em>JSR</em> 43(2), 2006 — S1L1 ~10 m/s
+    (<a href="https://doi.org/10.2514/1.15215" rel="external">doi:10.2514/1.15215 ↗</a>);
+    Liang et al., <em>JGCD</em> 2024 — CGE ~10⁻⁷ m/s/cycle
+    (<a href="https://doi.org/10.2514/1.G008387" rel="external">doi:10.2514/1.G008387 ↗</a>).
+    Powered Aldrin maintenance: Byrnes, Longuski &amp; Aldrin, <em>JSR</em> 30(3), 1993
+    (<a href="https://doi.org/10.2514/3.25519" rel="external">doi:10.2514/3.25519 ↗</a>);
+    SEP execution: Rauwolf, Friedlander &amp; Nock, AIAA 2002-5046. Every per-row number in the
+    catalogue traces to a specific table/page in its cited source — click any example above to
+    open that row's full provenance.
+  </p>
+
   <h2 id="validation-levels">Validation levels (V0–V5)</h2>
   <p>
     Each entry carries a validation level, drawn from the §14 gauntlet of the upstream
