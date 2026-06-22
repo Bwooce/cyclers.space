@@ -1,5 +1,5 @@
 import yaml from "js-yaml";
-import type { CyclerEntry, Leg, OrbitClass, ValidityWindow } from "./types";
+import type { Citation, CyclerEntry, Leg, OrbitClass, ValidityWindow } from "./types";
 import windowsData from "../data/windows.json";
 // Vite raw-import: at build time the YAML file's contents are inlined as a
 // string into the bundle. This is robust against Astro's prerender file
@@ -34,6 +34,18 @@ export function loadCatalogue(): CyclerEntry[] {
       orbit_class,
       epoch_locked,
       n_returns,
+      // Boundary normalisation (2026-06-22): array fields that are OPTIONAL in the
+      // schema (mga_tour / precursor rows may omit them) are coerced to [] here so
+      // no downstream render code can hit `.length`/`.map` on undefined. Normalising
+      // once at the loader is the durable fix; per-call-site guards are fragile (a
+      // missing one crashes `astro build` opaquely). See catalogue-real-shape.test.ts.
+      vinf_kms_at_encounters: entry.vinf_kms_at_encounters ?? [],
+      // `first_published` is typed required (Citation) but a handful of synced
+      // four-class rows (mga_tour / precursor) omit it — a type/data mismatch that
+      // crashes the Source column. Default to an empty citation so the templates'
+      // existing `authors[0] ?? "?"` fallbacks render "?" instead of throwing.
+      first_published:
+        entry.first_published ?? ({ authors: [], year: 0, title: "", venue: "" } as Citation),
     };
   });
   return cache;
@@ -286,10 +298,13 @@ export function isFullyDefined(entry: CyclerEntry): boolean {
   }
   if (!coreOk) return false;
 
+  // `vinf_kms_at_encounters` is optional since the four-class scope (schema v5):
+  // mga_tour / precursor rows may omit it. Guard the access — an undefined field
+  // here is "not fully defined", not a render-time crash.
   const vinfs = entry.vinf_kms_at_encounters;
-  if (!vinfs.length || vinfs.some((v) => v.vinf_kms === null)) return false;
+  if (!vinfs || !vinfs.length || vinfs.some((v) => v.vinf_kms === null)) return false;
   const legs = legsOf(entry);
-  if (!legs.length || legs.some((l) => l.tof_days === null)) return false;
+  if (!legs || !legs.length || legs.some((l) => l.tof_days === null)) return false;
   return true;
 }
 

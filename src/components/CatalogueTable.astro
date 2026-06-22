@@ -26,7 +26,7 @@ const completeness = (e: CyclerEntry): number => {
   const cls = e.cycler_class ?? "single-ellipse";
   const keys: Array<number | null> = [
     e.period?.years ?? null,
-    ...e.vinf_kms_at_encounters.map((v) => v.vinf_kms),
+    ...(e.vinf_kms_at_encounters ?? []).map((v) => v.vinf_kms),
   ];
   const oe = e.orbit_elements;
   if (cls === "single-ellipse") {
@@ -156,7 +156,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
               data-period={e.period?.years ?? ""}
               data-identity={identity}
               data-vinf={Math.max(
-                ...e.vinf_kms_at_encounters
+                ...(e.vinf_kms_at_encounters ?? [])
                   .map((v) => v.vinf_kms)
                   .filter((x): x is number => x !== null),
                 0,

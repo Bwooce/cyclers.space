@@ -27,6 +27,12 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
+      # Sync the upstream catalogue first, then run the unit suite against it BEFORE
+      # building. The catalogue-real-shape drift guard fails fast with the offending
+      # row id if upstream adds a shape the site code doesn't handle — instead of an
+      # opaque prerender crash inside `astro build`.
+      - run: node scripts/sync-catalogue.mjs
+      - run: npm test
       - run: npm run build
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
