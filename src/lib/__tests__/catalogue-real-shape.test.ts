@@ -6,6 +6,7 @@ import {
   legsOf,
   loadCatalogue,
   nReturnsValue,
+  shortSourceLabel,
 } from "../catalogue";
 
 // Drift guard (2026-06-22). The site's catalogue.yaml is SYNCED from the upstream
@@ -37,7 +38,19 @@ describe("real synced catalogue renders without drift", () => {
         effectiveOrbitClass(e);
         legsOf(e);
         fmtIdentity(e);
+        shortSourceLabel(e);
       }, `row ${e.id} threw during render-path accessors`).not.toThrow();
+    }
+  });
+
+  it("every row has a non-empty source label (citation or provenance fallback)", () => {
+    // Four-class / census rows carry provenance (orbit_source) instead of a
+    // first_published Citation; shortSourceLabel must still yield a real label,
+    // never "?". Pins the four-class Source-column migration.
+    for (const e of entries) {
+      const label = shortSourceLabel(e);
+      expect(label, `row ${e.id} has empty source label`).toBeTruthy();
+      expect(label, `row ${e.id} source label is a bare '?'`).not.toBe("?");
     }
   });
 

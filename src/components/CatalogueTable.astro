@@ -10,6 +10,7 @@ import {
   getEntryById,
   isFullyDefined,
   nReturnsValue,
+  shortSourceLabel,
 } from "../lib/catalogue";
 import type { CyclerEntry, OrbitClass } from "../lib/types";
 
@@ -213,14 +214,14 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
               <td>
                 {cite.doi ? (
                   <a href={`https://doi.org/${cite.doi}`} rel="noopener noreferrer">
-                    {cite.authors[0]?.split(",")[0] ?? "?"} {cite.year}
+                    {shortSourceLabel(e)}
                   </a>
                 ) : cite.url ? (
                   <a href={cite.url} rel="noopener noreferrer">
-                    {cite.authors[0]?.split(",")[0] ?? "?"} {cite.year}
+                    {shortSourceLabel(e)}
                   </a>
                 ) : (
-                  <span>{cite.authors[0]?.split(",")[0] ?? "?"} {cite.year}</span>
+                  <span>{shortSourceLabel(e)}</span>
                 )}
               </td>
             </tr>
