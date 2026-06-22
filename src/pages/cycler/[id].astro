@@ -260,7 +260,7 @@ const formatCite = (c: Citation): string => {
   </dl>
 
   <h2>V∞ at encounters</h2>
-  {entry.vinf_kms_at_encounters.length === 0 ? (
+  {(entry.vinf_kms_at_encounters?.length ?? 0) === 0 ? (
     <p class="muted">No encounter V∞ values published in accessible sources.</p>
   ) : (
     <dl class="cycler">
