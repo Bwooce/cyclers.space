@@ -41,6 +41,14 @@ export interface VinfEncounter {
   note?: string;
 }
 
+// Schema v4.9 (upstream #427, M7): one interior flyby's minimal-thrust periapsis
+// altitude (km above the body surface).
+export interface FlybyAltitude {
+  node_index: number;
+  body: Body | string;
+  altitude_km: number;
+}
+
 // Schema v4 (2026-06-03): cycler structural class, invariants, and CR3BP identity.
 export type CyclerClass = "single-ellipse" | "multi-arc" | "non-keplerian";
 
@@ -275,6 +283,13 @@ export interface CyclerEntry {
   // is required upstream whenever dv_band is non-null. See /about/#cycler-cost.
   dv_band?: DvBand | null;
   dv_band_source?: string | null;
+  // Schema v4.9 (upstream #427, M7): per-interior-flyby minimal-thrust periapsis
+  // altitude (km above the body surface) — the height that delivers the node's
+  // required turn ballistically, capped at the body's sourced flyby floor (#426).
+  // Empty for the many rows with no reproduced trajectory (honest, never fabricated).
+  // flyby_altitudes_source distinguishes published ("sourced") vs M7-computed.
+  flyby_altitudes_km?: FlybyAltitude[];
+  flyby_altitudes_source?: "sourced" | "computed-m7" | null;
   fleet_size?: number | null;
   bodies: Body[];
   sequence_canonical: string;

@@ -60,12 +60,32 @@ describe("real synced catalogue renders without drift", () => {
     // safe on mga_tour / precursor rows that omit the field.
     for (const e of entries) {
       expect(Array.isArray(e.vinf_kms_at_encounters), `row ${e.id} vinf not an array`).toBe(true);
+      // Schema v4.9 (#427): flyby_altitudes_km is optional (present only for rows with
+      // a reproduced M7 trajectory); the loader coerces it to [] so the detail page's
+      // `.length`/`.map` is always safe.
+      expect(
+        Array.isArray(e.flyby_altitudes_km),
+        `row ${e.id} flyby_altitudes_km not an array`,
+      ).toBe(true);
       // first_published is typed required but some four-class rows omit it upstream;
       // the loader backfills an empty Citation so the Source column never crashes.
       expect(e.first_published, `row ${e.id} first_published not normalised`).toBeTruthy();
       expect(Array.isArray(e.first_published.authors), `row ${e.id} authors not an array`).toBe(
         true,
       );
+    }
+  });
+
+  it("#427: S1L1 (mcconaghy-2006-em-k2) carries computed-m7 per-node flyby altitudes", () => {
+    const s1l1 = entries.find((e) => e.id === "mcconaghy-2006-em-k2");
+    expect(s1l1, "mcconaghy-2006-em-k2 present").toBeTruthy();
+    const fa = s1l1!.flyby_altitudes_km ?? [];
+    expect(fa.length, "S1L1 has per-node flyby altitudes").toBeGreaterThan(0);
+    expect(s1l1!.flyby_altitudes_source).toBe("computed-m7");
+    // Every altitude is at or above the 200 km Earth/Mars floor (the bend-binding node
+    // sits at the floor; gentler flybys fly higher).
+    for (const f of fa) {
+      expect(f.altitude_km, `node ${f.node_index} below floor`).toBeGreaterThanOrEqual(199.9);
     }
   });
 
