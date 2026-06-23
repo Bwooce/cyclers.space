@@ -40,6 +40,10 @@ export function loadCatalogue(): CyclerEntry[] {
       // once at the loader is the durable fix; per-call-site guards are fragile (a
       // missing one crashes `astro build` opaquely). See catalogue-real-shape.test.ts.
       vinf_kms_at_encounters: entry.vinf_kms_at_encounters ?? [],
+      // Schema v4.9 (upstream #427, M7): per-node flyby altitudes — optional, present
+      // only for rows with a reproduced M7 trajectory. Coerce to [] so the render
+      // never hits `.length`/`.map` on undefined.
+      flyby_altitudes_km: entry.flyby_altitudes_km ?? [],
       // `first_published` is typed required (Citation) but a handful of synced
       // four-class rows (mga_tour / precursor) omit it — a type/data mismatch that
       // crashes the Source column. Default to an empty citation so the templates'

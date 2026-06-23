@@ -62,6 +62,9 @@ const supersedes = resolveLinks(entry.supersedes);
 // Schema v4.1 (spec §16.7.7): Russell free-return arc descriptors.
 const freeReturnArcs = entry.free_return_arcs ?? [];
 
+// Schema v4.9 (upstream #427, M7): per-node minimal-thrust flyby altitudes.
+const flybyAltitudes = entry.flyby_altitudes_km ?? [];
+
 // Schema v5 (2026-06-15): four-class taxonomy surface — orbit_class, validity
 // window, n_returns, inserts_into link. Defaults applied in loadCatalogue() so
 // cycler-class rows render the same as before the migration.
@@ -392,6 +395,39 @@ const formatCite = (c: Citation): string => {
               <td>{arc.resonance ?? <span class="muted">—</span>}</td>
               <td class="right">{arc.tof_years ?? <span class="muted">—</span>}</td>
               <td class="identity">{arc.raw_descriptor ?? <span class="muted">—</span>}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  )}
+
+  {flybyAltitudes.length > 0 && (
+    <>
+      <h2>Flyby altitudes (minimal-thrust)</h2>
+      <p class="muted">
+        Per-flyby periapsis altitude that delivers each encounter's required turn
+        ballistically, capped at the body's safe flyby floor (200 km for Earth/Mars).
+        A flyby sitting at the floor is bend-binding (it needs the deepest safe pass);
+        higher altitudes are gentler flybys that need less turn.
+        {entry.flyby_altitudes_source && (
+          <span> · source: {entry.flyby_altitudes_source}</span>
+        )}
+      </p>
+      <table class="catalogue">
+        <thead>
+          <tr>
+            <th class="right">Node</th>
+            <th>Body</th>
+            <th class="right">Altitude (km)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {flybyAltitudes.map((fa) => (
+            <tr>
+              <td class="right">{fa.node_index}</td>
+              <td>{fa.body}</td>
+              <td class="right">{fa.altitude_km.toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
