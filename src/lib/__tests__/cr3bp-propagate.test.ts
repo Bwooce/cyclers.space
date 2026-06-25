@@ -27,8 +27,10 @@ describe("CR3BP propagation of the Ross Earth-Moon cycler rows", () => {
       const c = jacobiConstant(cr.mass_ratio!, {
         x: cr.state_nd![0]!,
         y: cr.state_nd![1]!,
+        z: cr.state_nd![2]!,
         vx: cr.state_nd![3]!,
         vy: cr.state_nd![4]!,
+        vz: cr.state_nd![5]!,
       });
       // state_nd is printed to ~10 significant digits in the catalogue, so
       // agreement with the 15-digit sourced C is bounded by that printing.
