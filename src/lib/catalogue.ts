@@ -462,3 +462,53 @@ export const OUR_STATUS_LONG: Record<string, string> = {
 
 export const ourStatusLabel = (s: string | null | undefined): string =>
   s ? (OUR_STATUS_LABEL[s] ?? s) : "";
+
+/**
+ * Honest predicate (#462): is this row a genuine, original discovery BY THIS
+ * PROJECT — as opposed to a reproduction of a published orbit, a computed
+ * member of a published class, or a literature anchor?
+ *
+ * STRICT — a row qualifies ONLY if ALL of the following hold, so that no
+ * reproduction or known-class member is ever mis-surfaced as "ours":
+ *  1. `source === "discovered"` — the row was found by our search, not seeded
+ *     from the literature (this also excludes `this-project` rows like the C21
+ *     known-class member, which are computed-but-not-novel).
+ *  2. `first_published.authors` names the cyclerfinder project — WE are the
+ *     first to publish this specific orbit.
+ *  3. `corroborating_sources` is empty — no external source pre-published the
+ *     same orbit (a non-empty list means someone else got there too).
+ *  4. `our_status` is NOT a known-reproduction or known-class-member — those
+ *     are explicit "not a discovery" tags.
+ *
+ * Data-driven: keyed off catalogue fields only, never a hard-coded id, so a
+ * future discovery row auto-qualifies the moment it lands. When in doubt the
+ * row does NOT qualify — over-claiming a reproduction is the failure mode.
+ */
+export function isProjectDiscovery(entry: CyclerEntry): boolean {
+  if (entry.source !== "discovered") return false;
+  const authors = entry.first_published?.authors ?? [];
+  const byProject = authors.some((a) => (a ?? "").toLowerCase().includes("cyclerfinder"));
+  if (!byProject) return false;
+  const corroborating = entry.corroborating_sources ?? [];
+  if (corroborating.length > 0) return false;
+  if (entry.our_status === "known-reproduction" || entry.our_status === "known-class-member") {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * All catalogue rows that pass {@link isProjectDiscovery}, sorted most-validated
+ * first (V5 → V0) then by name. Drives the "Discovered here" strip at the top of
+ * the catalogue page.
+ */
+export function projectDiscoveries(): CyclerEntry[] {
+  const order = (e: CyclerEntry): number => {
+    const lvl = e.validation_level ?? "V0";
+    const n = Number.parseInt(lvl.slice(1), 10);
+    return Number.isFinite(n) ? n : 0;
+  };
+  return loadCatalogue()
+    .filter(isProjectDiscovery)
+    .sort((a, b) => order(b) - order(a) || a.name.localeCompare(b.name));
+}
