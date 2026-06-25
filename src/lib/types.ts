@@ -252,7 +252,11 @@ export interface DataGap {
 export interface CyclerEntry {
   id: string;
   name: string;
-  source: "literature" | "this-project" | "both";
+  // "discovered": found by this project's search campaign and first-published by
+  // us (the genuine-discovery provenance, surfaced via isProjectDiscovery / #462).
+  // "this-project": computed by us but NOT a novel discovery (e.g. a known-class
+  // member). "literature"/"both": seeded from / corroborated by the published record.
+  source: "literature" | "this-project" | "both" | "discovered";
   // Non-heliocentric extension (2026-05-31). Defaults to "Sun" when absent.
   primary?: string;
   // Schema v2 (2026-06-01). Defaults: trajectory_regime "ballistic",

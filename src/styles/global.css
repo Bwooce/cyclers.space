@@ -270,6 +270,73 @@ table.catalogue tr.hidden { display: none; }
 .our-status-badge.os-known-reproduction { color: #4a7fa5; border-color: #4a7fa544; }
 .our-status-badge.os-candidate-novel    { color: #4a8a5f; border-color: #4a8a5f44; }
 
+/* "Discovered here" treatment (#462): genuine, original discoveries by this
+   project (isProjectDiscovery) — distinct from reproductions / known-class
+   members / literature anchors. Understated green accent, no superlatives. */
+.discovery-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid #3f8f6366;
+  border-radius: 2px;
+  background: #3f8f6314;
+  color: #2f7a53;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+@media (prefers-color-scheme: dark) {
+  .discovery-badge { color: #6fc593; border-color: #6fc59355; background: #6fc59318; }
+}
+
+/* Pinned "Discovered by this project" strip at the top of the catalogue. */
+.discoveries {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid #3f8f6355;
+  border-left: 3px solid #3f8f63;
+  border-radius: 3px;
+  background: #3f8f630a;
+}
+.discoveries h2 {
+  margin-top: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+  font-size: 1.1rem;
+}
+.discoveries-intro { margin: 0.25rem 0 0.85rem; font-size: 0.9rem; }
+.discoveries-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.discovery-card {
+  flex: 1 1 18rem;
+  min-width: 16rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg);
+}
+.discovery-name { font-weight: 600; }
+.discovery-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+.discovery-bodies { color: var(--fg-muted); }
+.discovery-period { color: var(--fg-muted); }
+
 /* Validity-window cell (schema v5): the compact YYYY-MM-DD → YYYY-MM-DD range
    for epoch-locked rows. Monospaced so the dates line up vertically in the
    table column. */

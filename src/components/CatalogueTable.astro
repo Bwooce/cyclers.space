@@ -13,6 +13,7 @@ import {
   formatValidityWindow,
   getEntryById,
   isFullyDefined,
+  isProjectDiscovery,
   nReturnsValue,
   shortSourceLabel,
 } from "../lib/catalogue";
@@ -151,6 +152,7 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
           const cite = e.first_published;
           const completePct = Math.round(completeness(e) * 100);
           const defined = isFullyDefined(e);
+          const discovered = isProjectDiscovery(e);
           const cls = e.cycler_class ?? "single-ellipse";
           const clsShort = cls === "single-ellipse" ? "SE" : cls === "multi-arc" ? "MA" : "NK";
           const orbitClass: OrbitClass = effectiveOrbitClass(e);
@@ -187,7 +189,14 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
               data-dvband={e.dv_band ?? ""}
               data-citation={`${cite.authors[0] ?? "?"} ${cite.year}`}
             >
-              <td><a href={`/cycler/${e.id}/`}>{e.name}</a></td>
+              <td>
+                <a href={`/cycler/${e.id}/`}>{e.name}</a>
+                {discovered && (
+                  <span class="discovery-badge" title="Discovered by this project — first identified by our search campaign, not from the published record">
+                    Discovered here
+                  </span>
+                )}
+              </td>
               <td>
                 <span
                   class={`orbit-class-badge oc-${orbitClass}`}

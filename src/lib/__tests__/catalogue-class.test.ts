@@ -6,8 +6,10 @@ import {
   formatValidityWindow,
   inEpochWindow,
   inNReturnsRange,
+  isProjectDiscovery,
   loadCatalogue,
   nReturnsValue,
+  projectDiscoveries,
 } from "../catalogue";
 import type { CyclerEntry, OrbitClass } from "../types";
 
@@ -80,6 +82,73 @@ describe("orbit_class defaulting (schema v5 backward compat)", () => {
     expect(ORBIT_CLASS_LABEL.precursor_mga).toBe("Precursor");
     expect(ORBIT_CLASS_LABEL.mga_tour).toBe("Tour");
     expect(ORBIT_CLASS_LABEL.resonant_po).toBe("Resonant PO");
+  });
+});
+
+describe("isProjectDiscovery (#462) — honest genuine-discovery predicate", () => {
+  const discoveryEntry = (overrides: Partial<CyclerEntry> = {}): CyclerEntry =>
+    minimalEntry({
+      source: "discovered",
+      first_published: {
+        authors: ["cyclerfinder discovery campaign"],
+        year: 2026,
+        title: "A discovery",
+        venue: "cyclerfinder project",
+      },
+      corroborating_sources: [],
+      ...overrides,
+    });
+
+  it("accepts a discovered, cyclerfinder-first, uncorroborated row", () => {
+    expect(isProjectDiscovery(discoveryEntry())).toBe(true);
+  });
+
+  it("rejects literature-anchor rows (source !== 'discovered')", () => {
+    expect(isProjectDiscovery(minimalEntry({ source: "literature" }))).toBe(false);
+    expect(isProjectDiscovery(minimalEntry({ source: "both" }))).toBe(false);
+  });
+
+  it("rejects computed-but-not-novel rows (source 'this-project')", () => {
+    expect(isProjectDiscovery(minimalEntry({ source: "this-project" }))).toBe(false);
+  });
+
+  it("rejects a row corroborated by an external source", () => {
+    const e = discoveryEntry({
+      corroborating_sources: [
+        { authors: ["Someone Else"], year: 2019, title: "Prior art", venue: "MNRAS" },
+      ],
+    });
+    expect(isProjectDiscovery(e)).toBe(false);
+  });
+
+  it("rejects known-reproduction / known-class-member rows even if discovered", () => {
+    expect(isProjectDiscovery(discoveryEntry({ our_status: "known-class-member" }))).toBe(false);
+    expect(isProjectDiscovery(discoveryEntry({ our_status: "known-reproduction" }))).toBe(false);
+  });
+
+  it("rejects a row not first-published by the cyclerfinder project", () => {
+    const e = discoveryEntry({
+      first_published: { authors: ["Aldrin, B."], year: 1985, title: "x", venue: "y" },
+    });
+    expect(isProjectDiscovery(e)).toBe(false);
+  });
+
+  it("selects the headline #339 row and excludes the C21 known-class member", () => {
+    const ids = projectDiscoveries().map((e) => e.id);
+    expect(ids).toContain("umbriel-oberon-1-1-uranian-quasi-cycler-2026");
+    expect(ids).not.toContain("em-cycler-21-3d-spatial-2026");
+  });
+
+  it("every selected row genuinely satisfies all four honesty conditions", () => {
+    for (const e of projectDiscoveries()) {
+      expect(e.source).toBe("discovered");
+      expect(e.first_published.authors.some((a) => a.toLowerCase().includes("cyclerfinder"))).toBe(
+        true,
+      );
+      expect(e.corroborating_sources ?? []).toHaveLength(0);
+      expect(e.our_status).not.toBe("known-class-member");
+      expect(e.our_status).not.toBe("known-reproduction");
+    }
   });
 });
 
