@@ -298,11 +298,18 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
       continuation, and rotating-frame rosette ("petal") plots will be added to
       catalogue entries where the corrector converges.</li>
   </ul>
-  <p>
+  <p id="our-status">
     The literature-novelty check (spec §16.5) is a hard gate: no trajectory is
     labelled novel until it has been searched against the published record and found
-    absent. Reproduced known trajectories are tagged <code>known-reproduction</code>;
-    the original authors keep the credit.
+    absent. A row's relationship to that record is recorded as its
+    <code>our_status</code> (spec §16.4), which takes one of three values. A literal
+    computed copy of a single published orbit is a <code>known-reproduction</code>;
+    the original authors keep the credit. A computed member of a published
+    <em>class</em> — not a literal copy of any one published orbit, yet not novel
+    because the class is already known — is a <code>known-class-member</code>; for
+    example our 3D out-of-plane (2,1) Earth-Moon cycler is a member of the
+    spatial-resonant family of Antoniadou &amp; Libert (2019). A trajectory absent
+    from the published record is a <code>candidate-novel</code>.
   </p>
 
   <h2>Attribution policy</h2>

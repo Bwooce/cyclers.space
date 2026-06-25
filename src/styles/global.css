@@ -248,6 +248,27 @@ table.catalogue tr.hidden { display: none; }
 .dv-band-badge.db-powered_dsm           { color: #b3603f; border-color: #b3603f44; }
 .dv-band-badge.db-low_thrust_sep        { color: #7a5fa5; border-color: #7a5fa544; }
 
+/* our_status badge (spec §16.4, upstream #444): how a row relates to the
+   published record — known-class-member (muted amber/grey, distinct from the
+   dv_band palette), known-reproduction, candidate-novel. Mirrors the
+   .dv-band-badge structure. */
+.our-status-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.our-status-badge:hover { text-decoration: underline; }
+.our-status-badge.os-known-class-member { color: #9a7b3a; border-color: #9a7b3a55; }
+.our-status-badge.os-known-reproduction { color: #4a7fa5; border-color: #4a7fa544; }
+.our-status-badge.os-candidate-novel    { color: #4a8a5f; border-color: #4a8a5f44; }
+
 /* Validity-window cell (schema v5): the compact YYYY-MM-DD → YYYY-MM-DD range
    for epoch-locked rows. Monospaced so the dates line up vertically in the
    table column. */
