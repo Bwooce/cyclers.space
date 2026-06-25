@@ -89,8 +89,8 @@ describe("real synced catalogue renders without drift", () => {
     }
   });
 
-  it("every row resolves to one of the four known orbit classes", () => {
-    const known = new Set(["cycler", "quasi_cycler", "precursor_mga", "mga_tour"]);
+  it("every row resolves to one of the known orbit classes", () => {
+    const known = new Set(["cycler", "quasi_cycler", "precursor_mga", "mga_tour", "resonant_po"]);
     for (const e of entries) {
       expect(known.has(effectiveOrbitClass(e)), `row ${e.id} has unknown orbit_class`).toBe(true);
     }
