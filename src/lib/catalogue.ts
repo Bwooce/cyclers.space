@@ -70,6 +70,7 @@ export const ORBIT_CLASS_LABEL: Record<OrbitClass, string> = {
   quasi_cycler: "Quasi-cycler",
   precursor_mga: "Precursor",
   mga_tour: "Tour",
+  resonant_po: "Resonant PO",
 };
 
 /** Long-form label used in tooltips and the detail page. */
@@ -78,6 +79,7 @@ export const ORBIT_CLASS_LONG_LABEL: Record<OrbitClass, string> = {
   quasi_cycler: "quasi-cycler (epoch-locked, finite returns)",
   precursor_mga: "precursor MGA (one-shot insertion into a cycler)",
   mga_tour: "MGA tour (one-shot terminal arrival)",
+  resonant_po: "resonant periodic orbit (stable, no transport utility)",
 };
 
 /**

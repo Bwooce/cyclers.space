@@ -226,6 +226,7 @@ table.catalogue tr.hidden { display: none; }
 .orbit-class-badge.oc-quasi_cycler   { color: #4a7fa5; border-color: #4a7fa544; }
 .orbit-class-badge.oc-precursor_mga  { color: #a58b4a; border-color: #a58b4a44; }
 .orbit-class-badge.oc-mga_tour       { color: #7a5fa5; border-color: #7a5fa544; }
+.orbit-class-badge.oc-resonant_po    { color: #4aa59a; border-color: #4aa59a44; }
 
 /* Axis-B maintenance-ΔV band badge (schema v4.8 / #417). Ballistic = green,
    shading toward red as the maintenance cost rises. */

@@ -67,7 +67,17 @@ export type CyclerClass = "single-ellipse" | "multi-arc" | "non-keplerian";
 //                     points at the cycler row it feeds.
 //   - mga_tour      : non-repeating MGA tour with a terminal arrival
 //                     (Galileo VEEGA, Cassini VVEJGA, Tito 2018).
-export type OrbitClass = "cycler" | "quasi_cycler" | "precursor_mga" | "mga_tour";
+//   - resonant_po   : schema v4.9 (#453) — stable resonant/libration periodic
+//                     orbit with NO transport utility. Shares the cycler
+//                     periodicity invariants (epoch_locked=false, infinite
+//                     returns) but never encounters the secondary, so it ferries
+//                     nothing (C21 spatial-resonant member, Region B #447).
+export type OrbitClass =
+  | "cycler"
+  | "quasi_cycler"
+  | "precursor_mga"
+  | "mga_tour"
+  | "resonant_po";
 
 // Schema v4.8 Axis-B maintenance-ΔV band (upstream #417): total deterministic
 // maintenance ΔV over a 7-cycle real-ephemeris propagation, at the best launch
