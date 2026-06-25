@@ -4,7 +4,9 @@ import {
   DV_BAND_LONG,
   ORBIT_CLASS_LABEL,
   ORBIT_CLASS_LONG_LABEL,
+  OUR_STATUS_LONG,
   dvBandLabel,
+  ourStatusLabel,
   effectiveOrbitClass,
   fmt,
   fmtBodies,
@@ -110,6 +112,18 @@ const formatCite = (c: Citation): string => {
   <p class="muted">
     <code>{entry.id}</code> &middot; source: <strong>{entry.source}</strong> &middot;
     validation: <span class="vlevel">{entry.validation_level ?? "V0"}</span>
+    {entry.our_status && (
+      <>
+        {" "}&middot;{" "}
+        <a
+          href="/about/#our-status"
+          class={`our-status-badge os-${entry.our_status}`}
+          title={OUR_STATUS_LONG[entry.our_status] ?? entry.our_status}
+        >
+          {ourStatusLabel(entry.our_status)}
+        </a>
+      </>
+    )}
   </p>
 
   {rowErrata.length > 0 && (

@@ -79,6 +79,18 @@ export type DvBand =
   | "powered_dsm" // >= 300 m/s / 7 cycles (impulsive/DSM)
   | "low_thrust_sep"; // SEP / low-thrust maintenance
 
+// Spec §16.4 "our_status" — how a row relates to the published record:
+//  - known-reproduction: a literal computed copy of a single published orbit.
+//  - known-class-member: a computed member of a published *class* that is NOT a
+//    literal copy of any single published orbit and NOT novel (e.g. the C21 3D
+//    Earth-Moon cycler, a member of the Antoniadou & Libert 2019 spatial-
+//    resonant family).
+//  - candidate-novel: a candidate not yet found in the published record.
+export type OurStatus =
+  | "known-reproduction"
+  | "known-class-member"
+  | "candidate-novel";
+
 // Schema v5 validity window — when the trajectory is reachable for the epoch-
 // locked classes (quasi_cycler / precursor_mga / mga_tour). ISO-8601 dates.
 export interface ValidityWindow {
@@ -283,6 +295,9 @@ export interface CyclerEntry {
   // is required upstream whenever dv_band is non-null. See /about/#cycler-cost.
   dv_band?: DvBand | null;
   dv_band_source?: string | null;
+  // Spec §16.4 (upstream #444): relationship of this row to the published record.
+  // Absent on most rows; surfaced as a badge when present. See /about/#our-status.
+  our_status?: OurStatus | null;
   // Schema v4.9 (upstream #427, M7): per-interior-flyby minimal-thrust periapsis
   // altitude (km above the body surface) — the height that delivers the node's
   // required turn ballistically, capped at the body's sourced flyby floor (#426).

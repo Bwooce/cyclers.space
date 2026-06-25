@@ -442,3 +442,21 @@ export const DV_BAND_LONG: Record<string, string> = {
 
 export const dvBandLabel = (b: string | null | undefined): string =>
   b ? (DV_BAND_LABEL[b] ?? b) : "";
+
+// Spec §16.4 (upstream #444) our_status — short table labels and long titles.
+export const OUR_STATUS_LABEL: Record<string, string> = {
+  "known-reproduction": "reproduction",
+  "known-class-member": "known-class",
+  "candidate-novel": "candidate",
+};
+
+export const OUR_STATUS_LONG: Record<string, string> = {
+  "known-reproduction":
+    "Computed literal reproduction of a single published orbit",
+  "known-class-member":
+    "Computed member of a published class — not a novel discovery and not a literal reproduction of any single published orbit",
+  "candidate-novel": "Candidate not yet found in the published record",
+};
+
+export const ourStatusLabel = (s: string | null | undefined): string =>
+  s ? (OUR_STATUS_LABEL[s] ?? s) : "";

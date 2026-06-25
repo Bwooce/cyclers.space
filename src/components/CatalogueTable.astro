@@ -2,7 +2,9 @@
 import {
   DV_BAND_LONG,
   ORBIT_CLASS_LABEL,
+  OUR_STATUS_LONG,
   dvBandLabel,
+  ourStatusLabel,
   effectiveOrbitClass,
   fmt,
   fmtBodies,
@@ -235,7 +237,18 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
               )}
               <td class="right">{completePct}%</td>
               <td>{defined ? "yes" : <span class="muted">no</span>}</td>
-              <td><span class="vlevel">{e.validation_level ?? "V0"}</span></td>
+              <td>
+                <span class="vlevel">{e.validation_level ?? "V0"}</span>
+                {e.our_status && (
+                  <a
+                    href="/about/#our-status"
+                    class={`our-status-badge os-${e.our_status}`}
+                    title={OUR_STATUS_LONG[e.our_status] ?? e.our_status}
+                  >
+                    {ourStatusLabel(e.our_status)}
+                  </a>
+                )}
+              </td>
               <td>
                 {cite.doi ? (
                   <a href={`https://doi.org/${cite.doi}`} rel="noopener noreferrer">
