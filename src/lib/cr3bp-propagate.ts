@@ -1,5 +1,6 @@
-// Planar CR3BP propagation for the front-page hero scenes (task #227, design
-// docs/superpowers/specs/2026-06-13-front-page-orbit-viz-design.md §1).
+// Spatial (3D) CR3BP propagation for the front-page hero scenes (task #227,
+// design docs/superpowers/specs/2026-06-13-front-page-orbit-viz-design.md §1)
+// and the 3D orbit renderer (task #410).
 //
 // The Ross Earth-Moon cycler rows (V2) carry a complete CR3BP identity in
 // orbit_elements.cr3bp: sourced (mu, C, T_nd) plus state_nd (derived upstream
@@ -12,14 +13,18 @@
 // period-closure residual alongside the points, so the renderer and the unit
 // tests can both check honesty mechanically.
 //
-// Model: planar circular restricted three-body problem, rotating (synodic)
-// frame, nondimensional units (distance = primary separation, time such that
-// the mean motion is 1). Primary m1 (Earth) at (-mu, 0), secondary m2 (Moon)
-// at (1-mu, 0).
+// Model: spatial (3D) circular restricted three-body problem, rotating
+// (synodic) frame, nondimensional units (distance = primary separation, time
+// such that the mean motion is 1). Primary m1 (Earth) at (-mu, 0, 0),
+// secondary m2 (Moon) at (1-mu, 0, 0). Planar rows carry z = vz = 0 and are a
+// strict special case (their z-dynamics stay identically zero); out-of-plane
+// rows such as the (2,1) 3D spatial resonant_po row (em-cycler-21-3d-spatial,
+// z0 ~ -0.206) need the full z-acceleration and the 3D Jacobi to close and to
+// conserve C.
 //
-//   xddot - 2*ydot = dOmega/dx,  yddot + 2*xdot = dOmega/dy
-//   Omega = (x^2 + y^2)/2 + (1-mu)/r1 + mu/r2
-//   C = 2*Omega - (xdot^2 + ydot^2)        (Jacobi constant)
+//   xddot - 2*ydot = dOmega/dx,  yddot + 2*xdot = dOmega/dy,  zddot = dOmega/dz
+//   Omega = (x^2 + y^2)/2 + (1-mu)/r1 + mu/r2,  r1,r2 the 3D distances
+//   C = 2*Omega - (xdot^2 + ydot^2 + zdot^2)        (Jacobi constant)
 //
 // Integrator: classical RK4, fixed step. The Ross orbits are stable
 // (|stability_index| << 1) with periods 10-20 TU. The default step count is
@@ -35,13 +40,16 @@
 export interface Cr3bpState {
   x: number;
   y: number;
+  z: number;
   vx: number;
   vy: number;
+  vz: number;
 }
 
 export interface Cr3bpOrbit {
-  /** Rotating-frame positions over one period, nondimensional units. */
-  points: { x: number; y: number }[];
+  /** Rotating-frame positions over one period, nondimensional units. `z` is
+   *  the out-of-plane coordinate (0 for planar rows); 2D consumers read x,y. */
+  points: { x: number; y: number; z: number }[];
   /** Nondimensional time of each point (0 .. periodNd). */
   timesNd: number[];
   /** Jacobi constant at the initial state. */
@@ -52,23 +60,25 @@ export interface Cr3bpOrbit {
   closureNd: number;
 }
 
-/** Jacobi constant of a planar rotating-frame state. */
+/** Jacobi constant of a spatial (3D) rotating-frame state. Planar states
+ *  (z = vz = 0) reduce to the usual planar value. */
 export function jacobiConstant(mu: number, s: Cr3bpState): number {
-  const r1 = Math.hypot(s.x + mu, s.y);
-  const r2 = Math.hypot(s.x - 1 + mu, s.y);
+  const r1 = Math.hypot(s.x + mu, s.y, s.z);
+  const r2 = Math.hypot(s.x - 1 + mu, s.y, s.z);
   const omega = (s.x * s.x + s.y * s.y) / 2 + (1 - mu) / r1 + mu / r2;
-  return 2 * omega - (s.vx * s.vx + s.vy * s.vy);
+  return 2 * omega - (s.vx * s.vx + s.vy * s.vy + s.vz * s.vz);
 }
 
-/** Planar CR3BP equations of motion (rotating frame), d/dt [x,y,vx,vy]. */
+/** Spatial CR3BP equations of motion (rotating frame), d/dt [x,y,z,vx,vy,vz]. */
 function deriv(mu: number, s: Cr3bpState): Cr3bpState {
   const dx1 = s.x + mu;
   const dx2 = s.x - 1 + mu;
-  const r1c = Math.pow(dx1 * dx1 + s.y * s.y, 1.5);
-  const r2c = Math.pow(dx2 * dx2 + s.y * s.y, 1.5);
+  const r1c = Math.pow(dx1 * dx1 + s.y * s.y + s.z * s.z, 1.5);
+  const r2c = Math.pow(dx2 * dx2 + s.y * s.y + s.z * s.z, 1.5);
   const ax = s.x + 2 * s.vy - ((1 - mu) * dx1) / r1c - (mu * dx2) / r2c;
   const ay = s.y - 2 * s.vx - ((1 - mu) * s.y) / r1c - (mu * s.y) / r2c;
-  return { x: s.vx, y: s.vy, vx: ax, vy: ay };
+  const az = -((1 - mu) * s.z) / r1c - (mu * s.z) / r2c;
+  return { x: s.vx, y: s.vy, z: s.vz, vx: ax, vy: ay, vz: az };
 }
 
 // --- adaptive Dormand-Prince RK45 (error-controlled) ----------------------
@@ -80,14 +90,16 @@ function deriv(mu: number, s: Cr3bpState): Cr3bpState {
 // UNIFORM-in-time polyline (resampled below), so nothing downstream changes.
 
 const _ax = (s: Cr3bpState, h: number, k: Cr3bpState): Cr3bpState => ({
-  x: s.x + h * k.x, y: s.y + h * k.y, vx: s.vx + h * k.vx, vy: s.vy + h * k.vy,
+  x: s.x + h * k.x, y: s.y + h * k.y, z: s.z + h * k.z,
+  vx: s.vx + h * k.vx, vy: s.vy + h * k.vy, vz: s.vz + h * k.vz,
 });
 const _lin = (s: Cr3bpState, h: number, terms: [number, Cr3bpState][]): Cr3bpState => {
-  let x = s.x, y = s.y, vx = s.vx, vy = s.vy;
+  let x = s.x, y = s.y, z = s.z, vx = s.vx, vy = s.vy, vz = s.vz;
   for (const [c, k] of terms) {
-    x += h * c * k.x; y += h * c * k.y; vx += h * c * k.vx; vy += h * c * k.vy;
+    x += h * c * k.x; y += h * c * k.y; z += h * c * k.z;
+    vx += h * c * k.vx; vy += h * c * k.vy; vz += h * c * k.vz;
   }
-  return { x, y, vx, vy };
+  return { x, y, z, vx, vy, vz };
 };
 
 /** One Dormand-Prince 5(4) step: returns the 5th-order state and the embedded
@@ -106,16 +118,19 @@ function dp45Step(mu: number, s: Cr3bpState, h: number): { y5: Cr3bpState; err: 
     [35 / 384 - 5179 / 57600, k1], [500 / 1113 - 7571 / 16695, k3], [125 / 192 - 393 / 640, k4],
     [-2187 / 6784 - -92097 / 339200, k5], [11 / 84 - 187 / 2100, k6], [-1 / 40, k7],
   ];
-  let ex = 0, ey = 0, evx = 0, evy = 0;
-  for (const [c, k] of e) { ex += h * c * k.x; ey += h * c * k.y; evx += h * c * k.vx; evy += h * c * k.vy; }
-  const err = Math.max(Math.abs(ex), Math.abs(ey), Math.abs(evx), Math.abs(evy));
+  let ex = 0, ey = 0, ez = 0, evx = 0, evy = 0, evz = 0;
+  for (const [c, k] of e) {
+    ex += h * c * k.x; ey += h * c * k.y; ez += h * c * k.z;
+    evx += h * c * k.vx; evy += h * c * k.vy; evz += h * c * k.vz;
+  }
+  const err = Math.max(Math.abs(ex), Math.abs(ey), Math.abs(ez), Math.abs(evx), Math.abs(evy), Math.abs(evz));
   return { y5, err };
 }
 
 /**
- * Propagate a planar CR3BP state for one period with adaptive (Dormand-Prince
+ * Propagate a spatial CR3BP state for one period with adaptive (Dormand-Prince
  * RK45) stepping. `state6` is the catalogue's 6-component state_nd
- * [x, y, z, vx, vy, vz] (planar rows carry z = vz = 0); z is ignored.
+ * [x, y, z, vx, vy, vz]; planar rows carry z = vz = 0 and stay in-plane.
  *
  * Adaptive substeps are taken under a per-step tolerance (`tol`); the trajectory
  * is then resampled onto `outSamples` UNIFORM time points for the polyline
@@ -130,7 +145,10 @@ export function propagateCr3bp(
   outSamples = 1200,
   tol = 1e-11,
 ): Cr3bpOrbit {
-  const s0: Cr3bpState = { x: state6[0] ?? 0, y: state6[1] ?? 0, vx: state6[3] ?? 0, vy: state6[4] ?? 0 };
+  const s0: Cr3bpState = {
+    x: state6[0] ?? 0, y: state6[1] ?? 0, z: state6[2] ?? 0,
+    vx: state6[3] ?? 0, vy: state6[4] ?? 0, vz: state6[5] ?? 0,
+  };
   const jacobi0 = jacobiConstant(mu, s0);
 
   // Adaptive integration 0 -> periodNd, collecting accepted (t, state) samples.
@@ -146,7 +164,7 @@ export function propagateCr3bp(
     if (t + h > periodNd) h = periodNd - t; // land exactly on T
     const { y5, err } = dp45Step(mu, s, h);
     // Tolerance scaled to the state magnitude (relative + absolute floor).
-    const scale = tol * (1 + Math.max(Math.abs(s.x), Math.abs(s.y), Math.abs(s.vx), Math.abs(s.vy)));
+    const scale = tol * (1 + Math.max(Math.abs(s.x), Math.abs(s.y), Math.abs(s.z), Math.abs(s.vx), Math.abs(s.vy), Math.abs(s.vz)));
     if (err <= scale || h <= hMin) {
       t += h;
       s = y5;
@@ -160,10 +178,10 @@ export function propagateCr3bp(
     h *= Math.min(5, Math.max(0.2, ratio));
     if (h < hMin) h = hMin;
   }
-  const closureNd = Math.hypot(s.x - s0.x, s.y - s0.y);
+  const closureNd = Math.hypot(s.x - s0.x, s.y - s0.y, s.z - s0.z);
 
   // Resample accepted samples onto a uniform time grid for the polyline.
-  const points: { x: number; y: number }[] = [];
+  const points: { x: number; y: number; z: number }[] = [];
   const timesNd: number[] = [];
   let j = 0;
   for (let i = 0; i < outSamples; i++) {
@@ -174,7 +192,11 @@ export function propagateCr3bp(
     const a = t1 > t0 ? (tt - t0) / (t1 - t0) : 0;
     const p0 = states[j]!;
     const p1 = states[j + 1]!;
-    points.push({ x: p0.x + a * (p1.x - p0.x), y: p0.y + a * (p1.y - p0.y) });
+    points.push({
+      x: p0.x + a * (p1.x - p0.x),
+      y: p0.y + a * (p1.y - p0.y),
+      z: p0.z + a * (p1.z - p0.z),
+    });
     timesNd.push(tt);
   }
   return { points, timesNd, jacobi0, jacobiDrift: drift, closureNd };
