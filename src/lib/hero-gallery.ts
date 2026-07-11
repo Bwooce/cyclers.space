@@ -250,6 +250,12 @@ export async function mountHeroGallery(
         const line = lineFromPoints(pts, color);
         (line.material as THREE_NS.LineBasicMaterial).transparent = true;
         (line.material as THREE_NS.LineBasicMaterial).opacity = 0.4;
+        // Without this, depthWrite defaults to true on a transparent material:
+        // the near half of this closed ring writes the depth buffer first and
+        // culls the far half of the SAME ring against its own depth, visually
+        // showing only half the loop. Thin reference rings don't need to
+        // occlude anything behind them, so disabling depthWrite is safe.
+        (line.material as THREE_NS.LineBasicMaterial).depthWrite = false;
         group.add(line);
         extent = Math.max(extent, r);
       }
@@ -347,6 +353,12 @@ export async function mountHeroGallery(
       const ring = lineFromPoints(samplePath(b.el, 120).map(toThree), col.moon);
       (ring.material as THREE_NS.LineBasicMaterial).transparent = true;
       (ring.material as THREE_NS.LineBasicMaterial).opacity = 0.45;
+      // Same depthWrite fix as buildHelio's aphelion rings above: a transparent
+      // material defaults depthWrite=true, which makes the near half of this
+      // closed moon-orbit ring occlude its own far half in the depth buffer —
+      // "only half the orbit shows" bug. These are honest-context reference
+      // rings, not occluding geometry, so disabling depthWrite is safe.
+      (ring.material as THREE_NS.LineBasicMaterial).depthWrite = false;
       group.add(ring);
       // The moving marker gets its own distinct, unmuted colour — never the
       // ring's colour — so it doesn't camouflage against the track it rides.
