@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
 import { cyclableScenes, palette, MOON_MARKER_COLOR, CURVE_COLORS } from "../hero-gallery";
 import { buildHeroScenes } from "../hero-scenes";
@@ -85,6 +87,39 @@ describe("MOON_MARKER_COLOR (moving-marker visibility regression)", () => {
   it("differs from every discovery-curve colour", () => {
     for (const c of CURVE_COLORS) {
       expect(MOON_MARKER_COLOR).not.toBe(c);
+    }
+  });
+});
+
+// Regression test for the "half the orbit is missing" bug (2026-07 report:
+// "the uranian quasi cycler visualisation seems to only show half of each
+// orbit"). mountHeroGallery/buildUranian/buildHelio are three.js closures
+// that need a real WebGL canvas + `window` to execute (this suite runs under
+// vitest's plain `node` environment per vitest.config.ts — no jsdom, no GPU
+// context), so they can't be exercised directly here. Instead this asserts
+// the source-level invariant that caused the bug: a THREE.Line material with
+// `transparent = true` also defaults `depthWrite = true`, so a closed ring's
+// near half writes the depth buffer and culls its own far half. Every
+// transparent ring/line material in this file must pair `transparent = true`
+// with `depthWrite = false` so this bug class can't silently recur — for
+// today's two sites (buildHelio's aphelion "ring" curve-kind, buildUranian's
+// moon reference-orbit rings) and any future one.
+describe("transparent ring/line materials set depthWrite = false (half-orbit-missing regression)", () => {
+  const source = readFileSync(fileURLToPath(new URL("../hero-gallery.ts", import.meta.url)), "utf-8");
+
+  it("finds at least the two known transparent-ring sites (buildHelio ring curves + buildUranian moon rings)", () => {
+    const transparentAssignments = [...source.matchAll(/\((\w+)\.material as [\w.]+\)\.transparent = true;/g)];
+    expect(transparentAssignments.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("pairs every `transparent = true` line-material assignment with `depthWrite = false` on the same variable", () => {
+    const transparentAssignments = [...source.matchAll(/\((\w+)\.material as [\w.]+\)\.transparent = true;/g)];
+    for (const match of transparentAssignments) {
+      const varName = match[1];
+      const depthWriteRe = new RegExp(`\\(${varName}\\.material as [\\w.]+\\)\\.depthWrite = false;`);
+      expect(source, `expected (${varName}.material).depthWrite = false near offset ${match.index}`).toMatch(
+        depthWriteRe,
+      );
     }
   });
 });
