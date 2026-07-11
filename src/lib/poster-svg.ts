@@ -6,10 +6,13 @@
 // the data — every deploy regenerates it because it IS part of the build
 // (served by the /poster.svg static endpoint).
 //
-// Three panels — heliocentric / Earth-Moon rotating frame / Jovian badge
-// card — each with its own honesty caption. Geometry comes only from the
-// shared pure modules (kepler-time samplePath, cr3bp-propagate): the poster
-// can never draw something the gallery (and the data) wouldn't.
+// One panel per scene — heliocentric, the Earth-Moon rotating-frame panels
+// (split by family, 2026-07), Uranian, Jovian badge card, etc. — each with
+// its own honesty caption. Geometry comes only from the shared pure modules
+// (kepler-time samplePath, cr3bp-propagate): the poster can never draw
+// something the gallery (and the data) wouldn't. Panel count/layout is
+// driven by `scenes.length` (see buildPosterSvg's N-column loop below), so
+// adding/splitting a scene never needs a layout change here.
 //
 // Self-contained styling (the poster is consumed as an <img>, where page CSS
 // cannot reach), dark cosmic palette, 1200x630 (the standard social-card
@@ -301,7 +304,7 @@ export function buildPosterSvg(): string {
       const content =
         scene.id === "heliocentric"
           ? helioPanel(scene, p)
-          : scene.id === "earth-moon"
+          : scene.id.startsWith("earth-moon-")
             ? earthMoonPanel(scene, p)
             : scene.id === "uranian"
               ? uranianPanel(scene, p)

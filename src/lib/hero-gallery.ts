@@ -7,9 +7,11 @@
 // ZERO WebGL bytes until the user clicks.
 //
 // Unlike three-view.ts (one heliocentric clockConfig, one craft), the gallery
-// auto-cycles the THREE hero scenes (hero-scenes.ts), each a whole SYSTEM of
-// V1+ rows drawn together. It reuses the pure primitives the per-cycler view is
-// built on — toThree (the single ecliptic->three frame swap), kepler-time
+// auto-cycles the hero scenes (hero-scenes.ts) -- originally three, now more
+// (the Earth-Moon panel split into per-family sub-scenes, 2026-07) -- each a
+// whole SYSTEM (or family group) of V1+ rows drawn together. It reuses the
+// pure primitives the per-cycler view is built on — toThree (the single
+// ecliptic->three frame swap), kepler-time
 // samplePath/stateAt for heliocentric curves, cr3bp-propagate for the rotating
 // frame — plus the same palette / starfield / dispose patterns.
 //
@@ -419,7 +421,11 @@ export async function mountHeroGallery(
 
   function buildScene(spec: HeroSceneSpec): BuiltScene {
     if (spec.id === "heliocentric") return buildHelio(spec);
-    if (spec.id === "earth-moon") return buildEarthMoon(spec);
+    // Earth-Moon split into 3 family-grouped scene ids (2026-07 follow-up to
+    // #227); all three are still rotating-frame PCR3BP content with the same
+    // rendering needs, just a filtered curve list, so buildEarthMoon (below)
+    // is reused unchanged for every earth-moon-* id.
+    if (spec.id.startsWith("earth-moon-")) return buildEarthMoon(spec);
     if (spec.id === "uranian") return buildUranian(spec);
     return buildBadgeOnly(spec);
   }

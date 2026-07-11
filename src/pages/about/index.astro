@@ -26,6 +26,42 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
     specific table or page in the cited source.
   </p>
 
+  <h2 id="reading-diagrams">Reading the diagrams: why do some orbits look pointy?</h2>
+  <p>
+    A question people ask looking at the Earth-Moon panels on the front page: <em>how can
+    the orbit fall back on itself like that, with a sharp corner, when it never runs into
+    anything there?</em> It's a fair thing to notice — a sudden reversal usually means a
+    collision or a maneuver, and neither is happening. The answer is about the
+    <strong>camera</strong>, not the spacecraft.
+  </p>
+  <p>
+    The Earth-Moon panels are drawn in the <strong>rotating (synodic) frame</strong> — a
+    frame of reference that spins together with the Earth-Moon line, so Earth and the Moon
+    both sit still on the page. The spacecraft's real, physical velocity is always smooth;
+    there is no reversal and nothing is encountered at the cusp. But what gets
+    <em>plotted</em> is the spacecraft's motion <em>relative to the rotating frame</em> —
+    its true motion minus the frame's own spin. Wherever the spacecraft's own angular rate
+    around the system momentarily matches the frame's rotation rate, that difference passes
+    through zero and can flip sign, producing a sharp corner in the drawn path even though
+    the underlying trajectory is perfectly smooth in reality.
+  </p>
+  <p>
+    This is exactly the same, well-known effect as the <strong>apparent retrograde motion</strong>
+    of Mars or Jupiter seen from Earth: viewed from a moving vantage point (Earth, orbiting
+    the Sun), an outer planet's smooth heliocentric ellipse appears to loop backward, with
+    sharp "stationary points" at each end of the loop. Nothing about Mars's real orbit
+    changes at those points — it's purely an artifact of watching from a moving platform.
+    The cusps in these CR3BP diagrams are the same artifact, one level down: Earth and the
+    Moon are the "fixed" reference instead of the Sun.
+  </p>
+  <p>
+    Cyclers often (not always) show a cusp near a close lunar or Earth flyby, because that is
+    where the spacecraft's own angular rate changes fastest and so is most likely to cross the
+    frame's rotation rate — but the cusp itself is a frame effect, not evidence that the
+    spacecraft passed close to a body at that exact point. Read the sharp corners as "the
+    camera is spinning," never as "something happened here."
+  </p>
+
   <h2 id="cycler-types">The five kinds of trajectory</h2>
   <p>
     "Cycler" gets used loosely. The catalogue separates five genuinely different things,
