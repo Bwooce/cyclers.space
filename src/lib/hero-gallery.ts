@@ -73,6 +73,39 @@ export interface HeroGallery {
 }
 
 /**
+ * Scenes eligible for the 3D gallery's auto-cycling rotation.
+ *
+ * `hero-scenes.ts` intentionally emits badge-only scenes (curves.length===0
+ * — today: Jovian-moon triple cyclers, Other systems) whose catalogue rows
+ * publish no orbit geometry, only invariants (V-inf multisets, sequences).
+ * The static poster (poster-svg.ts) renders those honestly as a compact
+ * badge panel — a legitimate, non-broken-looking representation. But the
+ * animated 3D gallery has nothing to draw or move for such a scene: the
+ * visitor just sees an empty canvas with a lone marker, which reads as
+ * broken, not as "no trajectory data available". So the gallery excludes
+ * zero-curve scenes from what it CYCLES through.
+ *
+ * `buildHeroScenes()` itself must keep returning every scene (including
+ * badge-only ones) — the poster and any "N reproduced" headline count still
+ * need the full set, and rowCount must keep summing to reproducedCount().
+ * This filter is therefore applied here, at the gallery consumer, not at
+ * the source.
+ *
+ * Defensive fallback: if EVERY scene were badge-only (not the case with
+ * today's data), filtering would leave nothing to show. Rather than crash
+ * on an empty built-scene array, fall back to the unfiltered list so the
+ * gallery still renders something (its existing badge-only placeholder —
+ * starfield + a lone primary marker, via buildBadgeOnly below).
+ *
+ * Exported as a pure function (no three.js) so this policy is unit-testable
+ * without a WebGL/canvas environment.
+ */
+export function cyclableScenes(scenes: HeroSceneSpec[]): HeroSceneSpec[] {
+  const withCurves = scenes.filter((s) => s.curves.length > 0);
+  return withCurves.length > 0 ? withCurves : scenes;
+}
+
+/**
  * Mount the cycling 3D gallery into `host`. `scenes` is the build-computed
  * HeroSceneSpec[] (passed through the inline JSON island). `legend`, `caption`
  * and the prev/next/play buttons are DOM the caller has already created; this
@@ -309,7 +342,11 @@ export async function mountHeroGallery(
 
   /** Badge-only scene (Jovian / other): no curve drawn — handled by the DOM
    *  legend + caption. The 3D group shows only a faint starfield + the host
-   *  primary marker so the canvas isn't blank, NEVER a fabricated trajectory. */
+   *  primary marker so the canvas isn't blank, NEVER a fabricated trajectory.
+   *  In normal operation `cyclableScenes()` filters badge-only scenes out of
+   *  the gallery's rotation before `buildScene` ever sees them (an empty
+   *  animated scene is the actual UX bug being fixed); this builder only
+   *  fires today via that filter's own degenerate all-badge fallback. */
   function buildBadgeOnly(spec: HeroSceneSpec): BuiltScene {
     const group = new THREE.Group();
     group.add(sphere(0.08, col.sun));
@@ -328,7 +365,7 @@ export async function mountHeroGallery(
     return buildBadgeOnly(spec);
   }
 
-  const built = scenes.map(buildScene);
+  const built = cyclableScenes(scenes).map(buildScene);
   // One starfield, sized for the largest scene, parented to the root scene.
   const maxExtent = Math.max(...built.map((b) => b.extent), 1);
   addStarfield(scene, maxExtent * 8 + 5);
