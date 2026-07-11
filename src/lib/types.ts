@@ -103,9 +103,17 @@ export type OurStatus =
 
 // Schema v5 validity window — when the trajectory is reachable for the epoch-
 // locked classes (quasi_cycler / precursor_mga / mga_tour). ISO-8601 dates.
+// The synodic_* / secondary_drift_floor_* fields (2026-07, upstream #558-#569
+// Uranian symmetric-closure family) are additive-optional: a quasi_cycler row's
+// measured synodic-resonance timing (not every quasi_cycler row carries them).
 export interface ValidityWindow {
   start: string;
   end: string;
+  synodic_duty_cycle_pct?: number | null;
+  synodic_boundary_period_days?: number | null;
+  synodic_period_days?: number | null;
+  secondary_drift_floor_population_pct?: number | null;
+  secondary_drift_floor_range_km?: [number, number] | null;
 }
 
 // Cycle-level identity descriptors for multi-arc cyclers (spec §16.7.4).

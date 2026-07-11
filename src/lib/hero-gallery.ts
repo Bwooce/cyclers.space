@@ -33,6 +33,7 @@ import type { HeroSceneSpec } from "./hero-scenes";
 import { samplePath, stateAt, type KeplerElements } from "./kepler-time";
 import { propagateCr3bp } from "./cr3bp-propagate";
 import { toThree } from "./three-axis";
+import { hohmannArcPoints } from "./uranus-scene";
 
 // Tier colours mirror the poster's palette so the two renderers agree.
 const TIER_COLOR: Record<string, number> = {
@@ -45,6 +46,7 @@ const TIER_COLOR: Record<string, number> = {
 // Distinct per-curve hues within a scene (colour + a named legend entry — never
 // colour alone), reused for whichever scene is showing.
 const CURVE_COLORS = [0x6fd08c, 0x7fa8e0, 0xf0c060, 0xe0907f, 0xc89fe8, 0x7fd0c0, 0xe0c07f];
+const URANUS_COLOR = 0x8fc7d9;
 
 const SCENE_DWELL_MS = 8000;
 
@@ -257,6 +259,54 @@ export async function mountHeroGallery(
     return { group, extent, setTime, periodDays: maxPeriod, spec };
   }
 
+  /** Uranian scene: real moon-orbit circles (km) + idealized Hohmann-type
+   *  transfer arcs. Units here are km (hundreds of thousands), unlike the
+   *  AU/nondimensional units of the other scenes, so marker radii are sized
+   *  relative to this scene's own extent rather than the fixed world radii
+   *  used elsewhere. The scene's local frame already defines z=pole (i=0 for
+   *  every moon), so the shared toThree swap puts the pole on world "up" —
+   *  the camera looks straight down it with no extra transform needed. */
+  function buildUranian(spec: HeroSceneSpec): BuiltScene {
+    const group = new THREE.Group();
+    const maxSma = Math.max(1, ...spec.bodies.filter((b) => b.el).map((b) => b.el!.a));
+    const extent = maxSma;
+    const markerR = extent * 0.012;
+
+    group.add(sphere(extent * 0.02, URANUS_COLOR));
+
+    const moonMarkers: { el: KeplerElements; mesh: THREE_NS.Mesh }[] = [];
+    for (const b of spec.bodies) {
+      if (b.kind === "star" || !b.el) continue;
+      group.add(lineFromPoints(samplePath(b.el, 120).map(toThree), col.moon));
+      const m = sphere(markerR * 0.7, col.moon);
+      group.add(m);
+      moonMarkers.push({ el: b.el, mesh: m });
+    }
+
+    spec.curves.forEach((c, i) => {
+      if (c.geom.kind !== "uranian-transfer") return;
+      const color = CURVE_COLORS[i % CURVE_COLORS.length]!;
+      const pts2d = hohmannArcPoints(
+        { aKm: c.geom.aKm, e: c.geom.e, aIsPeriapsis: c.geom.smaAKm <= c.geom.smaBKm },
+        c.geom.azimuthDeg,
+        96,
+      );
+      const pts3d = pts2d.map((p) => toThree({ x: p.x, y: p.y, z: 0 }));
+      group.add(lineFromPoints(pts3d, color));
+    });
+
+    const setTime = (tDay: number) => {
+      for (const { el, mesh } of moonMarkers) {
+        const w = toThree(stateAt(el, tDay));
+        mesh.position.set(w.x, w.y, w.z);
+      }
+    };
+    setTime(0);
+    let maxPeriod = 0;
+    for (const { el } of moonMarkers) maxPeriod = Math.max(maxPeriod, periodOf(el));
+    return { group, extent, setTime, periodDays: maxPeriod, spec };
+  }
+
   /** Badge-only scene (Jovian / other): no curve drawn — handled by the DOM
    *  legend + caption. The 3D group shows only a faint starfield + the host
    *  primary marker so the canvas isn't blank, NEVER a fabricated trajectory. */
@@ -274,6 +324,7 @@ export async function mountHeroGallery(
   function buildScene(spec: HeroSceneSpec): BuiltScene {
     if (spec.id === "heliocentric") return buildHelio(spec);
     if (spec.id === "earth-moon") return buildEarthMoon(spec);
+    if (spec.id === "uranian") return buildUranian(spec);
     return buildBadgeOnly(spec);
   }
 

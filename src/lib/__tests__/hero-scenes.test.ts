@@ -55,6 +55,40 @@ describe("hero scene specs", () => {
     expect(s.captionLines.join(" ")).toContain("rotating frame");
   });
 
+  it("uranian scene: leads the array and carries all six representative arcs", () => {
+    expect(scenes[0]?.id).toBe("uranian");
+    const s = scenes.find((x) => x.id === "uranian")!;
+    expect(s).toBeDefined();
+    expect(s.curves.length + s.badges.length).toBe(6);
+    expect(s.curves.length).toBe(6); // all six rows resolve real moon pairs
+    for (const c of s.curves) {
+      expect(c.geom.kind).toBe("uranian-transfer");
+      expect(c.fidelity).toContain("idealized");
+      expect(c.fidelity).toContain("NOT the row's actual computed arc");
+      if (c.geom.kind === "uranian-transfer") {
+        expect(c.geom.smaAKm).toBeGreaterThan(0);
+        expect(c.geom.smaBKm).toBeGreaterThan(0);
+        expect(c.geom.e).toBeGreaterThanOrEqual(0);
+        expect(c.geom.e).toBeLessThan(1);
+      }
+    }
+    // Six distinct azimuths (one per moon-pair direction) -- visually separated.
+    const azimuths = s.curves.map((c) => (c.geom.kind === "uranian-transfer" ? c.geom.azimuthDeg : -1));
+    expect(new Set(azimuths).size).toBe(6);
+    // Uranus + the four moons, all coplanar (i=0) with a real sourced sma.
+    expect(s.bodies.find((b) => b.name === "Uranus")?.kind).toBe("star");
+    const moons = s.bodies.filter((b) => b.kind === "moon");
+    expect(moons.map((b) => b.name).sort()).toEqual(["Ariel", "Oberon", "Titania", "Umbriel"]);
+    for (const m of moons) {
+      expect(m.el?.e).toBe(0);
+      expect(m.el?.i_deg).toBe(0);
+      expect(m.el?.a).toBeGreaterThan(0);
+    }
+    expect(s.captionLines.join(" ")).toContain("down the Uranian pole");
+    expect(s.captionLines.join(" ")).toContain("NOT the row's real arc");
+    expect(s.captionLines.join(" ")).toContain("V4");
+  });
+
   it("jovian scene: badges only, zero curves, honesty caption says so", () => {
     const s = scenes.find((x) => x.id === "jovian")!;
     expect(s).toBeDefined();

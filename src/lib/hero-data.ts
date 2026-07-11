@@ -33,6 +33,26 @@ export function reproducedCount(): number {
   return reproducedEntries().length;
 }
 
+/**
+ * The system a row's curve/camera should be drawn in. Reads the explicit
+ * `primary` field when present; otherwise falls back to a data-derived
+ * heuristic — currently only Uranus needs one. The six 2026-07 Uranian
+ * symmetric-closure quasi-cycler rows (#312 family, upstream #558->#569,
+ * catalogue commit 8efabd5) were written WITHOUT a `primary: Uranus` field —
+ * a deliberate omission upstream (adding it broke an unrelated test pin) —
+ * so `primary` alone would silently default them to "Sun" (heliocentric).
+ * `bodies` is not optional and IS always present: verified against the
+ * synced catalogue that exactly six rows carry "Uranus" in `bodies`, all six
+ * of them these Uranian rows and none of them carrying a conflicting
+ * explicit `primary`. Use this helper everywhere a row's system is decided —
+ * never re-read `entry.primary` directly (that reintroduces the bug).
+ */
+export function effectivePrimary(entry: CyclerEntry): string {
+  if (entry.primary) return entry.primary;
+  if (entry.bodies.includes("Uranus")) return "Uranus";
+  return "Sun";
+}
+
 export interface HeroGroups {
   /** primary Sun (or absent): heliocentric scene. */
   heliocentric: CyclerEntry[];
@@ -40,17 +60,20 @@ export interface HeroGroups {
   earthMoon: CyclerEntry[];
   /** primary Jupiter: Jovian-moons scene. */
   jovian: CyclerEntry[];
+  /** effective primary Uranus: Uranian moon-pair quasi-cycler scene. */
+  uranian: CyclerEntry[];
   /** any other primary: generic badge scene (never silently dropped). */
   other: CyclerEntry[];
 }
 
 export function heroGroups(): HeroGroups {
-  const groups: HeroGroups = { heliocentric: [], earthMoon: [], jovian: [], other: [] };
+  const groups: HeroGroups = { heliocentric: [], earthMoon: [], jovian: [], uranian: [], other: [] };
   for (const e of reproducedEntries()) {
-    const primary = e.primary ?? "Sun";
+    const primary = effectivePrimary(e);
     if (primary === "Sun") groups.heliocentric.push(e);
     else if (primary === "Earth") groups.earthMoon.push(e);
     else if (primary === "Jupiter") groups.jovian.push(e);
+    else if (primary === "Uranus") groups.uranian.push(e);
     else groups.other.push(e);
   }
   return groups;
