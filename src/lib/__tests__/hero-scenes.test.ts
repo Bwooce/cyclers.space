@@ -42,10 +42,19 @@ describe("hero scene specs", () => {
     expect(s.captionLines.join(" ")).toContain("idealized phase");
   });
 
-  it("earth-moon scene: all curves are CR3BP with rotating-frame provenance", () => {
-    const s = scenes.find((x) => x.id === "earth-moon")!;
+  // Earth-Moon split (2026-07 follow-up to #227): the single 9-curve panel
+  // overlaid a figure-8, a 3-petal cycler, and the whole Ross-RT/Braik-Ross
+  // resonant sweep in one tangled scene. It is now three family-grouped
+  // sub-scenes (earthMoonGroupOf's id-prefix partition in hero-scenes.ts).
+  // Today's live V1+ data: the "landmark" bucket (Arenstorf figure-8,
+  // Genova-Aldrin 3-petal) is V0-only and so contributes NO rows to the
+  // hero filter yet -- that sub-scene legitimately renders nothing today
+  // (same "omit empty groups" convention as every other scene) and will
+  // appear automatically once one of those rows is promoted off V0.
+  function checkEarthMoonSubScene(id: string, curveCountLowerBound: number) {
+    const s = scenes.find((x) => x.id === id)!;
     expect(s).toBeDefined();
-    expect(s.curves.length).toBeGreaterThanOrEqual(5);
+    expect(s.curves.length).toBeGreaterThanOrEqual(curveCountLowerBound);
     for (const c of s.curves) {
       expect(c.geom.kind).toBe("cr3bp");
       expect(c.fidelity).toContain("derived upstream");
@@ -53,6 +62,30 @@ describe("hero scene specs", () => {
     }
     expect(s.bodies.map((b) => b.name).sort()).toEqual(["Earth", "Moon"]);
     expect(s.captionLines.join(" ")).toContain("rotating frame");
+    // Cusp explainer (direct user question this follow-up answers): every
+    // Earth-Moon sub-scene caption must carry the "why does this look
+    // pointy" pointer, not just the pre-existing fidelity lines.
+    expect(s.captionLines.join(" ")).toContain("pointy cusps");
+    expect(s.captionLines.join(" ")).toContain("/about/#reading-diagrams");
+    return s;
+  }
+
+  it("earth-moon-ross-rt scene: the (k,m) resonant family, all CR3BP curves", () => {
+    checkEarthMoonSubScene("earth-moon-ross-rt", 5);
+  });
+
+  it("earth-moon-braik-ross scene: the Braik-Ross cyclers, all CR3BP curves", () => {
+    checkEarthMoonSubScene("earth-moon-braik-ross", 2);
+  });
+
+  it("earth-moon-landmark scene: absent today (Arenstorf/Genova-Aldrin are V0-only, filtered out upstream by the V1+ hero filter -- verified directly, not assumed)", () => {
+    expect(scenes.find((x) => x.id === "earth-moon-landmark")).toBeUndefined();
+  });
+
+  it("every earth-moon-* scene together carries exactly the live Earth-Moon V1+ rows (6 Ross-RT + 3 Braik-Ross today)", () => {
+    const emScenes = scenes.filter((s) => s.id.startsWith("earth-moon-"));
+    const total = emScenes.reduce((n, s) => n + s.rowCount, 0);
+    expect(total).toBe(9);
   });
 
   it("uranian scene: leads the array and carries all six representative arcs", () => {

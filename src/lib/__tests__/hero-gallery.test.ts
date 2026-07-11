@@ -40,7 +40,7 @@ describe("cyclableScenes", () => {
   });
 
   it("keeps every scene that has at least one curve", () => {
-    const scenes = [fixture("uranian", 6), fixture("heliocentric", 2), fixture("earth-moon", 5)];
+    const scenes = [fixture("uranian", 6), fixture("heliocentric", 2), fixture("earth-moon-ross-rt", 5)];
     const result = cyclableScenes(scenes);
     expect(result).toHaveLength(3);
   });

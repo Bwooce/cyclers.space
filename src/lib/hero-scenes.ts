@@ -69,7 +69,14 @@ export interface SceneBadgeSpec {
 }
 
 export interface HeroSceneSpec {
-  id: "heliocentric" | "earth-moon" | "jovian" | "uranian" | "other";
+  id:
+    | "heliocentric"
+    | "earth-moon-landmark"
+    | "earth-moon-ross-rt"
+    | "earth-moon-braik-ross"
+    | "jovian"
+    | "uranian"
+    | "other";
   title: string;
   /** Frame + units honesty line, always first in the caption. */
   frameLabel: string;
@@ -208,7 +215,32 @@ function heliocentricScene(entries: CyclerEntry[]): HeroSceneSpec {
   };
 }
 
-function earthMoonScene(entries: CyclerEntry[]): HeroSceneSpec {
+type EarthMoonGroup = "landmark" | "ross-rt" | "braik-ross";
+
+/**
+ * Partition Earth-Moon CR3BP rows into three sub-scenes (2026-07 follow-up
+ * to #227): the single 9-curve panel overlaid every rotating-frame shape at
+ * once — a classic figure-8, a 3-petal cycler, and the whole Ross-RT/
+ * Braik-Ross resonant-family sweep — which read as visual noise rather than
+ * distinct orbits. Split by the row's own `id` naming convention (a stable
+ * upstream identifier, more robust than parsing the free-text `family`
+ * string): `braik-ross-*` is its own family; `ross-rt-em-cycler-*` plus the
+ * one 3D out-of-plane spatial extension of that family form the Ross-RT
+ * group; everything else (the historically-named Arenstorf figure-8, the
+ * Genova-Aldrin 3-petal, and any future Earth-Moon row that doesn't yet fit
+ * either family) falls into the "landmark/other" catch-all bucket — never a
+ * silent drop, matching the `otherScene` rule elsewhere in this file.
+ */
+function earthMoonGroupOf(e: CyclerEntry): EarthMoonGroup {
+  if (e.id.startsWith("braik-ross-")) return "braik-ross";
+  if (e.id.startsWith("ross-rt-em-cycler-") || e.id === "em-cycler-21-3d-spatial-2026") return "ross-rt";
+  return "landmark";
+}
+
+/** Shared Earth-Moon CR3BP sub-scene builder: identical geometry/caption
+ *  logic for all three family-grouped panels, parameterised only by id/title
+ *  and the (already-partitioned) row list. */
+function earthMoonSubScene(entries: CyclerEntry[], id: HeroSceneSpec["id"], title: string): HeroSceneSpec {
   const curves: SceneCurveSpec[] = [];
   const badges: SceneBadgeSpec[] = [];
   let mu: number | null = null;
@@ -254,10 +286,19 @@ function earthMoonScene(entries: CyclerEntry[]): HeroSceneSpec {
     const hi = Math.max(...periodsD).toFixed(1);
     captionLines.push(`Markers: time-true in the rotating frame (sourced periods ${lo}–${hi} d).`);
   }
+  // Cusp explainer (direct user question: "how can the orbits fall back like
+  // that without going around an object?"). A rotating-frame plot subtracts
+  // the frame's own rotation from the true (smooth) inertial motion, so a
+  // sharp reversal is a frame artifact where the two rates momentarily
+  // match — exactly the mechanism behind Mars's apparent retrograde loop as
+  // seen from Earth — never evidence of an unmodelled close approach.
+  captionLines.push(
+    "Why the pointy cusps? Rotating-frame view: sharp reversals are a frame effect (like Mars's apparent retrograde loop seen from Earth), not a collision or close approach — full explanation: /about/#reading-diagrams.",
+  );
 
   return {
-    id: "earth-moon",
-    title: "Earth–Moon CR3BP cyclers",
+    id,
+    title,
     frameLabel: "Earth–Moon rotating frame, distance = 1",
     curves,
     bodies,
@@ -460,7 +501,24 @@ export function buildHeroScenes(): HeroSceneSpec[] {
   const scenes: HeroSceneSpec[] = [];
   if (g.uranian.length > 0) scenes.push(uranianScene(g.uranian));
   if (g.heliocentric.length > 0) scenes.push(heliocentricScene(g.heliocentric));
-  if (g.earthMoon.length > 0) scenes.push(earthMoonScene(g.earthMoon));
+  // Earth-Moon: split into three family-grouped panels (2026-07 follow-up to
+  // #227 — see earthMoonGroupOf's doc comment). Each sub-scene is omitted
+  // when empty, same convention as every other scene here; today's V1+ data
+  // populates only ross-rt (6 rows) and braik-ross (3 rows) — the landmark
+  // bucket (Arenstorf figure-8, Genova-Aldrin 3-petal) is V0-only right now,
+  // so it renders nothing until one of those rows is promoted off V0.
+  const landmark = g.earthMoon.filter((e) => earthMoonGroupOf(e) === "landmark");
+  const rossRt = g.earthMoon.filter((e) => earthMoonGroupOf(e) === "ross-rt");
+  const braikRoss = g.earthMoon.filter((e) => earthMoonGroupOf(e) === "braik-ross");
+  if (landmark.length > 0) {
+    scenes.push(earthMoonSubScene(landmark, "earth-moon-landmark", "Earth–Moon: landmark cyclers"));
+  }
+  if (rossRt.length > 0) {
+    scenes.push(earthMoonSubScene(rossRt, "earth-moon-ross-rt", "Earth–Moon: Ross-RT resonant family"));
+  }
+  if (braikRoss.length > 0) {
+    scenes.push(earthMoonSubScene(braikRoss, "earth-moon-braik-ross", "Earth–Moon: Braik-Ross cyclers"));
+  }
   if (g.jovian.length > 0) scenes.push(jovianScene(g.jovian));
   if (g.other.length > 0) scenes.push(otherScene(g.other));
   return scenes;
