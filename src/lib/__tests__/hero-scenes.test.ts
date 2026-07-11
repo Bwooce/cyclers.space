@@ -63,7 +63,20 @@ describe("hero scene specs", () => {
     expect(s.curves.length).toBe(6); // all six rows resolve real moon pairs
     for (const c of s.curves) {
       expect(c.geom.kind).toBe("uranian-transfer");
-      expect(c.fidelity).toContain("idealized");
+      // Plain-language lead (task: caption "technically correct but sucks"
+      // rewrite) comes first, naming the moon pair and translating the
+      // synodic timing + validity window into accessible language...
+      expect(c.fidelity).toMatch(/^A quasi-cyclic transfer between \S+ and \S+: recurs roughly every/);
+      expect(c.fidelity).toMatch(/flyable about [\d.]+% of each cycle, valid \d{4}–\d{4}/);
+      if (c.geom.kind === "uranian-transfer") {
+        expect(c.fidelity).toContain(c.geom.moonA);
+        expect(c.fidelity).toContain(c.geom.moonB);
+      }
+      // ...then the existing technical fidelity/honesty disclosure survives
+      // as a clearly-secondary continuation (the 3c79bd9 honesty binding:
+      // every curve still names its idealized-proxy status and the row's
+      // real invariants).
+      expect(c.fidelity).toContain("Technical detail: idealized");
       expect(c.fidelity).toContain("NOT the row's actual computed arc");
       if (c.geom.kind === "uranian-transfer") {
         expect(c.geom.smaAKm).toBeGreaterThan(0);
