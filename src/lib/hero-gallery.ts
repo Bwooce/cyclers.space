@@ -45,12 +45,21 @@ const TIER_COLOR: Record<string, number> = {
 };
 // Distinct per-curve hues within a scene (colour + a named legend entry — never
 // colour alone), reused for whichever scene is showing.
-const CURVE_COLORS = [0x6fd08c, 0x7fa8e0, 0xf0c060, 0xe0907f, 0xc89fe8, 0x7fd0c0, 0xe0c07f];
+export const CURVE_COLORS = [0x6fd08c, 0x7fa8e0, 0xf0c060, 0xe0907f, 0xc89fe8, 0x7fd0c0, 0xe0c07f];
 const URANUS_COLOR = 0x8fc7d9;
+// Moving-satellite marker colour (bug fix, 2026-07): the Uranian scene's moon
+// markers used to share the muted `col.moon` gray with the reference-orbit
+// ring they travel along, so the moving dot camouflaged against its own
+// track. A saturated warm red is not used anywhere else in this palette
+// (rings/planets are muted grays/blues, discovery curves are green/blue/
+// amber/coral/purple/teal/tan) and reads clearly against both the dark and
+// light scene backgrounds — see `buildUranian` and the hero-gallery.test.ts
+// regression test asserting this differs from every ring/curve colour.
+export const MOON_MARKER_COLOR = 0xff4d4d;
 
 const SCENE_DWELL_MS = 8000;
 
-function palette(dark: boolean) {
+export function palette(dark: boolean) {
   return dark
     ? { clear: 0x0b0e14, planet: 0x80a8d4, sun: 0xffcc66, earth: 0x7fb2e0, moon: 0xc9ced9, star: 0x888888 }
     : { clear: 0xf2f4f8, planet: 0x33567a, sun: 0xcc8800, earth: 0x2a6299, moon: 0x707888, star: 0x999999 };
@@ -178,6 +187,22 @@ export async function mountHeroGallery(
     return new THREE.Line(g, lineMatFor(color));
   }
 
+  /** A real-geometry ribbon (TubeGeometry along a Catmull-Rom through `pts`),
+   *  used where a curve needs to read as visually heavier than a plain
+   *  THREE.Line — Line's `linewidth` is ignored by nearly every WebGL
+   *  platform, so genuine extra thickness has to come from actual mesh
+   *  geometry instead. Used for the Uranian scene's discovery arcs so they
+   *  emphasize over the thin, muted moon reference-orbit rings. */
+  function tubeFromPoints(
+    pts: { x: number; y: number; z: number }[],
+    color: number,
+    radius: number,
+  ): THREE_NS.Mesh {
+    const curve = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(p.x, p.y, p.z)));
+    const g = track(new THREE.TubeGeometry(curve, Math.max(8, pts.length), radius, 8, false));
+    return new THREE.Mesh(g, meshMatFor(color));
+  }
+
   function sphere(r: number, color: number): THREE_NS.Mesh {
     return new THREE.Mesh(track(new THREE.SphereGeometry(r, 16, 12)), meshMatFor(color));
   }
@@ -303,19 +328,37 @@ export async function mountHeroGallery(
     const group = new THREE.Group();
     const maxSma = Math.max(1, ...spec.bodies.filter((b) => b.el).map((b) => b.el!.a));
     const extent = maxSma;
-    const markerR = extent * 0.012;
+    // Moving-marker radius: proportionally sized to match the Earth-Moon
+    // scene's convention (~2-2.5% of scene extent, cf. buildEarthMoon's
+    // sphere(0.03, ...) at extent~1.2) rather than the old 0.84%, which read
+    // as invisible against its own reference ring (bug fix, see
+    // MOON_MARKER_COLOR above).
+    const moonMarkerR = extent * 0.016;
 
     group.add(sphere(extent * 0.02, URANUS_COLOR));
 
+    // Reference orbits: kept muted (col.moon) AND further dimmed via opacity —
+    // same "honest context, not the point of interest" treatment buildHelio
+    // uses for its aphelion rings — so the discovery arcs (added below, on
+    // top) read as the emphasized layer.
     const moonMarkers: { el: KeplerElements; mesh: THREE_NS.Mesh }[] = [];
     for (const b of spec.bodies) {
       if (b.kind === "star" || !b.el) continue;
-      group.add(lineFromPoints(samplePath(b.el, 120).map(toThree), col.moon));
-      const m = sphere(markerR * 0.7, col.moon);
+      const ring = lineFromPoints(samplePath(b.el, 120).map(toThree), col.moon);
+      (ring.material as THREE_NS.LineBasicMaterial).transparent = true;
+      (ring.material as THREE_NS.LineBasicMaterial).opacity = 0.45;
+      group.add(ring);
+      // The moving marker gets its own distinct, unmuted colour — never the
+      // ring's colour — so it doesn't camouflage against the track it rides.
+      const m = sphere(moonMarkerR, MOON_MARKER_COLOR);
       group.add(m);
       moonMarkers.push({ el: b.el, mesh: m });
     }
 
+    // Discovery arcs (the actual #312/#563 finding this scene exists to show):
+    // added AFTER the reference rings/markers above, as a thicker ribbon
+    // (not a thin Line — see tubeFromPoints) plus a small apex dot, so they
+    // draw the eye over the muted reference geometry.
     spec.curves.forEach((c, i) => {
       if (c.geom.kind !== "uranian-transfer") return;
       const color = CURVE_COLORS[i % CURVE_COLORS.length]!;
@@ -325,7 +368,11 @@ export async function mountHeroGallery(
         96,
       );
       const pts3d = pts2d.map((p) => toThree({ x: p.x, y: p.y, z: 0 }));
-      group.add(lineFromPoints(pts3d, color));
+      group.add(tubeFromPoints(pts3d, color, extent * 0.003));
+      const apex = pts3d[Math.floor(pts3d.length / 2)]!;
+      const apexMarker = sphere(extent * 0.008, color);
+      apexMarker.position.set(apex.x, apex.y, apex.z);
+      group.add(apexMarker);
     });
 
     const setTime = (tDay: number) => {

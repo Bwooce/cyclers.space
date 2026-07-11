@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cyclableScenes } from "../hero-gallery";
+import { cyclableScenes, palette, MOON_MARKER_COLOR, CURVE_COLORS } from "../hero-gallery";
 import { buildHeroScenes } from "../hero-scenes";
 import type { HeroSceneSpec } from "../hero-scenes";
 
@@ -67,5 +67,24 @@ describe("cyclableScenes", () => {
     // break.
     expect(scenes.some((s) => s.id === "jovian")).toBe(true);
     expect(scenes.length).toBeGreaterThan(result.length);
+  });
+});
+
+// Regression test for the Uranian-scene "no moving satellites" bug: the moon
+// reference-orbit ring and the moving marker riding it used to share the
+// same `col.moon` gray, so the moving dot camouflaged against its own track
+// (buildUranian in hero-gallery.ts). MOON_MARKER_COLOR must differ from
+// col.moon in BOTH themes, and from every discovery-curve colour, so this
+// class of "the moving thing is invisible" bug can't silently recur.
+describe("MOON_MARKER_COLOR (moving-marker visibility regression)", () => {
+  it("differs from the moon reference-orbit ring colour in both themes", () => {
+    expect(MOON_MARKER_COLOR).not.toBe(palette(true).moon);
+    expect(MOON_MARKER_COLOR).not.toBe(palette(false).moon);
+  });
+
+  it("differs from every discovery-curve colour", () => {
+    for (const c of CURVE_COLORS) {
+      expect(MOON_MARKER_COLOR).not.toBe(c);
+    }
   });
 });

@@ -336,16 +336,33 @@ function uranianScene(entries: CyclerEntry[]): HeroSceneSpec {
     const vinf = fmtVinfMultiset(e.vinf_kms_at_encounters);
     const duty = vw?.synodic_duty_cycle_pct != null ? `${vw.synodic_duty_cycle_pct}%` : "—";
     const synodic = vw?.synodic_period_days != null ? `${vw.synodic_period_days} d` : "—";
+    // Plain-language lead (what pair / how fast / when relevant), THEN the
+    // existing technical fidelity/honesty disclosure as a clearly-secondary
+    // continuation — a single string field (SceneCurveSpec.fidelity, consumed
+    // as-is by both hero-legend.ts and hero-gallery.ts's legend rendering),
+    // so this stays one field rather than forcing a two-field type change.
+    const startYear = vw?.start ? vw.start.slice(0, 4) : null;
+    const endYear = vw?.end ? vw.end.slice(0, 4) : null;
+    const recurrence =
+      vw?.synodic_period_days != null
+        ? `recurs roughly every ${vw.synodic_period_days.toFixed(1)} days`
+        : "recurrence timing not published";
+    const window =
+      vw?.synodic_duty_cycle_pct != null && startYear && endYear
+        ? `flyable about ${vw.synodic_duty_cycle_pct}% of each cycle, valid ${startYear}–${endYear}`
+        : "validity window not fully published";
+    const plainSummary = `A quasi-cyclic transfer between ${moonA} and ${moonB}: ${recurrence}, ${window}.`;
+    const technical =
+      `Technical detail: idealized 2-body Hohmann-type transfer ellipse between ${moonA} (r=${Math.round(refA.smaKm)} km) ` +
+      `and ${moonB} (r=${Math.round(refB.smaKm)} km) real circular orbits (${URANUS_MOON_CITATION}) — ` +
+      `a first-order visual proxy, NOT the row's actual computed arc (found via a CR3BP-based symmetric-` +
+      `closure search against real URA111 ephemeris). Row's own real invariants: V-inf ${vinf} km/s at ` +
+      `each encounter, synodic period ${synodic}, duty cycle ${duty} over ${vw?.start ?? "?"}..${vw?.end ?? "?"}.`;
     curves.push({
       id: e.id,
       label: labelOf(e),
       tier: tierOf(e),
-      fidelity:
-        `idealized 2-body Hohmann-type transfer ellipse between ${moonA} (r=${Math.round(refA.smaKm)} km) ` +
-        `and ${moonB} (r=${Math.round(refB.smaKm)} km) real circular orbits (${URANUS_MOON_CITATION}) — ` +
-        `a first-order visual proxy, NOT the row's actual computed arc (found via a CR3BP-based symmetric-` +
-        `closure search against real URA111 ephemeris). Row's own real invariants: V-inf ${vinf} km/s at ` +
-        `each encounter, synodic period ${synodic}, duty cycle ${duty} over ${vw?.start ?? "?"}..${vw?.end ?? "?"}.`,
+      fidelity: `${plainSummary} ${technical}`,
       geom: {
         kind: "uranian-transfer",
         moonA,
