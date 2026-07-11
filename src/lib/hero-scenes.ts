@@ -21,6 +21,15 @@ import { planetToElements, periodDays } from "./kepler-time";
 import { PLANETS, PLANET_GEOMETRY_CITATION } from "./orbit";
 import { fmtVinfMultiset } from "./catalogue";
 import { heroGroups, curvePlanFor, reproducedCount } from "./hero-data";
+import {
+  URANUS_MU_KM3S2,
+  URANUS_MOONS,
+  URANUS_MOON_CITATION,
+  orderedMoonPairs,
+  meanMotionDegPerDayAbout,
+  hohmannElements,
+  azimuthForPairIndex,
+} from "./uranus-scene";
 
 export interface SceneCurveSpec {
   id: string;
@@ -30,7 +39,17 @@ export interface SceneCurveSpec {
   geom:
     | { kind: "kepler-ellipse"; el: KeplerElements }
     | { kind: "ring"; radiusAu: number }
-    | { kind: "cr3bp"; mu: number; stateNd: number[]; periodNd: number; periodDays: number | null };
+    | { kind: "cr3bp"; mu: number; stateNd: number[]; periodNd: number; periodDays: number | null }
+    | {
+        kind: "uranian-transfer";
+        moonA: string;
+        moonB: string;
+        smaAKm: number;
+        smaBKm: number;
+        aKm: number;
+        e: number;
+        azimuthDeg: number;
+      };
 }
 
 export interface SceneBodySpec {
@@ -50,7 +69,7 @@ export interface SceneBadgeSpec {
 }
 
 export interface HeroSceneSpec {
-  id: "heliocentric" | "earth-moon" | "jovian" | "other";
+  id: "heliocentric" | "earth-moon" | "jovian" | "uranian" | "other";
   title: string;
   /** Frame + units honesty line, always first in the caption. */
   frameLabel: string;
@@ -275,6 +294,122 @@ function jovianScene(entries: CyclerEntry[]): HeroSceneSpec {
   };
 }
 
+/**
+ * Uranian moon-pair quasi-cycler scene (2026-07, #558->#569, catalogue commit
+ * 8efabd5): the six V4 representatives of the 30-member #563 symmetric-
+ * closure family — one per non-Miranda moon-pair direction (see
+ * uranus-scene.ts's module doc for the honesty split between what's sourced
+ * (moon radii, V-infinity triplet, synodic timing) and what's an idealized
+ * illustrative proxy (the Hohmann-type transfer shape).
+ *
+ * Uranus-centric, camera down the Uranian pole: this scene's local frame
+ * DEFINES the pole as its z-axis and draws every moon coplanar at z=0 (i=0),
+ * matching these rows' own recorded circular-coplanar orbit_fidelity — the
+ * shared toThree axis swap (three-axis.ts) then puts that local z on world
+ * "up" for free, so the 3D camera looks straight down the pole without any
+ * real ~98-degree IAU-tilt transform (this is a LOCAL Uranus-equatorial
+ * frame, not the ecliptic).
+ */
+function uranianScene(entries: CyclerEntry[]): HeroSceneSpec {
+  const curves: SceneCurveSpec[] = [];
+  const badges: SceneBadgeSpec[] = [];
+  const pairIndex = new Map(orderedMoonPairs().map((p, i) => [`${p[0]}-${p[1]}`, i]));
+
+  for (const e of entries) {
+    const moonA = e.bodies[1];
+    const moonB = e.bodies[2];
+    const refA = moonA ? URANUS_MOONS[moonA] : undefined;
+    const refB = moonB ? URANUS_MOONS[moonB] : undefined;
+    if (!refA || !refB) {
+      badges.push({
+        id: e.id,
+        label: labelOf(e),
+        tier: tierOf(e),
+        detail: "moon pair not resolvable from bodies[] — no curve drawn",
+      });
+      continue;
+    }
+    const key = [moonA, moonB].sort((a, b) => URANUS_MOONS[a]!.smaKm - URANUS_MOONS[b]!.smaKm).join("-");
+    const idx = pairIndex.get(key) ?? 0;
+    const el = hohmannElements(refA.smaKm, refB.smaKm);
+    const vw = e.validity_window;
+    const vinf = fmtVinfMultiset(e.vinf_kms_at_encounters);
+    const duty = vw?.synodic_duty_cycle_pct != null ? `${vw.synodic_duty_cycle_pct}%` : "—";
+    const synodic = vw?.synodic_period_days != null ? `${vw.synodic_period_days} d` : "—";
+    curves.push({
+      id: e.id,
+      label: labelOf(e),
+      tier: tierOf(e),
+      fidelity:
+        `idealized 2-body Hohmann-type transfer ellipse between ${moonA} (r=${Math.round(refA.smaKm)} km) ` +
+        `and ${moonB} (r=${Math.round(refB.smaKm)} km) real circular orbits (${URANUS_MOON_CITATION}) — ` +
+        `a first-order visual proxy, NOT the row's actual computed arc (found via a CR3BP-based symmetric-` +
+        `closure search against real URA111 ephemeris). Row's own real invariants: V-inf ${vinf} km/s at ` +
+        `each encounter, synodic period ${synodic}, duty cycle ${duty} over ${vw?.start ?? "?"}..${vw?.end ?? "?"}.`,
+      geom: {
+        kind: "uranian-transfer",
+        moonA,
+        moonB,
+        smaAKm: refA.smaKm,
+        smaBKm: refB.smaKm,
+        aKm: el.aKm,
+        e: el.e,
+        azimuthDeg: azimuthForPairIndex(idx),
+      },
+    });
+  }
+
+  const moonNames = Array.from(
+    new Set(entries.flatMap((e) => [e.bodies[1], e.bodies[2]]).filter((n): n is string => n != null && URANUS_MOONS[n] != null)),
+  );
+  const bodies: SceneBodySpec[] = [
+    { name: "Uranus", kind: "star", fixed: { x: 0, y: 0 } },
+    ...moonNames
+      .sort((a, b) => URANUS_MOONS[a]!.smaKm - URANUS_MOONS[b]!.smaKm)
+      .map((name) => ({
+        name,
+        kind: "moon" as const,
+        el: {
+          a: URANUS_MOONS[name]!.smaKm,
+          e: 0,
+          i_deg: 0,
+          lan_deg: 0,
+          argp_deg: 0,
+          M0_deg: 0,
+          n_deg_per_day: meanMotionDegPerDayAbout(URANUS_MOONS[name]!.smaKm, URANUS_MU_KM3S2),
+          t_epoch_day: 0,
+        },
+      })),
+  ];
+
+  const dutyCycles = entries
+    .map((e) => e.validity_window?.synodic_duty_cycle_pct)
+    .filter((d): d is number => d != null);
+
+  const dutyLo = dutyCycles.length > 0 ? Math.min(...dutyCycles) : null;
+  const dutyHi = dutyCycles.length > 0 ? Math.max(...dutyCycles) : null;
+  const captionLines: string[] = [
+    "Uranus-centric, camera down the Uranian pole (local equatorial frame, moons coplanar); units km.",
+    `Moon orbits: real sourced semi-major axes as circles (${URANUS_MOON_CITATION}).`,
+    `${curves.length} V4 representatives (1 per moon-pair direction) of the 30-member #563 symmetric-closure family first documented by #312; the other 24 same-pair-redundant closures are not separately catalogued.`,
+    "Transfer arcs: idealized 2-body Hohmann-type ellipses between the real moon radii, NOT the row's real arc (found via CR3BP + real URA111 ephemeris). Fan-out azimuth is for visual separation only.",
+    dutyLo != null
+      ? `Measured synodic duty cycle ${dutyLo}-${dutyHi}% across the six rows; each valid over a bounded 2000-2083 window, not perpetual.`
+      : "Each row's synodic duty cycle is measured over a bounded 2000-2083 window, not perpetual.",
+  ];
+
+  return {
+    id: "uranian",
+    title: "Uranian moon-pair quasi-cyclers",
+    frameLabel: "Uranus-centric equatorial (polar-down camera), km",
+    curves,
+    bodies,
+    badges,
+    captionLines,
+    rowCount: entries.length,
+  };
+}
+
 /** Generic badge scene for any V1+ row whose primary is none of the three
  *  known systems — the filter's rows are NEVER silently dropped. */
 function otherScene(entries: CyclerEntry[]): HeroSceneSpec {
@@ -296,10 +431,17 @@ function otherScene(entries: CyclerEntry[]): HeroSceneSpec {
 }
 
 /** The hero's scenes, in display order. Scenes for empty groups are omitted;
- *  the sum of rowCount always equals reproducedCount(). */
+ *  the sum of rowCount always equals reproducedCount().
+ *
+ * The Uranian scene leads (promoted 2026-07): it is the catalogue's only
+ * literature-novel confirmed discovery (#312 and its #563 family), so it is
+ * the site's strongest story — first in the poster and the first slide the
+ * 3D gallery opens on. Every downstream consumer looks scenes up by `.id`
+ * (never by array position), so this ordering carries no functional risk. */
 export function buildHeroScenes(): HeroSceneSpec[] {
   const g = heroGroups();
   const scenes: HeroSceneSpec[] = [];
+  if (g.uranian.length > 0) scenes.push(uranianScene(g.uranian));
   if (g.heliocentric.length > 0) scenes.push(heliocentricScene(g.heliocentric));
   if (g.earthMoon.length > 0) scenes.push(earthMoonScene(g.earthMoon));
   if (g.jovian.length > 0) scenes.push(jovianScene(g.jovian));

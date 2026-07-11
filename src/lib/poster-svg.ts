@@ -19,6 +19,7 @@ import { samplePath, stateAt, type KeplerElements } from "./kepler-time";
 import { propagateCr3bp } from "./cr3bp-propagate";
 import { heroSummary, type HeroSceneSpec, type SceneCurveSpec } from "./hero-scenes";
 import { reproducedEntries } from "./hero-data";
+import { hohmannArcPoints } from "./uranus-scene";
 
 export const POSTER_W = 1200;
 export const POSTER_H = 630;
@@ -38,6 +39,10 @@ const C = {
   // Distinct hues for the five Earth-Moon curves (colour + legend, never
   // colour alone — the legend names each curve).
   emCurves: ["#6fd08c", "#7fa8e0", "#f0c060", "#e0907f", "#c89fe8"],
+  // Six distinct hues for the six Uranian moon-pair arcs (all V4, so the tier
+  // palette alone can't distinguish them — the legend names each curve too).
+  uranianCurves: ["#6fd08c", "#7fa8e0", "#f0c060", "#e0907f", "#c89fe8", "#7fd0c0"],
+  uranus: "#8fc7d9",
 };
 
 const esc = (s: string): string =>
@@ -168,6 +173,45 @@ function earthMoonPanel(scene: HeroSceneSpec, p: Panel): string {
   return parts.join("\n");
 }
 
+/** Uranian panel: real moon-orbit circles (km) + idealized Hohmann-type
+ *  transfer arcs between the six catalogued representative moon pairs. */
+function uranianPanel(scene: HeroSceneSpec, p: Panel): string {
+  const draw = { x: p.x + 10, y: p.y + 34, w: p.w - 20, h: p.h - 200 };
+  const cx = draw.x + draw.w / 2;
+  const cy = draw.y + draw.h / 2;
+  let maxR = 1;
+  for (const b of scene.bodies) if (b.el) maxR = Math.max(maxR, b.el.a);
+  const scale = Math.min(draw.w, draw.h) / 2 / (maxR * 1.08);
+  const toPx = (q: { x: number; y: number }): [number, number] => [cx + q.x * scale, cy - q.y * scale];
+
+  const parts: string[] = [];
+  // Real sourced moon orbits (circles, i=0 per the rows' own circular-coplanar model).
+  for (const b of scene.bodies) {
+    if (!b.el) continue;
+    parts.push(
+      `<path d="${polyline(samplePath(b.el, 96), toPx)}" fill="none" stroke="${C.planetLine}" stroke-width="1" stroke-dasharray="3 3"/>`,
+    );
+    const s0 = stateAt(b.el, 0);
+    const [bx, by] = toPx(s0);
+    parts.push(`<circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="2.6" fill="${C.moon}"/>`);
+    parts.push(
+      `<text x="${(bx + 5).toFixed(1)}" y="${(by + 4).toFixed(1)}" fill="${C.muted}" font-size="10">${esc(b.name)}</text>`,
+    );
+  }
+  // Idealized Hohmann-type transfer arcs, one per representative moon pair.
+  scene.curves.forEach((c, i) => {
+    if (c.geom.kind !== "uranian-transfer") return;
+    const pts = hohmannArcPoints({ aKm: c.geom.aKm, e: c.geom.e, aIsPeriapsis: c.geom.smaAKm <= c.geom.smaBKm }, c.geom.azimuthDeg, 96);
+    const color = C.uranianCurves[i % C.uranianCurves.length]!;
+    parts.push(
+      `<path d="${polyline(pts, toPx)}" fill="none" stroke="${color}" stroke-width="1.6" opacity="0.9"><title>${esc(c.label)} (${esc(c.tier)})</title></path>`,
+    );
+  });
+  // Uranus.
+  parts.push(`<circle cx="${cx}" cy="${cy}" r="5" fill="${C.uranus}"/>`);
+  return parts.join("\n");
+}
+
 /** Jovian panel: badge card — rows named + counted, NO curve drawn. */
 function badgePanel(scene: HeroSceneSpec, p: Panel): string {
   const parts: string[] = [];
@@ -237,9 +281,14 @@ export function buildPosterSvg(): string {
 
   const headerH = 86;
   const margin = 16;
-  const panelW = (POSTER_W - margin * 4) / 3;
+  // N-column layout (was a hard-coded 3): draws EVERY scene, never silently
+  // drops one — the poster is the accessible floor (HeroViz.astro), so it
+  // must show what the live 3D gallery shows. Scene lookup is by `.id`
+  // everywhere, so adding/reordering scenes never breaks this loop.
+  const n = Math.max(1, scenes.length);
+  const panelW = (POSTER_W - margin * (n + 1)) / n;
   const panelH = POSTER_H - headerH - margin;
-  const panels: Panel[] = scenes.slice(0, 3).map((_, i) => ({
+  const panels: Panel[] = scenes.map((_, i) => ({
     x: margin + i * (panelW + margin),
     y: headerH,
     w: panelW,
@@ -247,7 +296,6 @@ export function buildPosterSvg(): string {
   }));
 
   const body = scenes
-    .slice(0, 3)
     .map((scene, i) => {
       const p = panels[i]!;
       const content =
@@ -255,7 +303,9 @@ export function buildPosterSvg(): string {
           ? helioPanel(scene, p)
           : scene.id === "earth-moon"
             ? earthMoonPanel(scene, p)
-            : badgePanel(scene, p);
+            : scene.id === "uranian"
+              ? uranianPanel(scene, p)
+              : badgePanel(scene, p);
       return `${panelChrome(scene, p)}\n${content}`;
     })
     .join("\n");

@@ -1,6 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { reproducedEntries, reproducedCount, heroGroups, curvePlanFor } from "../hero-data";
+import { reproducedEntries, reproducedCount, heroGroups, curvePlanFor, effectivePrimary } from "../hero-data";
 import { loadCatalogue, getEntryById } from "../catalogue";
+
+const URANIAN_IDS = [
+  "umbriel-oberon-1-1-uranian-quasi-cycler-2026",
+  "titania-oberon-1-1-uranian-quasi-cycler-2026",
+  "ariel-oberon-1-1-uranian-quasi-cycler-2026",
+  "umbriel-titania-1-1-uranian-quasi-cycler-2026",
+  "ariel-titania-1-1-uranian-quasi-cycler-2026",
+  "ariel-umbriel-1-1-uranian-quasi-cycler-2026",
+];
 
 // Hero data layer (task #227): the count is the LIVE filter, the grouping
 // never drops a row, and the per-row render plan follows the honesty rules
@@ -27,7 +36,7 @@ describe("reproduced filter (V1+)", () => {
 describe("system grouping", () => {
   it("partitions the filter exactly (no row dropped, none duplicated)", () => {
     const g = heroGroups();
-    const all = [...g.heliocentric, ...g.earthMoon, ...g.jovian, ...g.other].map((e) => e.id);
+    const all = [...g.heliocentric, ...g.earthMoon, ...g.jovian, ...g.uranian, ...g.other].map((e) => e.id);
     expect(all.length).toBe(reproducedCount());
     expect(new Set(all).size).toBe(all.length);
   });
@@ -37,6 +46,31 @@ describe("system grouping", () => {
     for (const e of g.heliocentric) expect(e.primary ?? "Sun").toBe("Sun");
     for (const e of g.earthMoon) expect(e.primary).toBe("Earth");
     for (const e of g.jovian) expect(e.primary).toBe("Jupiter");
+  });
+
+  it("buckets the six Uranian rows (no primary field) via effectivePrimary, not Sun", () => {
+    const g = heroGroups();
+    expect(g.uranian.map((e) => e.id).sort()).toEqual([...URANIAN_IDS].sort());
+    for (const e of g.uranian) {
+      expect(e.primary).toBeUndefined();
+      expect(e.bodies).toContain("Uranus");
+      expect(effectivePrimary(e)).toBe("Uranus");
+    }
+    // None of them leaked into the heliocentric ("Sun" default) bucket.
+    const helioIds = new Set(g.heliocentric.map((e) => e.id));
+    for (const id of URANIAN_IDS) expect(helioIds.has(id)).toBe(false);
+  });
+});
+
+describe("effectivePrimary", () => {
+  it("prefers an explicit primary field over the Uranus heuristic", () => {
+    const e = getEntryById("ross-rt-em-cycler-11-2025")!;
+    expect(effectivePrimary(e)).toBe(e.primary);
+  });
+
+  it("defaults absent-primary, non-Uranus rows to Sun", () => {
+    const e = getEntryById("aldrin-classic-em-k1-outbound");
+    if (e && !e.primary) expect(effectivePrimary(e)).toBe("Sun");
   });
 });
 

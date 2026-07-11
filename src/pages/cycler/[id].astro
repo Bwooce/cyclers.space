@@ -20,6 +20,7 @@ import {
   sourceLabel,
 } from "../../lib/catalogue";
 import { errataForRow } from "../../lib/errata";
+import { effectivePrimary } from "../../lib/hero-data";
 import OrbitView from "../../components/OrbitView.astro";
 import type { CyclerEntry, Citation } from "../../lib/types";
 
@@ -162,8 +163,10 @@ const formatCite = (c: Citation): string => {
     <dt>Bodies</dt><dd>{fmtBodies(entry.bodies)}</dd>
     <dt>Primary</dt>
     <dd>
-      {entry.primary ?? "Sun"}
-      {!entry.primary && <span class="muted"> (default — heliocentric)</span>}
+      {effectivePrimary(entry)}
+      {!entry.primary && effectivePrimary(entry) === "Sun" && (
+        <span class="muted"> (default — heliocentric)</span>
+      )}
     </dd>
     <dt>Sequence (canonical)</dt><dd><code>{entry.sequence_canonical}</code></dd>
     <dt>Sense</dt><dd>{entry.sense}</dd>
