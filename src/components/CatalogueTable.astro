@@ -1,7 +1,11 @@
 ---
 import {
+  BALLISTIC_HINT,
+  CYCLER_CLASS_LONG_LABEL,
   DV_BAND_LONG,
+  EPOCH_LOCKED_HINT,
   ORBIT_CLASS_LABEL,
+  ORBIT_CLASS_LONG_LABEL,
   OUR_STATUS_LONG,
   dvBandLabel,
   ourStatusLabel,
@@ -67,13 +71,42 @@ const sortNReturns = (e: CyclerEntry): number => {
 // validity window. Add the column iff any epoch-locked row is present so the
 // cyclers-only catalogue (during the migration window) keeps its compact shape.
 const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
+
+// Body-filter checkboxes: generated from whatever codes actually appear in
+// the catalogue, not a fixed V/E/M list. The filter is an "every body this
+// row touches must be checked" AND, so any code missing a checkbox makes its
+// row permanently unmatchable — this used to silently hide every non-V/E/M
+// row (Uranian/Galilean/Saturnian moon tours, Pluto-Charon, etc.) once the
+// catalogue grew past its original three-planet scope.
+const BODY_LABEL: Record<string, string> = {
+  V: "Venus",
+  E: "Earth",
+  M: "Mars",
+  Me: "Mercury",
+  J: "Jupiter",
+  S: "Saturn",
+  U: "Uranus",
+  N: "Neptune",
+};
+// Canonical-first ordering (inner planets, then outer planets, then
+// everything else alphabetically) so the common cases stay at the front of
+// a now much longer list.
+const BODY_ORDER = ["Me", "V", "E", "M", "J", "S", "U", "N"];
+const bodyCodes = Array.from(new Set(entries.flatMap((e) => e.bodies))).sort((a, b) => {
+  const ia = BODY_ORDER.indexOf(a);
+  const ib = BODY_ORDER.indexOf(b);
+  if (ia !== -1 || ib !== -1) return (ia === -1 ? BODY_ORDER.length : ia) - (ib === -1 ? BODY_ORDER.length : ib);
+  return a.localeCompare(b);
+});
 ---
 <div class="filter-bar" id="filter-bar">
   <div class="group" role="group" aria-label="Filter by encounter body">
     <span>Bodies:</span>
-    <label><input type="checkbox" class="planet-filter" value="V" checked /> Venus</label>
-    <label><input type="checkbox" class="planet-filter" value="E" checked /> Earth</label>
-    <label><input type="checkbox" class="planet-filter" value="M" checked /> Mars</label>
+    {bodyCodes.map((code) => (
+      <label>
+        <input type="checkbox" class="planet-filter" value={code} checked /> {BODY_LABEL[code] ?? code}
+      </label>
+    ))}
   </div>
   <div class="group" role="group" aria-label="Filter by orbit class">
     <label for="class-filter">Class:</label>
@@ -87,26 +120,26 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
     </select>
   </div>
   <div class="group" role="group" aria-label="Filter by maintenance-ΔV band">
-    <label for="dvband-filter">ΔV band:</label>
-    <select id="dvband-filter" class="dvband-filter">
+    <label for="dvband-filter" title={BALLISTIC_HINT}>ΔV band:</label>
+    <select id="dvband-filter" class="dvband-filter" title={BALLISTIC_HINT}>
       <option value="all">All</option>
-      <option value="strictly_ballistic">Strictly ballistic</option>
-      <option value="essentially_ballistic">Essentially ballistic</option>
-      <option value="low_maintenance">Low-maintenance</option>
-      <option value="powered_dsm">Powered</option>
-      <option value="low_thrust_sep">Low-thrust / SEP</option>
+      <option value="strictly_ballistic" title={DV_BAND_LONG.strictly_ballistic}>Strictly ballistic</option>
+      <option value="essentially_ballistic" title={DV_BAND_LONG.essentially_ballistic}>Essentially ballistic</option>
+      <option value="low_maintenance" title={DV_BAND_LONG.low_maintenance}>Low-maintenance</option>
+      <option value="powered_dsm" title={DV_BAND_LONG.powered_dsm}>Powered</option>
+      <option value="low_thrust_sep" title={DV_BAND_LONG.low_thrust_sep}>Low-thrust / SEP</option>
       <option value="banded">Any band</option>
     </select>
   </div>
   <div class="group" role="group" aria-label="Filter by validity window">
-    <label for="window-filter">Window:</label>
+    <label for="window-filter" title={EPOCH_LOCKED_HINT}>Window:</label>
     <select id="window-filter" class="window-filter" aria-describedby="window-filter-hint">
       <option value="all">All</option>
       <option value="open-now">Open now</option>
       <option value="future">Future</option>
       <option value="past">Past</option>
     </select>
-    <span id="window-filter-hint" class="muted" style="font-size:0.75rem;">
+    <span id="window-filter-hint" class="muted" style="font-size:0.75rem;" title={EPOCH_LOCKED_HINT}>
       epoch-locked only
     </span>
   </div>
@@ -127,16 +160,16 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
     <thead>
       <tr>
         <th data-sort="name" scope="col">Name</th>
-        <th data-sort="orbit_class" scope="col">Class</th>
+        <th data-sort="orbit_class" scope="col" title="Transport role — see /about/#cycler-types for the full five-kind breakdown (Cycler, Quasi-cycler, Precursor, Tour, Resonant PO).">Class</th>
         <th data-sort="bodies" scope="col">Bodies</th>
-        <th data-sort="class" scope="col">Struct</th>
+        <th data-sort="class" scope="col" title="Structural representation of the trajectory: single ellipse, multi-arc (chained legs), or non-Keplerian (CR3BP rotating-frame orbit) — a different axis from the transport-role Class column.">Struct</th>
         <th data-sort="period" scope="col" aria-sort="ascending">Period (yr)</th>
         <th data-sort="identity" scope="col">Identity</th>
         <th data-sort="vinf" scope="col">V∞ (km/s)</th>
-        <th data-sort="dvband" scope="col" title="Axis-B maintenance-ΔV band (most rows unbanded)">ΔV band</th>
+        <th data-sort="dvband" scope="col" title={BALLISTIC_HINT}>ΔV band</th>
         <th data-sort="nreturns" scope="col">Returns</th>
         {hasEpochLocked && (
-          <th data-sort="validity" scope="col">Validity</th>
+          <th data-sort="validity" scope="col" title={EPOCH_LOCKED_HINT}>Validity</th>
         )}
         <th data-sort="completeness" scope="col">Data</th>
         <th data-sort="defined" scope="col">Defined</th>
@@ -200,13 +233,13 @@ const hasEpochLocked = entries.some((e) => effectiveOrbitClass(e) !== "cycler");
               <td>
                 <span
                   class={`orbit-class-badge oc-${orbitClass}`}
-                  title={orbitClassLabel}
+                  title={ORBIT_CLASS_LONG_LABEL[orbitClass]}
                 >
                   {orbitClassLabel}
                 </span>
               </td>
               <td>{fmtBodies(e.bodies)}</td>
-              <td><span class={`cls-badge cls-${cls.replace("-", "")}`} title={cls}>{clsShort}</span></td>
+              <td><span class={`cls-badge cls-${cls.replace("-", "")}`} title={CYCLER_CLASS_LONG_LABEL[cls] ?? cls}>{clsShort}</span></td>
               <td class="right">{e.period ? fmt(e.period.years, 2) : "—"}</td>
               <td class="identity">{identity}</td>
               <td>{fmtVinfMultiset(e.vinf_kms_at_encounters)}</td>

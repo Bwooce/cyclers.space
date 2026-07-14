@@ -83,6 +83,45 @@ export const ORBIT_CLASS_LONG_LABEL: Record<OrbitClass, string> = {
 };
 
 /**
+ * "Struct" column / cycler_class: the STRUCTURAL representation of the
+ * trajectory (a separate axis from orbit_class, which is about transport
+ * role — see ORBIT_CLASS_LABEL). Short label for the badge text.
+ */
+export const CYCLER_CLASS_LABEL: Record<string, string> = {
+  "single-ellipse": "Single ellipse",
+  "multi-arc": "Multi-arc",
+  "non-keplerian": "Non-Keplerian (CR3BP)",
+};
+
+/** Long-form definition for tooltips — what each structural kind actually is. */
+export const CYCLER_CLASS_LONG_LABEL: Record<string, string> = {
+  "single-ellipse":
+    "Single ellipse — one continuous heliocentric Keplerian orbit (a, e, i, Ω, ω); the whole trajectory is one conic section.",
+  "multi-arc":
+    "Multi-arc — a chain of separate ballistic legs (gravity-assist flybys / deep-space manoeuvres) stitched together; each leg can have its own orbital elements.",
+  "non-keplerian":
+    "Non-Keplerian (CR3BP) — a periodic or quasi-periodic orbit in the rotating (synodic) frame of a three-body system, identified by its Jacobi constant rather than classical (a, e) elements. Not a Keplerian ellipse at all.",
+};
+
+/**
+ * epoch_locked (schema v5): true for any row whose validity is a bounded
+ * real-world date range rather than an indefinite repeat. Short tooltip for
+ * the filter hint / column header.
+ */
+export const EPOCH_LOCKED_HINT =
+  "Epoch-locked: this row is only valid for a bounded real-world date range (see the Validity column) — unlike a strict cycler, which repeats on the same schedule indefinitely regardless of calendar date.";
+
+/**
+ * "Ballistic" (base term, independent of the specific ΔV band): the
+ * idealised-model claim that no deterministic engine burns are needed to
+ * keep the trajectory on schedule — gravity alone does the steering. See
+ * DV_BAND_LONG for the specific bands and /about/#cycler-cost for the full
+ * explanation including why no real cycler is genuinely zero-ΔV forever.
+ */
+export const BALLISTIC_HINT =
+  "Ballistic: in the idealised model, no deterministic engine burns are needed to stay on schedule — gravity alone does the steering. \"Powered\" bands need regular burns instead. See the ΔV-band tooltip for this row's specific tier.";
+
+/**
  * Format a validity window for the catalogue table — compact `YYYY-MM-DD →
  * YYYY-MM-DD`. Returns null when the input is missing so callers can omit the
  * cell content rather than rendering "—".

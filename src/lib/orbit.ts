@@ -219,6 +219,15 @@ export function toSvgPath(pts: Vec2[], scale: number, cx: number, cy: number): s
 export type RenderClass = "single-ellipse" | "multi-arc" | "non-keplerian";
 
 export function renderClassOf(entry: CyclerEntry): RenderClass {
+  // A CR3BP (rotating-frame) row is never renderable as a heliocentric
+  // multi-arc trajectory regardless of its cycler_class label — the #569
+  // Uranian symmetric-closure writeback (including #312 itself) used
+  // cycler_class="multi-arc" with no trajectory.segments/orbit_elements
+  // populated, which silently rendered a near-blank Sun+Earth frame (none of
+  // Uranus/Ariel/Oberon/etc. match the heliocentric PLANETS lookup). Check
+  // model_assumption FIRST so these rows get the honest "not renderable from
+  // current data" placeholder instead.
+  if (entry.model_assumption === "cr3bp") return "non-keplerian";
   const c = entry.cycler_class ?? "single-ellipse";
   if (c === "multi-arc" || c === "non-keplerian") return c;
   return "single-ellipse";
