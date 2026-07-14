@@ -6,6 +6,7 @@ import yaml from "js-yaml";
 // the single source of truth (Bwooce/cyclers data/errata.yaml, validated
 // upstream against data/errata.schema.json).
 import rawYaml from "../data/errata.yaml?raw";
+import { sanitizeCatalogueText } from "./catalogue";
 
 export type ErratumConfidence =
   | "confirmed-in-print"
@@ -37,7 +38,21 @@ let cache: ErratumEntry[] | null = null;
 
 export function loadErrata(): ErratumEntry[] {
   if (cache) return cache;
-  cache = yaml.load(rawYaml) as ErratumEntry[];
+  const parsed = yaml.load(rawYaml) as ErratumEntry[];
+  // The upstream ledger's free text references internal work-item numbers
+  // ("#193 adjudication") that mean nothing to a reader — strip them the same
+  // way catalogue prose is stripped (see sanitizeCatalogueText). Numeric
+  // printed/derived values contain no "#" and pass through unchanged.
+  cache = parsed.map((e) => ({
+    ...e,
+    paper: sanitizeCatalogueText(e.paper),
+    location: sanitizeCatalogueText(e.location),
+    printed_value: sanitizeCatalogueText(e.printed_value),
+    derived_value: sanitizeCatalogueText(e.derived_value),
+    reasoning: sanitizeCatalogueText(e.reasoning),
+    vor_note: e.vor_note ? sanitizeCatalogueText(e.vor_note) : e.vor_note,
+    evidence_refs: e.evidence_refs.map(sanitizeCatalogueText),
+  }));
   return cache;
 }
 

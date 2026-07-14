@@ -289,7 +289,7 @@ const formatCite = (c: Citation): string => {
     <dl class="cycler">
       {entry.vinf_kms_at_encounters.map((v, i) => (
         <>
-          <dt>{v.body} (#{i + 1})</dt>
+          <dt>{v.body} (encounter {i + 1})</dt>
           <dd>
             {v.vinf_kms === null ? <span class="muted">— (not published)</span> : <>{fmt(v.vinf_kms, 2)} km/s</>}
             {v.note && <div class="muted">{v.note}</div>}

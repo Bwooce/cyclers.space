@@ -449,7 +449,7 @@ function uranianScene(entries: CyclerEntry[]): HeroSceneSpec {
   const captionLines: string[] = [
     "Uranus-centric, camera down the Uranian pole (local equatorial frame, moons coplanar); units km.",
     `Moon orbits: real sourced semi-major axes as circles (${URANUS_MOON_CITATION}).`,
-    `${curves.length} V4 representatives (1 per moon-pair direction) of the 30-member #563 symmetric-closure family first documented by #312; the other 24 same-pair-redundant closures are not separately catalogued.`,
+    `${curves.length} V4 representatives (1 per moon-pair direction) of the 30-member symmetric-closure family discovered by this project; the other 24 same-pair-redundant closures are not separately catalogued.`,
     "Transfer arcs: idealized 2-body Hohmann-type ellipses between the real moon radii, NOT the row's real arc (found via CR3BP + real URA111 ephemeris). Fan-out azimuth is for visual separation only.",
     dutyLo != null
       ? `Measured synodic duty cycle ${dutyLo}-${dutyHi}% across the six rows; each valid over a bounded 2000-2083 window, not perpetual.`

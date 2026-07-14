@@ -1,6 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { loadCatalogue } from "../../lib/catalogue";
+import { loadCatalogue, sanitizeCatalogueText } from "../../lib/catalogue";
 import windowsData from "../../data/windows.json";
 
 interface WindowEntry {
@@ -72,15 +72,10 @@ const nTotal = data.entries.length;
     <strong>Now shown:</strong> C<sub>3</sub> at departure (= |V<sub>∞,depart</sub>|², per
     window) and time-of-flight to the first encounter (per cycler) — both derived directly
     from the same Lambert solve / phase signature the dates come from — plus the
-    <strong>maintenance-ΔV (TCM) budget</strong> for closed E–M (Aldrin-style) cyclers, the
-    computed per-synodic turn-deficit ΔV from the upstream optimiser
-    (<a href="https://github.com/Bwooce/cyclers">M6b</a>).
-    <strong>How that value was earned:</strong> the default-seeded DE440 solve first
-    converged to an <em>off-family</em> basin (55.3 km/s), so the column was held blank
-    until the solve was re-seeded onto the Aldrin family. The published
-    <strong>2.91 km/s</strong> is the in-family result (a ≈ 1.59 AU, e ≈ 0.39,
-    V<sub>∞</sub> 6.4 / 9.5 km/s), cross-checked against the independent powered-cycler
-    BVP solver, which returns the identical value.
+    <strong>maintenance-ΔV (TCM) budget</strong> for closed E–M (Aldrin-style) cyclers:
+    <strong>2.91 km/s</strong>, computed by the upstream optimiser and cross-checked
+    against an independent solver (<a href="#maintenance-dv">how that value was earned</a>,
+    including the wrong answer it replaced, is documented below).
   </div>
 
   <p>
@@ -114,7 +109,7 @@ const nTotal = data.entries.length;
     <tbody>
       {withWindows.map((e) => (
         <tr>
-          <td><a href={`/cycler/${e.id}/`}>{e.name}</a></td>
+          <td><a href={`/cycler/${e.id}/`}>{sanitizeCatalogueText(e.name)}</a></td>
           <td>{e.bodies.join(",")}</td>
           <td class="right">{e.period_years?.toFixed(2) ?? "—"}</td>
           <td class="right">{e.tof_first_leg_days?.toFixed(0) ?? "—"}</td>
@@ -151,8 +146,8 @@ const nTotal = data.entries.length;
         <tbody>
           {withoutWindows.map((e) => (
             <tr>
-              <td><a href={`/cycler/${e.id}/`}>{e.name}</a></td>
-              <td class="muted">{e.status}</td>
+              <td><a href={`/cycler/${e.id}/`}>{sanitizeCatalogueText(e.name)}</a></td>
+              <td class="muted">{sanitizeCatalogueText(e.status)}</td>
             </tr>
           ))}
         </tbody>
@@ -168,7 +163,7 @@ const nTotal = data.entries.length;
     the first-leg ToF is read straight off the cycler's phase signature), so they add no
     runtime to the cron job.
   </p>
-  <p>
+  <p id="maintenance-dv">
     The <strong>maintenance-ΔV budget</strong> is populated for closed E–M (Aldrin-style)
     cyclers — <strong>2.91 km/s</strong> — but getting there took catching a bug. The
     upstream optimiser (M6b,
@@ -217,9 +212,9 @@ const nTotal = data.entries.length;
   <h2>How the dates are computed</h2>
   <p>
     For each ballistic, heliocentric, Earth-touching cycler in the
-    <a href="/catalogue/">seed catalogue</a>: the cycler's per-encounter V<sub>∞</sub>
+    <a href="/catalogue/">catalogue</a>: the cycler's per-encounter V<sub>∞</sub>
     targets and per-leg time-of-flight are extracted as a <em>phase signature</em>. We then
-    grid-scan the next 10 years of real ephemeris at {data.step_days} d resolution; at each
+    grid-scan the next {data.horizon_years} years of real ephemeris at {data.step_days} d resolution; at each
     candidate departure date we solve the Lambert two-point boundary-value problem between
     Earth's actual position and Mars's (or the relevant body's) actual position at the
     cycler's leg ToF. The candidate's "mismatch" is the sum of <em>|V<sub>∞</sub><sub>,actual</sub>

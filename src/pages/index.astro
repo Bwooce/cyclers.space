@@ -11,13 +11,25 @@ const v0 = levelCounts["V0"] ?? 0;
 const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
   .filter((lvl) => (levelCounts[lvl] ?? 0) > 0)
   .map((lvl) => `${levelCounts[lvl]} at ${lvl}`);
+// Data-driven census for the "What's here" section, so the prose can't go
+// stale as the synced catalogue grows (it started as ~30 Earth-Mars rows and
+// now spans five planetary systems).
+const classCounts: Record<string, number> = {};
+for (const e of entries) {
+  const k = e.orbit_class ?? "cycler";
+  classCounts[k] = (classCounts[k] ?? 0) + 1;
+}
+const nonHelio = entries.filter((e) => e.primary && e.primary !== "Sun").length;
 ---
 <Base title="Home" description="cyclers.space — an open, validated catalogue of planetary cycler trajectories.">
   <HeroViz />
 
   <p>
-    A public, reproducible catalogue of <strong>planetary cycler trajectories</strong> — Earth-Mars and
-    Earth-Venus-Mars repeating orbits proposed for interplanetary transport architectures.
+    A public, reproducible catalogue of <strong>planetary cycler trajectories</strong> —
+    repeating orbits that shuttle between two or more bodies without stopping, proposed as
+    the backbone of interplanetary transport architectures. It spans the classic Earth-Mars
+    and Earth-Venus-Mars routes and their moon-to-moon cousins in the Earth-Moon, Jovian,
+    Saturnian, and Uranian systems.
   </p>
 
   <p>
@@ -33,12 +45,13 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
     earns it.
   </p>
 
-  <h2>Four kinds, and what they cost</h2>
+  <h2>Five kinds, and what they cost</h2>
   <p>
     Not every "cycler" is the same. A true <strong>cycler</strong> repeats forever (a railway
     line in space); a <strong>quasi-cycler</strong> repeats for a bounded window; a
     <strong>precursor</strong> places a vehicle onto one; a <strong>tour</strong> runs once to a
-    destination (most flown missions). And the railway itself is never quite free: cyclers span a
+    destination (most flown missions); and a <strong>resonant PO</strong> repeats forever but
+    never meets the body it would serve. And the railway itself is never quite free: cyclers span a
     spectrum from <strong>ballistic</strong> (no deterministic engine burns in the idealised model —
     e.g. the Earth–Mars <a href="/cycler/mcconaghy-2006-em-k2/">S1L1</a> at ~10&nbsp;m/s over 30&nbsp;yr)
     to <strong>powered</strong> (the <a href="/cycler/aldrin-classic-em-k1-outbound/">Aldrin cycler</a>
@@ -58,28 +71,30 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
   <h2>What's here, what isn't</h2>
   <ul>
     <li>
-      <strong>Here:</strong> {entries.length} entries. The bulk (~199) come from Russell 2004's
-      strict- and near-ballistic E-M Tables (3.9–3.11 and 4.9–4.13). Plus the Aldrin classic
-      E-M cycler, Niehoff VISIT-1/2, the McConaghy SnLm two-synodic taxonomy, the Jones 2017
-      V-E-M triples (incl. two fully-tabulated 12.8-yr members), the Sanchez Net 2022
-      "Pony Express" near-ballistic pair, the Hollister-Menning 1970 Earth-Venus periodic
-      swing-by, and six non-heliocentric entries (Earth-Moon, Jovian-moon, Saturnian). All
-      currently strict- or near-ballistic; low-thrust and manifold regimes are scheduled
-      for the v2 pass.
+      <strong>Here:</strong> {entries.length} entries — {classCounts["cycler"] ?? 0} strict
+      cyclers, {classCounts["quasi_cycler"] ?? 0} quasi-cyclers,
+      {classCounts["precursor_mga"] ?? 0} precursors, {classCounts["mga_tour"] ?? 0} tours,
+      and {classCounts["resonant_po"] ?? 0} resonant PO. The largest blocks are the Russell
+      2004/2006 Earth-Mars ballistic-cycler census (~220 rows) and the Russell-Strange 2009
+      moon-to-moon cycler tables (32 rows); alongside them sit the Aldrin classic E-M cycler,
+      Niehoff VISIT-1/2, the McConaghy SnLm two-synodic taxonomy, the Jones 2017 V-E-M
+      triples, the Sanchez Net 2022 "Pony Express" pair, the Hollister-Menning 1970
+      Earth-Venus swing-by, and {nonHelio} non-heliocentric entries (Earth-Moon, Jovian,
+      Saturnian, Uranian, Pluto-Charon). Regimes range from strictly ballistic to powered
+      and low-thrust — see the <a href="/about/#cycler-cost">maintenance-ΔV bands</a>.
     </li>
     <li>
       <strong>Now live:</strong> real-ephemeris geometric-match
       <a href="/launch-windows/">launch windows</a>
       for each ballistic, Earth-touching cycler — astropy + JPL DE440 + Lambert solve at
-      each grid date. Dates are real and verifiable; C<sub>3</sub>, time-of-flight, and
-      TCM-budget cost columns await wiring the upstream
-      <a href="https://github.com/Bwooce/cyclers">cyclerfinder</a>'s M6a/M6b machinery
-      (landed June 2026) into the weekly windows export.
+      each grid date. Dates are real and verifiable, and each window now also shows
+      C<sub>3</sub> at departure, time-of-flight to first encounter, and (for closed
+      Earth-Mars cyclers) a computed maintenance-ΔV budget.
     </li>
     <li>
-      <strong>Out of scope (for now):</strong> interactive Tisserand exploration. See spec §15.
-      (3-D orbit visualisation shipped: the front-page hero gallery above, and each catalogue
-      entry's own per-cycler 3D view.)
+      <strong>Out of scope (for now):</strong> interactive Tisserand-graph exploration
+      (tracked in the upstream project's spec, §15). 3-D orbit visualisation has shipped:
+      the front-page hero gallery above, and each catalogue entry's own per-cycler 3D view.
     </li>
   </ul>
 </Base>

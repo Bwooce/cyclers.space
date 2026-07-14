@@ -13,8 +13,9 @@ const discoveries = projectDiscoveries();
   <DiscoveriesStrip discoveries={discoveries} />
 
   <p>
-    {entries.length} entries from the seed catalogue. Click a column header to sort;
-    use the checkboxes to filter by encounter body.
+    {entries.length} entries, synced at build time from the upstream
+    <a href="https://github.com/Bwooce/cyclers">cyclerfinder</a> data repo. Click a column
+    header to sort; use the checkboxes to filter by encounter body.
   </p>
   <p class="muted">
     Every value is sourced; see each entry's detail page for the verbatim quote from the

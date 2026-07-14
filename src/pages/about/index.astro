@@ -14,8 +14,10 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
   <h2>What is this?</h2>
   <p>
     <strong>cyclers.space</strong> is an open catalogue of <em>planetary cycler trajectories</em>:
-    repeating heliocentric orbits that periodically encounter two or more planets without
-    propulsive maneuvers (or with only small course-correction burns). They were proposed
+    repeating orbits that periodically encounter two or more bodies without propulsive
+    maneuvers (or with only small course-correction burns). Most are heliocentric —
+    planet-to-planet routes like Earth-Mars — and some are their moon-to-moon cousins inside
+    the Earth-Moon, Jovian, Saturnian, and Uranian systems. Cyclers were proposed
     in the 1980s by Aldrin and Niehoff as the backbone of a sustainable Earth-Mars transport
     architecture, and the literature on them is now scattered across four decades of papers,
     dissertations, and conference proceedings.
@@ -86,8 +88,10 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
       </tr>
       <tr>
         <td><strong>Quasi-cycler</strong></td>
-        <td>Repeats <em>nearly</em>, but only stays closed for a bounded window
-          (~10–15 yr) before the real-world geometry drifts it apart.</td>
+        <td>Repeats <em>nearly</em>, but only stays closed for a bounded window of real
+          calendar dates before the real-world geometry drifts it apart. The window is
+          listed per entry — the current quasi-cyclers (Uranian moon pairs) hold for
+          roughly eight decades.</td>
         <td>A medium-term shuttle when a true ballistic cycler doesn't exist for the
           planet pair you want.</td>
       </tr>
@@ -152,7 +156,8 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
       <tr>
         <td><strong>Low-maintenance</strong></td>
         <td>&lt; 300 m/s / 7 cycles</td>
-        <td>Many Russell-Ocampo 2006 parent cyclers (74 of them fall under this)</td>
+        <td>Russell-Ocampo 2006 parent cyclers — the paper's census puts 74 of them in
+          this band (these catalogue rows are not yet individually banded)</td>
         <td>Modest upkeep — a small solar-electric thruster topped up at each rendezvous
           keeps it going. Still a reusable backbone.</td>
       </tr>
@@ -354,8 +359,8 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
     the original authors keep the credit. A computed member of a published
     <em>class</em> — not a literal copy of any one published orbit, yet not novel
     because the class is already known — is a <code>known-class-member</code>; for
-    example our 3D out-of-plane (2,1) Earth-Moon cycler is a member of the
-    spatial-resonant family of Antoniadou &amp; Libert (2019). A trajectory absent
+    example our 3D out-of-plane (2,1) Earth-Moon resonant periodic orbit is a member
+    of the spatial-resonant family of Antoniadou &amp; Libert (2019). A trajectory absent
     from the published record is a <code>candidate-novel</code>.
   </p>
 
@@ -374,20 +379,22 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
 
   <h2>How to contribute corrections</h2>
   <p>
-    The catalogue is a single YAML file:
-    <code>src/data/seed_cyclers.yaml</code> in the
-    <a href="https://github.com/Bwooce/cyclers.space">cyclers.space</a> repo. Open a pull
-    request with the change, including the verbatim quote and source identifier (page,
-    table, equation number, DOI) for every modified numerical value. Bare numbers without
-    provenance are not accepted.
+    The catalogue's single source of truth is <code>data/catalogue.yaml</code> in the
+    upstream <a href="https://github.com/Bwooce/cyclers">cyclers</a> repo (this site keeps
+    no editable copy — it fetches that file at build time). Open a pull request there with
+    the change, including the verbatim quote and source identifier (page, table, equation
+    number, DOI) for every modified numerical value. Bare numbers without provenance are
+    not accepted. For site-rendering problems (broken layout, wrong label, viz bugs), use
+    the <a href="https://github.com/Bwooce/cyclers.space">cyclers.space</a> repo instead.
   </p>
 
   <h2>Data flow</h2>
   <p>
-    The site is a static build of the YAML catalogue. v1 copies the YAML in at bootstrap
-    time; the long-term plan is for the build to pull the latest version from the upstream
-    <a href="https://github.com/Bwooce/cyclers">cyclers</a> repo on a schedule. The site
-    has no backend, no analytics, and no JavaScript beyond the small client-side island
-    that powers the planet filter and column sorting on the catalogue page.
+    The site is a static build of the upstream YAML catalogue: every build starts by
+    syncing the latest <code>catalogue.yaml</code> from the
+    <a href="https://github.com/Bwooce/cyclers">cyclers</a> repo, and the launch-windows
+    dataset is refreshed by a weekly job against the real JPL DE440 ephemeris. The site
+    has no backend and no analytics; JavaScript is limited to small opt-in islands — the
+    catalogue filter/sort controls and the click-to-load 3D orbit viewers.
   </p>
 </Base>
