@@ -1,5 +1,92 @@
 import yaml from "js-yaml";
 import type { Citation, CyclerEntry, Leg, OrbitClass, ValidityWindow } from "./types";
+
+/**
+ * Strip internal work-tracking references from catalogue-sourced free text.
+ *
+ * The upstream data repo's prose (notes, source hints, venues, quotes) is
+ * written against an internal task tracker whose items are referenced as
+ * `#NNN` ("task #54", "task chain #558 -> ... -> #569", "Per #566: ..."). Those
+ * numbers are meaningless to a site visitor, so they are stripped or rewritten
+ * before render. Legitimate *published* indices that happen to share the shape
+ * are preserved without the `#` sigil: Russell's parent-cycler numbers
+ * ("4.991gG2 (#83)" → "4.991gG2 (no. 83)"), Russell-Strange table indices
+ * ("moon cycler #131" → "moon cycler no. 131"), per-flyby/arc numbering
+ * ("flyby #0" → "flyby 0"), and identifier-embedded hashes ("JPL-CL#17-3322",
+ * untouched). Applied once at the loader so every render site inherits it.
+ */
+export function sanitizeCatalogueText(text: string): string {
+  let s = text;
+
+  // --- Preserve legitimate published indices (rewritten without "#"). ---
+  // "flyby #0" / "arc #2" (Liang 2024 flyby numbering, loop-arc numbering).
+  s = s.replace(/\b(flyby|arc)\s*#(\d+)/gi, "$1 $2");
+  // Russell designation followed by its table index: "4.991gG2 (#83)" /
+  // "4.991gG2(#83)" / "3.768Gh-3 (#54)" / bare "4.991gG2 #83".
+  const RUSSELL_CODE = /(\d\.\d{2,3}[A-Za-z][A-Za-z0-9+-]*)/.source;
+  s = s.replace(new RegExp(`${RUSSELL_CODE}\\s*\\(#(\\d+)\\)`, "g"), "$1 (no. $2)");
+  s = s.replace(new RegExp(`${RUSSELL_CODE}\\s+#(\\d+)\\b`, "g"), "$1 no. $2");
+  // Index before the designation: "for #83 4.991gG2".
+  s = s.replace(new RegExp(`#(\\d+)\\s+${RUSSELL_CODE}`, "g"), "no. $1 $2");
+  // "parent cycler #162" / "ballistic moon cycler #131" (Russell-Strange 2009).
+  s = s.replace(/\b(cycler)\s+#(\d+)\b/gi, "$1 no. $2");
+
+  // --- Remove internal task references. ---
+  // Whole "task chain #a -> #b -> ..." sequences (venue-style, no prose).
+  s = s.replace(/[;,]?\s*task\s+chain:?\s*#\d+(\s*(?:->|→)\s*#\d+)*/gi, "");
+  // Possessives: "#312's own" / "task #312's" / "#399's". The "#N's own X"
+  // shape always refers back to a family's first-documented row in the
+  // upstream prose; "its own" would misread as self-reference.
+  s = s.replace(/#\d+[\w-]*['’]s\s+own\b/g, "the family's first-documented member's own");
+  s = s.replace(/\btask\s+#\d+[\w-]*['’]s/gi, "the");
+  s = s.replace(/#\d+[\w-]*['’]s/g, "the");
+  // Noun usages where bare deletion would break grammar:
+  // "chain #312 itself cleared", "than #312, which ...".
+  s = s.replace(/#\d+[\w-]*\s+(?=itself\b)/g, "the earlier row ");
+  s = s.replace(/#\d+[\w-]*(?=,\s*which\b)/g, "the earlier row");
+  // Verb-subject usages: "#399 DERIVES it ...", "until #365 promotes it".
+  s = s.replace(/#\d+\s+DERIVES\b/g, "we derive");
+  s = s.replace(/until\s+#\d+\s+promotes\b/gi, "until a later verification pass promotes");
+  // "task #54" / "tasks #54" (with optional suffix like "#54-backfill").
+  s = s.replace(/\btasks?\s+#\d+[\w-]*\s*/gi, "");
+  // Token groups deleted as a unit ("#567/#568", "#561/#562/#563",
+  // "#330->#335") so no orphan "/" or "->" separators are left behind —
+  // a lone " / " elsewhere can be legitimate prose and must survive.
+  s = s.replace(/(?<![\w-])#\d+[\w-]*(?:\s*(?:\/|,|->|→)\s*#\d+[\w-]*)+/g, "");
+  // Catch-all: any remaining standalone task token. The lookbehind protects
+  // identifier-embedded hashes ("JPL-CL#17-3322"). A lowercase preposition
+  // whose object is the deleted token goes with it ("enumerated by #563." →
+  // "enumerated."), so no dangling "by)" / "of)." is left behind.
+  s = s.replace(/(?:\b(?:by|of|per|via|from)\s+)?(?<![\w-])#\d+[a-z]?(?:-[A-Za-z][\w-]*)?/g, "");
+
+  // --- Punctuation cleanup after deletions. ---
+  s = s.replace(/(?:\s*(?:->|→)){2,}(?=\s|$)/g, "");
+  // Parens that now contain only deletion-detritus separators: "()", "(->)",
+  // "(/)", "(, )". Deliberately NOT bare "-", "+" or "." — "(-)", "(+)" and
+  // "g(...)" are legitimate notation that must survive.
+  s = s.replace(/\s*\(\s*(?:(?:->|→|[/;,])\s*)*\)/g, "");
+  // Dangling "--" before a closing paren: "(V4, windowed --)" → "(V4, windowed)".
+  s = s.replace(/\s*--\s*\)/g, ")");
+  // Dangling list separator before a closing paren: "(a.bsp; )" → "(a.bsp)".
+  s = s.replace(/[;,]\s*\)/g, ")");
+  // Trailing whitespace a deletion left at a (pre-wrap) line end.
+  s = s.replace(/[ \t]+$/gm, "");
+  // "( wave 2" → "(wave 2"; "(; N=731" → "(N=731"; "(, 2026" → "(2026".
+  s = s.replace(/\(\s*[,;]?\s+/g, "(");
+  s = s.replace(/\s+\)/g, ")");
+  // Space before punctuation: "than , which" → handled above; " ." / " ," etc.
+  s = s.replace(/[ \t]+([,;.])/g, "$1");
+  // Doubled separators left by a deleted mid-list token: "paper,, tabulates".
+  s = s.replace(/,\s*,/g, ",").replace(/;\s*;/g, ";");
+  // A deleted trailing "#399." citation leaves a double full stop ("<0.1%..");
+  // exactly two dots collapse to one, real "..." ellipses are untouched.
+  s = s.replace(/(?<!\.)\.\.(?!\.)/g, ".");
+  // Collapse doubled spaces (but not newlines — notes render pre-wrap).
+  s = s.replace(/[ \t]{2,}/g, " ");
+  // Trailing separators at end of the whole string.
+  s = s.replace(/\s*[;,]\s*$/g, "");
+  return s.trim();
+}
 import windowsData from "../data/windows.json";
 // Vite raw-import: at build time the YAML file's contents are inlined as a
 // string into the bundle. This is robust against Astro's prerender file
@@ -9,6 +96,61 @@ import windowsData from "../data/windows.json";
 // source of truth (Bwooce/cyclers) by the `prebuild`/`predev` sync step
 // (scripts/sync-catalogue.mjs). This repo keeps no duplicate of the catalogue.
 import rawYaml from "../data/catalogue.yaml?raw";
+
+/** sanitizeCatalogueText applied only when the value is a string. */
+const clean = <T extends string | null | undefined>(v: T): T =>
+  (typeof v === "string" ? (sanitizeCatalogueText(v) as T) : v);
+
+/** Sanitize a Citation's rendered text fields (title, venue, note). */
+function cleanCitation<T extends Citation | null | undefined>(c: T): T {
+  if (!c) return c;
+  return { ...c, title: clean(c.title), venue: clean(c.venue), note: clean(c.note) } as T;
+}
+
+/** Recursively sanitize every string in a source_quotes-style object. */
+function cleanDeepStrings<T>(v: T): T {
+  if (typeof v === "string") return sanitizeCatalogueText(v) as unknown as T;
+  if (Array.isArray(v)) return v.map(cleanDeepStrings) as unknown as T;
+  if (v && typeof v === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+      out[k] = cleanDeepStrings(val);
+    }
+    return out as T;
+  }
+  return v;
+}
+
+/**
+ * Sanitize every catalogue-sourced free-text field the site renders (see
+ * sanitizeCatalogueText). Done once at the loader — not per render site — so a
+ * new template can't accidentally reintroduce raw task numbers. Numeric /
+ * identifier fields (id, sources-registry keys, dates) are left untouched.
+ */
+function sanitizeEntryText(entry: CyclerEntry): CyclerEntry {
+  const e = { ...entry };
+  e.name = clean(e.name);
+  e.notes = clean(e.notes);
+  e.source_ephemeris = clean(e.source_ephemeris);
+  e.first_published = cleanCitation(e.first_published);
+  if (e.corroborating_sources) e.corroborating_sources = e.corroborating_sources.map(cleanCitation);
+  if (e.orbit_elements) e.orbit_elements = { ...e.orbit_elements, note: clean(e.orbit_elements.note) };
+  if (e.period) e.period = { ...e.period, note: clean(e.period.note) };
+  if (e.vinf_kms_at_encounters)
+    e.vinf_kms_at_encounters = e.vinf_kms_at_encounters.map((v) => ({ ...v, note: clean(v.note) }));
+  if (e.legs) e.legs = e.legs.map((l) => ({ ...l, note: clean(l.note) }));
+  if (e.trajectory?.segments)
+    e.trajectory = {
+      ...e.trajectory,
+      segments: e.trajectory.segments.map((s) => ({ ...s, note: clean(s.note) })),
+    };
+  if (e.data_gaps)
+    e.data_gaps = e.data_gaps.map((g) => ({ ...g, note: clean(g.note), source_hint: clean(g.source_hint) }));
+  if (e.source_quotes) e.source_quotes = cleanDeepStrings(e.source_quotes);
+  if (e.family)
+    e.family = { ...e.family, name: clean(e.family.name), nomenclature: clean(e.family.nomenclature) };
+  return e;
+}
 
 let cache: CyclerEntry[] | null = null;
 
@@ -28,7 +170,7 @@ export function loadCatalogue(): CyclerEntry[] {
     const epoch_locked = entry.epoch_locked ?? orbit_class !== "cycler";
     const n_returns =
       entry.n_returns ?? (orbit_class === "cycler" ? ("infinite" as const) : entry.n_returns);
-    return {
+    return sanitizeEntryText({
       ...entry,
       validation_level: entry.validation_level ?? ("V0" as const),
       orbit_class,
@@ -50,7 +192,7 @@ export function loadCatalogue(): CyclerEntry[] {
       // existing `authors[0] ?? "?"` fallbacks render "?" instead of throwing.
       first_published:
         entry.first_published ?? ({ authors: [], year: 0, title: "", venue: "" } as Citation),
-    };
+    });
   });
   return cache;
 }
