@@ -310,6 +310,18 @@ const clockConfig = {
   sampledUrl,
 };
 
+// A row can be routed to the "non-keplerian" render class either because it
+// IS a single rotating-frame CR3BP periodic orbit (cycler_class=non-keplerian,
+// a real cr3bp identity block expected) or because it's a MULTI-ARC tour whose
+// legs are each computed under a restricted-three-body approximation
+// (cycler_class=multi-arc, model_assumption=cr3bp — e.g. the #569 Uranian
+// moon-tour rows) — a fundamentally different case: no single Jacobi
+// constant/period/stability triple describes a tour across several distinct
+// moon-pair systems, so nothing is "tabulated above" for these rows and none
+// ever will be. #587 (2026-07-14): distinguish the two so this placeholder
+// stops making a false claim for the multi-arc case.
+const isPatchedMultiArcTour = entry.cycler_class === "multi-arc" && entry.model_assumption === "cr3bp";
+
 // Static a11y description of what the figure shows.
 const svgDesc =
   cls === "single-ellipse"
@@ -318,22 +330,39 @@ const svgDesc =
         .join(", ")}, and the cycler's heliocentric ellipse (a=${oe.a_au}, e=${oe.e}).`
     : cls === "multi-arc"
       ? `Top-down ecliptic view: the Sun at centre with planet reference circles${aphelionAu != null ? ` and the cycler's sourced max-aphelion ring (${aphelionAu} AU)` : ""}. ${renderedArcs.length} of ${arcRows.length} trajectory segments carry published (a,e) and are drawn; ${gapArcs.length} are shown as "elements not published" gaps, never interpolated.`
-      : "This is a rotating-frame (CR3BP) periodic orbit; it is not renderable from the catalogue's current public data.";
+      : isPatchedMultiArcTour
+        ? "This is a multi-arc tour whose legs are each modeled under a restricted three-body approximation; it is not renderable from the catalogue's current public data."
+        : "This is a rotating-frame (CR3BP) periodic orbit; it is not renderable from the catalogue's current public data.";
 ---
 <section class="orbit-view" aria-labelledby={titleId}>
   <h2 id={titleId}>Orbit view <span class="orbit-badge">2.5D ecliptic projection</span></h2>
 
   {cls === "non-keplerian" ? (
     <div class="orbit-placeholder" role="note">
-      <p>
-        <strong>Not renderable from current data.</strong> This is a
-        rotating-frame (CR3BP) periodic orbit. A faithful render requires
-        numerical propagation of the synodic-frame state, which the catalogue
-        does not yet publish as a sampled path — so no stand-in ellipse is
-        drawn (drawing a heliocentric ellipse here would misrepresent the
-        dynamics). The CR3BP identity (Jacobi constant, period, stability) is
-        tabulated above.
-      </p>
+      {isPatchedMultiArcTour ? (
+        <p>
+          <strong>Not renderable from current data.</strong> This entry is a
+          multi-arc tour across several distinct moon-pair systems, with each
+          leg computed under its own restricted three-body approximation —
+          not a single rotating-frame periodic orbit. A faithful render
+          requires numerical propagation of each leg's synodic-frame state,
+          which the catalogue does not yet publish as a sampled path, so no
+          stand-in ellipse is drawn. Unlike a single CR3BP orbit, this entry
+          has no single Jacobi constant, period, or stability index — a
+          multi-moon-pair tour has no one restricted three-body system to
+          define them against. See the notes below for per-leg details.
+        </p>
+      ) : (
+        <p>
+          <strong>Not renderable from current data.</strong> This is a
+          rotating-frame (CR3BP) periodic orbit. A faithful render requires
+          numerical propagation of the synodic-frame state, which the catalogue
+          does not yet publish as a sampled path — so no stand-in ellipse is
+          drawn (drawing a heliocentric ellipse here would misrepresent the
+          dynamics). The CR3BP identity (Jacobi constant, period, stability) is
+          tabulated above.
+        </p>
+      )}
       <p class="muted orbit-prov">model: {fidelityBadge}</p>
       <p class="muted orbit-prov">3D view not available for rotating-frame (CR3BP) orbits.</p>
     </div>
