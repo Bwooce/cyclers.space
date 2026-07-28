@@ -168,12 +168,30 @@ const formatCite = (c: Citation): string => {
         <span class="muted"> (default — heliocentric)</span>
       )}
     </dd>
-    <dt>Sequence (canonical)</dt><dd><code>{entry.sequence_canonical}</code></dd>
+    <dt>Sequence (canonical)</dt>
+    <dd>
+      {entry.sequence_canonical ? (
+        <code>{entry.sequence_canonical}</code>
+      ) : (
+        <span class="muted">
+          not applicable
+          {(orbitClass === "torus_homoclinic" || orbitClass === "quasi_periodic_torus") && (
+            <> — a quasi-periodic torus has no repeating encounter sequence to state; see
+              {" "}<a href="/about/#quasi-periodic-torus">quasi-periodic tori</a></>
+          )}
+        </span>
+      )}
+    </dd>
     <dt>Sense</dt><dd>{entry.sense}</dd>
     <dt>Orbit class</dt>
     <dd>
       <span class={`orbit-class-badge oc-${orbitClass}`}>{orbitClassLabel}</span>
       <div class="muted" style="font-size:0.85em">{orbitClassLong}</div>
+      {(orbitClass === "torus_homoclinic" || orbitClass === "quasi_periodic_torus") && (
+        <div class="muted" style="font-size:0.85em">
+          <a href="/about/#quasi-periodic-torus">What is a quasi-periodic invariant torus? →</a>
+        </div>
+      )}
     </dd>
     <dt>Cycler class</dt>
     <dd>
@@ -236,6 +254,8 @@ const formatCite = (c: Citation): string => {
       {!entry.model_assumption && <span class="muted"> (default)</span>}
       <div class="muted" style="font-size:0.85em">
         {entry.model_assumption === "cr3bp" && "CR3BP — Jacobi-constant-conserved; signature not patched-conic comparable."}
+        {entry.model_assumption === "ccr4bp" && "CCR4BP — restricted four-body: the base three-body pair plus ONE periodic third-body forcing term; no exact conserved quantity (Jacobi constant does not carry over)."}
+        {entry.model_assumption === "crnbp" && "CRNBP — restricted N-body: the base three-body pair plus TWO simultaneous periodic forcing terms; no exact conserved quantity (Jacobi constant does not carry over)."}
         {entry.model_assumption === "analytic-ephemeris" && "Mid-fidelity: real eccentricity / inclination retained; not full N-body."}
         {(!entry.model_assumption || entry.model_assumption === "circular-coplanar") && "Idealised: planets on circles, coplanar ecliptic."}
       </div>

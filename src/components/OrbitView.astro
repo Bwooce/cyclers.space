@@ -245,9 +245,13 @@ const fidelity = entry.model_assumption ?? "circular-coplanar";
 const fidelityBadge =
   fidelity === "cr3bp"
     ? "CR3BP (rotating frame)"
-    : fidelity === "analytic-ephemeris"
-      ? "spacecraft: analytic-ephemeris (real e/i retained)"
-      : "spacecraft: idealized coplanar ellipse";
+    : fidelity === "ccr4bp"
+      ? "CCR4BP (rotating frame, one periodic forcing term)"
+      : fidelity === "crnbp"
+        ? "CRNBP (rotating frame, two periodic forcing terms)"
+        : fidelity === "analytic-ephemeris"
+          ? "spacecraft: analytic-ephemeris (real e/i retained)"
+          : "spacecraft: idealized coplanar ellipse";
 
 // --- proximity sparkline geometry (one mini-SVG per visited body) -----------
 const SPARK_W = 200;
@@ -332,7 +336,7 @@ const svgDesc =
       ? `Top-down ecliptic view: the Sun at centre with planet reference circles${aphelionAu != null ? ` and the cycler's sourced max-aphelion ring (${aphelionAu} AU)` : ""}. ${renderedArcs.length} of ${arcRows.length} trajectory segments carry published (a,e) and are drawn; ${gapArcs.length} are shown as "elements not published" gaps, never interpolated.`
       : isPatchedMultiArcTour
         ? "This is a multi-arc tour whose legs are each modeled under a restricted three-body approximation; it is not renderable from the catalogue's current public data."
-        : "This is a rotating-frame (CR3BP) periodic orbit; it is not renderable from the catalogue's current public data.";
+        : "This is a rotating-frame (CR3BP-family) periodic or quasi-periodic orbit; it is not renderable from the catalogue's current public data.";
 ---
 <section class="orbit-view" aria-labelledby={titleId}>
   <h2 id={titleId}>Orbit view <span class="orbit-badge">2.5D ecliptic projection</span></h2>
@@ -355,16 +359,18 @@ const svgDesc =
       ) : (
         <p>
           <strong>Not renderable from current data.</strong> This is a
-          rotating-frame (CR3BP) periodic orbit. A faithful render requires
-          numerical propagation of the synodic-frame state, which the catalogue
-          does not yet publish as a sampled path — so no stand-in ellipse is
-          drawn (drawing a heliocentric ellipse here would misrepresent the
-          dynamics). The CR3BP identity (Jacobi constant, period, stability) is
-          tabulated above.
+          rotating-frame (CR3BP-family — CR3BP, CCR4BP, or CRNBP) periodic or
+          quasi-periodic orbit. A faithful render requires numerical propagation
+          of the synodic-frame state, which the catalogue does not yet publish
+          as a sampled path — so no stand-in ellipse is drawn (drawing a
+          heliocentric ellipse here would misrepresent the dynamics). Whatever
+          identity fields the model supports (Jacobi constant, period,
+          stability — not all apply to every model in this family; see
+          "Model assumption" above) are tabulated above.
         </p>
       )}
       <p class="muted orbit-prov">model: {fidelityBadge}</p>
-      <p class="muted orbit-prov">3D view not available for rotating-frame (CR3BP) orbits.</p>
+      <p class="muted orbit-prov">3D view not available for rotating-frame (CR3BP-family) orbits.</p>
     </div>
   ) : (
     <>

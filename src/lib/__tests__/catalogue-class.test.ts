@@ -50,9 +50,15 @@ describe("orbit_class defaulting (schema v5 backward compat)", () => {
       // Today's catalogue: all rows pre-date the migration, so all resolve to
       // the "cycler" default. When the migration lands this test becomes a
       // weaker invariant ("orbit_class is always set"), still satisfied.
-      expect(["cycler", "quasi_cycler", "precursor_mga", "mga_tour", "resonant_po"]).toContain(
-        e.orbit_class,
-      );
+      expect([
+        "cycler",
+        "quasi_cycler",
+        "precursor_mga",
+        "mga_tour",
+        "resonant_po",
+        "torus_homoclinic",
+        "quasi_periodic_torus",
+      ]).toContain(e.orbit_class);
     }
   });
 
@@ -73,6 +79,8 @@ describe("orbit_class defaulting (schema v5 backward compat)", () => {
       "precursor_mga",
       "mga_tour",
       "resonant_po",
+      "torus_homoclinic",
+      "quasi_periodic_torus",
     ];
     for (const c of classes) {
       expect(ORBIT_CLASS_LABEL[c]).toBeTruthy();
@@ -82,6 +90,8 @@ describe("orbit_class defaulting (schema v5 backward compat)", () => {
     expect(ORBIT_CLASS_LABEL.precursor_mga).toBe("Precursor");
     expect(ORBIT_CLASS_LABEL.mga_tour).toBe("Tour");
     expect(ORBIT_CLASS_LABEL.resonant_po).toBe("Resonant PO");
+    expect(ORBIT_CLASS_LABEL.torus_homoclinic).toBe("Torus (connected)");
+    expect(ORBIT_CLASS_LABEL.quasi_periodic_torus).toBe("Quasi-periodic torus");
   });
 });
 

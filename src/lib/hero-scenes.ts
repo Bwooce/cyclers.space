@@ -19,7 +19,7 @@ import type { CyclerEntry } from "./types";
 import type { KeplerElements } from "./kepler-time";
 import { planetToElements, periodDays } from "./kepler-time";
 import { PLANETS, PLANET_GEOMETRY_CITATION } from "./orbit";
-import { fmtVinfMultiset } from "./catalogue";
+import { fmtVinfMultiset, effectiveOrbitClass } from "./catalogue";
 import { heroGroups, curvePlanFor, reproducedCount } from "./hero-data";
 import {
   URANUS_MU_KM3S2,
@@ -357,6 +357,22 @@ function uranianScene(entries: CyclerEntry[]): HeroSceneSpec {
   const pairIndex = new Map(orderedMoonPairs().map((p, i) => [`${p[0]}-${p[1]}`, i]));
 
   for (const e of entries) {
+    // Schema v5.3/v5.4 (upstream #707/#708, #735/#736): torus_homoclinic /
+    // quasi_periodic_torus rows can carry a Uranus primary + two moon
+    // bodies[] entries too (e.g. bodies=[Uranus, Umbriel, Titania]), but
+    // bodies[2] there is a gravitational PERTURBER, never a transfer
+    // destination — the Hohmann-proxy curve below would draw a fabricated
+    // Umbriel<->Titania "transfer" that never happens. Only genuine
+    // moon-pair quasi_cycler rows get the curve; anything else is a badge.
+    if (effectiveOrbitClass(e) !== "quasi_cycler") {
+      badges.push({
+        id: e.id,
+        label: labelOf(e),
+        tier: tierOf(e),
+        detail: `${effectiveOrbitClass(e)} — not a moon-pair transfer, no Hohmann-proxy curve drawn (see its own detail page)`,
+      });
+      continue;
+    }
     const moonA = e.bodies[1];
     const moonB = e.bodies[2];
     const refA = moonA ? URANUS_MOONS[moonA] : undefined;

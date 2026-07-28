@@ -88,12 +88,18 @@ describe("hero scene specs", () => {
     expect(total).toBe(9);
   });
 
-  it("uranian scene: leads the array and carries all six representative arcs", () => {
+  it("uranian scene: leads the array and carries all six representative arcs (plus the torus_homoclinic badge row)", () => {
     expect(scenes[0]?.id).toBe("uranian");
     const s = scenes.find((x) => x.id === "uranian")!;
     expect(s).toBeDefined();
-    expect(s.curves.length + s.badges.length).toBe(6);
-    expect(s.curves.length).toBe(6); // all six rows resolve real moon pairs
+    // Schema v5.3 (#707/#708): umbriel-1-2-torus-homoclinic-uranus-2026 also
+    // has primary=Uranus, so it lands in this scene's rowCount too — but as
+    // a badge (not a quasi_cycler moon-pair transfer), never a fabricated
+    // Umbriel<->Titania curve.
+    expect(s.rowCount).toBe(7);
+    expect(s.curves.length + s.badges.length).toBe(7);
+    expect(s.badges.map((b) => b.id)).toContain("umbriel-1-2-torus-homoclinic-uranus-2026");
+    expect(s.curves.length).toBe(6); // all six quasi_cycler rows resolve real moon pairs
     for (const c of s.curves) {
       expect(c.geom.kind).toBe("uranian-transfer");
       // Plain-language lead (task: caption "technically correct but sucks"

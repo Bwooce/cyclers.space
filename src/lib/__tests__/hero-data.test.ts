@@ -11,6 +11,12 @@ const URANIAN_IDS = [
   "ariel-umbriel-1-1-uranian-quasi-cycler-2026",
 ];
 
+// Schema v5.3 (upstream #707/#708): a torus_homoclinic row also has primary=Uranus
+// (bodies=[Uranus, Umbriel, Titania]) so it lands in the same hero group as the six
+// moon-pair quasi_cyclers above — but unlike them it carries an EXPLICIT primary
+// field rather than relying on the Uranus heuristic.
+const URANIAN_TORUS_HOMOCLINIC_ID = "umbriel-1-2-torus-homoclinic-uranus-2026";
+
 // Hero data layer (task #227): the count is the LIVE filter, the grouping
 // never drops a row, and the per-row render plan follows the honesty rules
 // (never invent geometry; rows the data can't draw become badges).
@@ -48,17 +54,22 @@ describe("system grouping", () => {
     for (const e of g.jovian) expect(e.primary).toBe("Jupiter");
   });
 
-  it("buckets the six Uranian rows (no primary field) via effectivePrimary, not Sun", () => {
+  it("buckets the six Uranian moon-pair rows plus the torus_homoclinic row via effectivePrimary, not Sun", () => {
     const g = heroGroups();
-    expect(g.uranian.map((e) => e.id).sort()).toEqual([...URANIAN_IDS].sort());
+    const allUranianIds = [...URANIAN_IDS, URANIAN_TORUS_HOMOCLINIC_ID];
+    expect(g.uranian.map((e) => e.id).sort()).toEqual(allUranianIds.sort());
     for (const e of g.uranian) {
-      expect(e.primary).toBeUndefined();
       expect(e.bodies).toContain("Uranus");
       expect(effectivePrimary(e)).toBe("Uranus");
+      if (e.id === URANIAN_TORUS_HOMOCLINIC_ID) {
+        expect(e.primary).toBe("Uranus"); // explicit (schema v5.3), not the heuristic
+      } else {
+        expect(e.primary).toBeUndefined();
+      }
     }
     // None of them leaked into the heliocentric ("Sun" default) bucket.
     const helioIds = new Set(g.heliocentric.map((e) => e.id));
-    for (const id of URANIAN_IDS) expect(helioIds.has(id)).toBe(false);
+    for (const id of allUranianIds) expect(helioIds.has(id)).toBe(false);
   });
 });
 

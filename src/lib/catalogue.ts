@@ -206,13 +206,15 @@ export function effectiveOrbitClass(entry: CyclerEntry): OrbitClass {
   return entry.orbit_class ?? "cycler";
 }
 
-/** Human-readable label for each of the four orbit classes. */
+/** Human-readable label for each orbit class. */
 export const ORBIT_CLASS_LABEL: Record<OrbitClass, string> = {
   cycler: "Cycler",
   quasi_cycler: "Quasi-cycler",
   precursor_mga: "Precursor",
   mga_tour: "Tour",
   resonant_po: "Resonant PO",
+  torus_homoclinic: "Torus (connected)",
+  quasi_periodic_torus: "Quasi-periodic torus",
 };
 
 /** Long-form label used in tooltips and the detail page. */
@@ -222,6 +224,10 @@ export const ORBIT_CLASS_LONG_LABEL: Record<OrbitClass, string> = {
   precursor_mga: "precursor MGA (one-shot insertion into a cycler)",
   mga_tour: "MGA tour (one-shot terminal arrival)",
   resonant_po: "resonant periodic orbit (stable, no transport utility)",
+  torus_homoclinic:
+    "quasi-periodic invariant torus WITH a computed manifold connection (departs unstable, returns stable — see /about/#quasi-periodic-torus)",
+  quasi_periodic_torus:
+    "quasi-periodic invariant torus, no encounter sequence, no computed connection yet — existence/structural discovery only (see /about/#quasi-periodic-torus)",
 };
 
 /**

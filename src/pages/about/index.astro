@@ -64,12 +64,15 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
     camera is spinning," never as "something happened here."
   </p>
 
-  <h2 id="cycler-types">The five kinds of trajectory</h2>
+  <h2 id="cycler-types">The seven kinds of trajectory</h2>
   <p>
-    "Cycler" gets used loosely. The catalogue separates five genuinely different things,
+    "Cycler" gets used loosely. The catalogue separates seven genuinely different things,
     because they suit very different missions. The headline distinction: a true cycler
-    repeats <em>forever</em>; two of the others run <em>once</em>; and a resonant PO
-    repeats forever but never actually meets the planet it would ferry to.
+    repeats <em>forever</em>; two of the others run <em>once</em>; a resonant PO
+    repeats forever but never actually meets the planet it would ferry to; and the two
+    torus kinds aren't a repeating loop at all — see
+    <a href="#quasi-periodic-torus">the dedicated section below</a> for why that's a
+    structurally different thing, not just a variant of the other five.
   </p>
   <table class="catalogue" style="margin-top:0.5rem;">
     <thead>
@@ -117,8 +120,103 @@ const aboveV0 = (["V5", "V4", "V3", "V2", "V1"] as const)
           member of the Antoniadou &amp; Libert 2019 spatial-resonant family), not a usable
           route.</td>
       </tr>
+      <tr>
+        <td><strong>Torus (connected)</strong></td>
+        <td>Not a single loop at all — a whole 2-D <em>surface</em> of bounded, never-quite-
+          repeating motion, with a computed departure/arrival connection to and from it
+          (out along the unstable manifold, back along the stable one, to near machine
+          precision).</td>
+        <td>A confirmed transport node: a reservoir of nearby trajectories <em>plus</em> a
+          demonstrated way on and off it. See
+          <a href="#quasi-periodic-torus">quasi-periodic tori</a> below.</td>
+      </tr>
+      <tr>
+        <td><strong>Quasi-periodic torus</strong></td>
+        <td>The same kind of 2-D surface, but with <em>no</em> computed connection yet — an
+          existence/structural discovery, not a demonstrated route.</td>
+        <td>Not yet usable as transport, but a candidate reservoir worth investigating. See
+          <a href="#quasi-periodic-torus">quasi-periodic tori</a> below.</td>
+      </tr>
     </tbody>
   </table>
+
+  <h2 id="quasi-periodic-torus">Quasi-periodic tori: a reservoir, not (yet) a route</h2>
+  <p>
+    A strict cycler is one closed loop: a periodic orbit with a repeating, alternating
+    sequence of close encounters with named bodies (Earth→Mars→Earth→Mars, say) —
+    that sequence is exactly what the catalogue's own <code>sequence_canonical</code>
+    field records. A <strong>quasi-periodic invariant torus</strong> is structurally
+    different. Instead of one closed loop, the trajectory is confined to a 2-D
+    toroidal <em>surface</em> in phase space, built from two independent,
+    generally-incommensurate oscillation frequencies. It never exactly repeats — but it
+    never leaves that surface either. There is no alternating-encounter sequence to
+    state, so these rows carry <code>sequence_canonical: null</code>.
+  </p>
+  <p>
+    The catalogue's example is the
+    <a href="/cycler/europa-3-4-crnbp-torus-jupiter-2026/">Jupiter-Europa 3:4 torus</a>:
+    built by inflating the Jupiter-Europa 3:4 exterior resonant periodic orbit outward
+    into a torus, locked to the real Io-Europa-Ganymede Laplace resonance. Io and
+    Ganymede are never closely approached — across all ten tested real-ephemeris
+    epochs (2000–2083) at the entry's best torus point, the closest either moon ever
+    comes is a few hundred thousand kilometres, far outside any sphere of influence.
+    They are felt only as gravitational perturbers on the base Jupiter-Europa dynamics,
+    never encountered.
+  </p>
+
+  <h3>Why it's useful in a cycler-like way, despite not being one</h3>
+  <p>
+    Two properties carry over from the cycler idea even though the object itself isn't
+    a cycler:
+  </p>
+  <ul>
+    <li><strong>It's a reservoir, not a single curve.</strong> Being a whole 2-D
+      surface means every point on it is a slightly different member of the same
+      family — the same concept real libration-point missions already exploit: a
+      spacecraft flies a nearby quasi-halo torus member rather than the exact halo
+      orbit, picking whichever phase best suits its transfer window. The same freedom
+      is available here.</li>
+    <li><strong>Confirmed real-ephemeris persistence.</strong> The idealized torus does
+      not survive real-ephemeris propagation everywhere — most of the surface
+      genuinely diverges (a naive reference point drifts to a ~3.7×10⁵ km gap,
+      comparable to Ganymede's own orbital radius). But at one torus point, all ten
+      tested real epochs land in a recurring narrow near-miss window — position gaps
+      of roughly 500–2,000 km against a pre-declared 5,000 km gate, confirmed genuine
+      against both a positive control (a known-good ~1.75×10⁻² km case) and a
+      known-divergent negative case, not integrator noise. That recurring,
+      bounded-drift behaviour is the direct analogue of a cycler's own "low
+      station-keeping cost" property — a spacecraft could plausibly loiter near this
+      structure for extended real time with small maintenance needs.</li>
+  </ul>
+
+  <h3>What's still missing: a computed connection</h3>
+  <p>
+    A cycler's real value isn't just that it persists — it's persistence <em>plus</em>
+    a usable arrival/departure connection. This torus row explicitly has <strong>no
+    computed manifold connection</strong>: <code>orbit_class=quasi_periodic_torus</code>
+    was chosen, rather than the sibling <code>torus_homoclinic</code> class below,
+    specifically because no departure/arrival route has been computed for this object.
+    It is catalogued as a pure existence/structural discovery, not a demonstrated
+    transport route. Whether that connection can eventually be computed is an open,
+    actively-investigated question — this page reflects the object's current state,
+    not a claim about where that investigation will land.
+  </p>
+
+  <h3>The closely-related case that does have a connection</h3>
+  <p>
+    The sibling class's own example, the
+    <a href="/cycler/umbriel-1-2-torus-homoclinic-uranus-2026/">Uranus-Umbriel 1:2
+    torus</a> (Titania-forced), is the same kind of object — a quasi-periodic
+    invariant torus, also with <code>sequence_canonical: null</code> — but with a
+    computed connection: it departs along the torus's own unstable manifold and
+    returns along its stable manifold, closing to near machine precision (idealized
+    position gap ~5.7×10⁻¹⁰ km, cross-checked against an independent integrator to
+    within ~1.1×10⁻⁷ km). That combination — a persistent reservoir <em>plus</em> a
+    demonstrated way on and off it — is what earns it the <code>torus_homoclinic</code>
+    class instead of <code>quasi_periodic_torus</code>. It's the honest contrast for
+    reading the Jupiter-Europa torus: structurally the same kind of object, one
+    computed connection short of the same transport-node status.
+  </p>
 
   <h2 id="cycler-cost">Ballistic, powered, and the maintenance-ΔV bands</h2>
   <p>

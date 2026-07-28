@@ -8,7 +8,18 @@ export type Body = "V" | "E" | "M" | "Moon" | "Io" | "Europa" | "Ganymede" | "Ca
 // Schema v2 (2026-06-01): the trajectory class and modeling assumption are
 // now explicit fields. See upstream data/README.md "Schema v2".
 export type TrajectoryRegime = "ballistic" | "low-thrust" | "manifold";
-export type ModelAssumption = "circular-coplanar" | "analytic-ephemeris" | "cr3bp";
+// Schema v5.3/v5.4 (upstream #707/#708, #735/#736): "ccr4bp" (circular-restricted
+// four-body, one periodic third-body forcing term — e.g. Titania forcing the
+// Uranus-Umbriel pair) and "crnbp" (circular-restricted N-body, TWO simultaneous
+// periodic forcing terms — e.g. Io+Ganymede forcing the Jupiter-Europa pair,
+// locked to the real Laplace resonance) sit alongside "cr3bp" as higher-body-count
+// rotating-frame models; neither is a coplanar-ellipse or analytic-ephemeris fit.
+export type ModelAssumption =
+  | "circular-coplanar"
+  | "analytic-ephemeris"
+  | "cr3bp"
+  | "ccr4bp"
+  | "crnbp";
 
 export interface Citation {
   authors: string[];
@@ -72,12 +83,34 @@ export type CyclerClass = "single-ellipse" | "multi-arc" | "non-keplerian";
 //                     periodicity invariants (epoch_locked=false, infinite
 //                     returns) but never encounters the secondary, so it ferries
 //                     nothing (C21 spatial-resonant member, Region B #447).
+//   - torus_homoclinic     : schema v5.3 (upstream #707/#708) — a quasi-periodic
+//                     invariant 2-torus (not a single closed loop: motion is
+//                     confined to a 2-D surface with two generally-incommensurate
+//                     frequencies, so it never exactly repeats) that ALSO has a
+//                     computed manifold connection — departs along the torus's
+//                     unstable manifold, returns along its stable manifold, closing
+//                     to near machine precision. `sequence_canonical` is null (no
+//                     named-body encounter sequence — any moon other than the base
+//                     pair is a gravitational perturber only, never closely
+//                     approached). Example: Uranus-Umbriel 1:2-exterior torus,
+//                     Titania-forced (CCR4BP).
+//   - quasi_periodic_torus : schema v5.4 (upstream #735/#736) — the SAME
+//                     structural object (quasi-periodic invariant 2-torus,
+//                     `sequence_canonical` null) but with NO computed manifold
+//                     connection: a pure existence/structural discovery, not a
+//                     demonstrated transport route. Chosen instead of
+//                     `torus_homoclinic` specifically because no connection has
+//                     been computed for the object. Example: Jupiter-Europa 3:4
+//                     torus, Laplace-locked to the real Io-Ganymede resonance
+//                     (CRNBP). See /about/#quasi-periodic-torus.
 export type OrbitClass =
   | "cycler"
   | "quasi_cycler"
   | "precursor_mga"
   | "mga_tour"
-  | "resonant_po";
+  | "resonant_po"
+  | "torus_homoclinic"
+  | "quasi_periodic_torus";
 
 // Schema v4.8 Axis-B maintenance-ΔV band (upstream #417): total deterministic
 // maintenance ΔV over a 7-cycle real-ephemeris propagation, at the best launch

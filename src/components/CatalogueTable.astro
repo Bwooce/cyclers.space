@@ -117,6 +117,8 @@ const bodyCodes = Array.from(new Set(entries.flatMap((e) => e.bodies))).sort((a,
       <option value="precursor_mga">Precursors</option>
       <option value="mga_tour">Tours</option>
       <option value="resonant_po">Resonant POs</option>
+      <option value="torus_homoclinic">Tori (connected)</option>
+      <option value="quasi_periodic_torus">Quasi-periodic tori</option>
     </select>
   </div>
   <div class="group" role="group" aria-label="Filter by maintenance-ΔV band">
@@ -160,7 +162,7 @@ const bodyCodes = Array.from(new Set(entries.flatMap((e) => e.bodies))).sort((a,
     <thead>
       <tr>
         <th data-sort="name" scope="col">Name</th>
-        <th data-sort="orbit_class" scope="col" title="Transport role — see /about/#cycler-types for the full five-kind breakdown (Cycler, Quasi-cycler, Precursor, Tour, Resonant PO).">Class</th>
+        <th data-sort="orbit_class" scope="col" title="Transport role — see /about/#cycler-types for the full breakdown (Cycler, Quasi-cycler, Precursor, Tour, Resonant PO, Torus — connected or quasi-periodic).">Class</th>
         <th data-sort="bodies" scope="col">Bodies</th>
         <th data-sort="class" scope="col" title="Structural representation of the trajectory: single ellipse, multi-arc (chained legs), or non-Keplerian (CR3BP rotating-frame orbit) — a different axis from the transport-role Class column.">Struct</th>
         <th data-sort="period" scope="col" aria-sort="ascending">Period (yr)</th>
