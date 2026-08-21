@@ -382,6 +382,33 @@ table.catalogue td.validity-col { font-size: 0.85rem; }
   color: var(--fg-muted);
 }
 
+/* Manifold connections (task #838 design / #856 upstream / #857 site
+   implementation): a cross-row transport-evidence relation, deliberately
+   NOT styled like a validation/status/class badge (.vlevel, .our-status-badge,
+   .dv-band-badge, .orbit-class-badge) — a connection is "provenance/audit
+   only, not a promotion gate" and must never visually read as a tier. */
+.conn-list .connection {
+  padding: 0.6rem 0.8rem;
+  margin: 0.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-alt);
+}
+.conn-endpoints { margin: 0.3rem 0; }
+.conn-evidence {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg);
+  color: var(--fg-muted);
+  cursor: default;
+}
+.conn-evidence-numbers { font-size: 0.8rem; }
+.conn-evidence-numbers dt { font-family: var(--font-mono); }
+
 /* Planet filter widget */
 .filter-bar {
   display: flex;

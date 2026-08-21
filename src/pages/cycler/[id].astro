@@ -20,6 +20,13 @@ import {
   sourceLabel,
 } from "../../lib/catalogue";
 import { errataForRow } from "../../lib/errata";
+import {
+  EVIDENCE_KIND_LABEL,
+  connectionsForRow,
+  evidenceKind,
+  isRowRefEndpoint,
+  type ConnectionEndpoint,
+} from "../../lib/connections";
 import { effectivePrimary } from "../../lib/hero-data";
 import OrbitView from "../../components/OrbitView.astro";
 import type { CyclerEntry, Citation } from "../../lib/types";
@@ -54,6 +61,25 @@ interface Props {
 const { entry } = Astro.props;
 // Assumed errata recorded against this row's source (see /errata).
 const rowErrata = errataForRow(entry.id);
+// Verified manifold (heteroclinic/homoclinic) connections touching this row.
+// Provenance/audit only — never implies a validation_level change (see
+// /about/#manifold-connections and #857's design note).
+const rowConnections = connectionsForRow(entry.id);
+const ENDPOINT_ROLE = ["departs along its unstable manifold", "arrives on its stable manifold"] as const;
+function endpointLabel(ep: ConnectionEndpoint) {
+  if (isRowRefEndpoint(ep)) {
+    if (ep.row_ref === entry.id) return { kind: "self" as const };
+    const target = getEntryById(ep.row_ref);
+    return { kind: "other-row" as const, id: ep.row_ref, name: target?.name ?? null };
+  }
+  return { kind: "uncatalogued" as const, u: ep.uncatalogued };
+}
+function uncataloguedNumbers(u: { jacobi_constant?: number | null; period_nd?: number | null }): string {
+  const parts: string[] = [];
+  if (u.jacobi_constant != null) parts.push(`C = ${u.jacobi_constant}`);
+  if (u.period_nd != null) parts.push(`period (non-dim) = ${u.period_nd}`);
+  return parts.join(", ");
+}
 const legs = legsOf(entry);
 const fullyDefined = isFullyDefined(entry);
 const dataGaps = entry.data_gaps ?? [];
@@ -382,6 +408,83 @@ const formatCite = (c: Citation): string => {
         <p class="muted">No CR3BP identity block recorded for this entry.</p>
       )}
       {entry.orbit_elements?.note && <p class="muted">{entry.orbit_elements?.note}</p>}
+    </>
+  )}
+
+  {rowConnections.length > 0 && (
+    <>
+      <h2>Manifold connections</h2>
+      <p class="muted">
+        Recorded transport evidence between orbits (verified heteroclinic/homoclinic
+        transfers). A connection does not change either orbit's validation level —
+        see the endpoints' own V-levels. <a href="/about/#manifold-connections">What this means →</a>
+      </p>
+      <ul class="bare conn-list">
+        {rowConnections.map((c) => {
+          const [origin, dest] = c.endpoints;
+          const originLabel = endpointLabel(origin);
+          const destLabel = endpointLabel(dest);
+          const kind = evidenceKind(c);
+          const label = kind === "other" ? c.evidence_class : EVIDENCE_KIND_LABEL[kind];
+          return (
+            <li id={`conn-${c.id}`} class="connection">
+              <div>
+                <strong>{c.kind}</strong>
+                {c.dv_kms === 0 && <span> · ballistic (0 km/s)</span>}
+                {c.jacobi_constant != null && <span> · C = {c.jacobi_constant}</span>}
+                <span class="muted"> · {c.model.system}</span>
+              </div>
+              <div class="conn-endpoints">
+                {originLabel.kind === "self" ? (
+                  <strong>this orbit</strong>
+                ) : originLabel.kind === "other-row" ? (
+                  originLabel.name ? (
+                    <a href={`/cycler/${originLabel.id}/`}>{originLabel.name}</a>
+                  ) : (
+                    <span><code>{originLabel.id}</code> <span class="muted">(unresolved)</span></span>
+                  )
+                ) : (
+                  <span title={uncataloguedNumbers(originLabel.u)}>
+                    {originLabel.u.family} <span class="muted">(not a catalogued orbit)</span>
+                  </span>
+                )}
+                <span class="muted"> — {ENDPOINT_ROLE[0]}</span>
+                <span class="muted"> → </span>
+                {destLabel.kind === "self" ? (
+                  <strong>this orbit</strong>
+                ) : destLabel.kind === "other-row" ? (
+                  destLabel.name ? (
+                    <a href={`/cycler/${destLabel.id}/`}>{destLabel.name}</a>
+                  ) : (
+                    <span><code>{destLabel.id}</code> <span class="muted">(unresolved)</span></span>
+                  )
+                ) : (
+                  <span title={uncataloguedNumbers(destLabel.u)}>
+                    {destLabel.u.family} <span class="muted">(not a catalogued orbit)</span>
+                  </span>
+                )}
+                <span class="muted"> — {ENDPOINT_ROLE[1]}</span>
+              </div>
+              <div>
+                <span class="conn-evidence" title={c.evidence_class}>{label}</span>
+              </div>
+              {c.round_trip_note && <div class="muted">{c.round_trip_note}</div>}
+              <details>
+                <summary class="muted">verification numbers</summary>
+                <dl class="cycler conn-evidence-numbers">
+                  {Object.entries(c.evidence).map(([k, v]) => (
+                    <><dt>{k}</dt><dd>{Array.isArray(v) ? v.join(", ") : String(v)}</dd></>
+                  ))}
+                </dl>
+                <p class="muted">
+                  Source: <code>{c.provenance.data}</code>
+                  {c.provenance.task_refs.length > 0 && <> ({c.provenance.task_refs.join(", ")})</>}
+                </p>
+              </details>
+            </li>
+          );
+        })}
+      </ul>
     </>
   )}
 

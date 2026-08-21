@@ -1,0 +1,232 @@
+# data/manifold_connections.yaml -- schema: data/manifold_connection.schema.json v1.0 (task #838,
+# implemented by #856). Extrinsic manifold-connection registry: see the schema's own top-level
+# description for the full scope rule (extrinsic connections only; the two INTRINSIC connection
+# payloads on data/catalogue.yaml rows -- ccr4bp_provenance.connection, crnbp_provenance...
+# seed_orbit_homoclinic.connection -- are unchanged and out of scope here).
+#
+# Populated retroactively at adoption with #822's two row-touching connections (task #838's
+# motivating case), transcribed -- not recomputed -- from data/found/822_vaquero_em_free_transfer/
+# results.json and src/cyclerfinder/search/vaquero_em_cycler_connections.py::OVERLAP_GRID_ICS, both
+# independently re-verified against the live files before this registry was written (every number
+# below matches its source to full stored precision). A third entry was added once #854 adjudicated
+# #827's Kumar-Rawat-Rosengren-Ross (2026) C=2.54 digit-grade reproduction in favour of recording it
+# (docs/notes/2026-08-21-854-c254-kumar-evidence-adjudication.md); its numbers were independently
+# re-derived fresh (not transcribed from results.json) before this entry was written.
+- id: em-vaquero-hetero-wu21c254-ws31c254-2026
+  kind: heteroclinic
+  model:
+    type: cr3bp
+    system: "Earth-Moon planar CR3BP"
+    mass_ratio: 0.01215058439469525 # results.json:mu; identical to both rows' recorded orbit_elements.cr3bp.mass_ratio
+  jacobi_constant: 2.54
+  endpoints:
+    # index 0 = unstable-manifold ORIGIN, index 1 = stable-manifold DESTINATION (directed)
+    - uncatalogued:
+        family: "Vaquero 2013 Sec 4.4.7 Earth-Moon 2:1 Periodic Cycler family member"
+        x0: 1.0905363960533268 # OVERLAP_GRID_ICS[(2, 2.54)]
+        ydot0: -0.8231863180949408
+        period_nd: 5.941227735609639
+        jacobi_constant: 2.54
+        lambda_max: 3.149761131186353 # unstable (negative real saddle; see #822's own note)
+        derivation: >
+          build_vaquero_overlap_node (the #799 fixed-Jacobi corrector, tol=1e-12,
+          half_crossings=3) re-converges the #799-archived guess vendored in
+          OVERLAP_GRID_ICS at call time. NOT a catalogued row -- the catalogue's
+          own #811 admission covers only her four printed-TOF family endpoints;
+          this member's C sits at the 3:1 row's edge, not the 2:1 family's own
+          printed endpoint set.
+    - row_ref: vaquero-31-c254-em-cycler-2013
+      identity_evidence: >
+        The re-converged 3:1 node (independent re-run, #828) reproduces this
+        row's recorded state_nd to 3.1e-15, period_nd to 1.1e-13, jacobi_constant
+        to 5.3e-15, stability_index to 1.4e-08 relative (rtol=atol=1e-13 STM
+        tolerance) -- the transfer genuinely arrives at THIS catalogued orbit.
+  connection: # field names shared with crnbp seed_orbit_homoclinic.connection / results.json
+    branch_u: -1
+    branch_s: 1
+    k_u: 40
+    k_s: 27
+    tau_u: 3.8298582936439947
+    tau_s: 3.7380443596924104
+    epsilon: 1.0e-4
+    crossing_x: 0.23322507758762506
+    crossing_xdot: -1.785596430399187
+    newton_residual: 3.336901283531185e-10
+  evidence:
+    full_state_gap: 4.483722190016192e-06
+    ydot_signs_match: true
+    ghost_distance_from: 0.24275809881390115 # 243x the 1e-3 ghost guard
+    ghost_distance_to: 1.7999326727722387
+    radau_gap: 1.8053763121228701e-06
+    backward_reapproach: 1.0216784882076572e-09
+    forward_reapproach: 0.00038053502861397056
+    t_u_nd: 38.852089547100014
+    t_s_nd: -27.627817271177918
+    jacobi_drift: [2.7355895326763857e-12, 1.9741097645464833e-11]
+    dv_kms: 0.0
+  evidence_class: >
+    SELF-CONSISTENCY ONLY (this project's full #822 verification battery,
+    independently re-run bit-for-bit by #828): Vaquero prints no transfer state
+    at any C -- never a digit-grade reproduction claim. Not novelty-bearing (her
+    own pp.171-172 existence assertion; literature gate verdict `published`,
+    #822 Sec 6).
+  round_trip_note: >
+    NOT demonstrated at this C: #822's reverse Wu(3:1)->Ws(2:1) demo is at
+    C=2.60 only (#840, registered, would close this at the band edges).
+  dv_kms: 0.0
+  provenance:
+    task_refs: ["#822", "#828"]
+    data: "data/found/822_vaquero_em_free_transfer/results.json (sweep C=2.54)"
+    module: "src/cyclerfinder/search/vaquero_em_cycler_connections.py"
+    commit: "13ae76c0"
+    notes:
+      - "docs/notes/2026-08-11-822-vaquero-em-free-transfer.md"
+      - "docs/notes/2026-08-12-828-vaquero-connection-tier-adjudication.md"
+
+- id: em-vaquero-hetero-wu21c266-ws31c266-2026
+  kind: heteroclinic
+  model:
+    type: cr3bp
+    system: "Earth-Moon planar CR3BP"
+    mass_ratio: 0.01215058439469525
+  jacobi_constant: 2.66
+  endpoints:
+    - row_ref: vaquero-21-c266-em-cycler-2013 # here the CATALOGUED endpoint is the ORIGIN --
+      identity_evidence: > # the ordered-pair shape carries the asymmetry
+        The re-converged 2:1 node (independent re-run, #828) reproduces this
+        row's state_nd to 4.4e-15, period_nd to 5.2e-14, jacobi_constant to
+        8.0e-15, stability_index to 4.6e-13 relative (rtol=atol=1e-13 STM
+        tolerance).
+    - uncatalogued:
+        family: "Vaquero 2013 Sec 4.4.7 Earth-Moon 3:1 Periodic Cycler family member"
+        x0: 0.8919375112041409 # OVERLAP_GRID_ICS[(3, 2.66)]
+        ydot0: -0.7577709445440712
+        period_nd: 6.283952207405823
+        jacobi_constant: 2.66
+        lambda_max: 12.783603246229166
+        derivation: "build_vaquero_overlap_node, as above; not a catalogued row."
+  connection:
+    branch_u: 1
+    branch_s: 1
+    k_u: 37
+    k_s: 32
+    tau_u: 5.584224067610829
+    tau_s: 3.403177558607544
+    epsilon: 1.0e-4
+    crossing_x: 0.8691637553536629
+    crossing_xdot: -0.5754661265104016
+    newton_residual: 4.511427596214897e-10
+  evidence:
+    full_state_gap: 6.4643737649513175e-06
+    ydot_signs_match: true
+    radau_gap: 3.5149323416759923e-06
+    ghost_distance_from: 0.5985618617257883
+    ghost_distance_to: 0.57591657965058
+    backward_reapproach: 5.313207273577046e-08
+    forward_reapproach: 0.28340209751306933
+    t_u_nd: 41.574147406101986
+    t_s_nd: -34.68296282649375
+    jacobi_drift: [2.1880275369312585e-12, 1.219646605932212e-11]
+    dv_kms: 0.0
+  evidence_class: "SELF-CONSISTENCY ONLY -- as the C=2.54 entry."
+  round_trip_note: "NOT demonstrated at this C (reverse demo at C=2.60 only; #840)."
+  dv_kms: 0.0
+  provenance:
+    task_refs: ["#822", "#828"]
+    data: "data/found/822_vaquero_em_free_transfer/results.json (sweep C=2.66)"
+    module: "src/cyclerfinder/search/vaquero_em_cycler_connections.py"
+    commit: "13ae76c0"
+    notes:
+      - "docs/notes/2026-08-11-822-vaquero-em-free-transfer.md"
+      - "docs/notes/2026-08-12-828-vaquero-connection-tier-adjudication.md"
+
+- id: em-kumar-hetero-wu31c254-ws21c254-2026
+  kind: heteroclinic
+  model:
+    type: cr3bp
+    system: "Earth-Moon planar CR3BP (Kumar et al. 2026's own printed mu, NOT this project's registry mu)"
+    mass_ratio: 0.012150584270572 # KUMAR_MU; the row's own registry mass_ratio is 0.01215058439469525 (Delta mu ~= 1.24e-10)
+  jacobi_constant: 2.54
+  endpoints:
+    # index 0 = unstable-manifold ORIGIN (3:1), index 1 = stable-manifold DESTINATION (2:1)
+    - row_ref: vaquero-31-c254-em-cycler-2013
+      identity_evidence: >
+        node31, re-derived at Kumar's own mu (#854, build_kumar_node(kumar_system(), 3, 2.54)),
+        agrees with this row's own recorded state_nd/period_nd/jacobi_constant to
+        |Delta x0|=3.398e-10, |Delta ydot0|=1.061e-09, |Delta period_nd|=3.345e-10,
+        |Delta jacobi_constant|=5.329e-15 -- consistent with the ~1.24e-10 mu offset
+        between the two sources (NOT the ~1e-15-scale match #828 got at IDENTICAL mu),
+        confirming this is genuinely the same physical orbit and not a coincidentally
+        nearby one.
+      model_note: >
+        Computed at Kumar-Rawat-Rosengren-Ross (2026)'s own printed mu
+        (0.012150584270572), NOT this row's own registry mass_ratio
+        (0.01215058439469525). Delta mu ~= 1.24e-10 absolute -- see the
+        identity_evidence agreement scale above, and #854's adjudication note
+        Sec. 2 for the full comparison table.
+    - uncatalogued:
+        family: "Kumar-Rawat-Rosengren-Ross 2026 Table 6 Earth-Moon 2:1 family member (their own printed mu)"
+        x0: 0.964310487216 # KUMAR_TABLE6_ICS[(2, 2.54)], re-converged
+        ydot0: -1.20233213851
+        period_nd: 6.467341165267291
+        jacobi_constant: 2.54
+        derivation: >
+          build_kumar_node(kumar_system(), 2, 2.54): re-converges Kumar et al. 2026's
+          own Table 6 printed IC at their own mu (KUMAR_MU=0.012150584270572; the
+          function itself rejects disagreement with the print). NOT a catalogued row --
+          no Vaquero/registry-mu 2:1 family member exists near C=2.54 in this project's
+          own model (VAQUERO_C_RANGE_21 bottoms out at 1.98, but no member was
+          catalogued at this specific C).
+  connection: # field names shared with crnbp seed_orbit_homoclinic.connection / results.json
+    branch_u: -1
+    branch_s: -1
+    k_u: 19
+    k_s: 14
+    tau_u: 3.7202948069488033
+    tau_s: 5.98472243980346
+    epsilon: 1.0e-4 # KUMAR_EPSILON
+    crossing_x: -0.04302415992680126
+    crossing_xdot: 3.699595420030449
+    newton_residual: 3.363134020022193e-11
+  evidence:
+    full_state_gap: 4.6513318085564455e-07
+    ydot_signs_match: true
+    ghost_distance_from: 0.592829534095866
+    ghost_distance_to: 1.6996467513384976
+    radau_gap: 4.584414112651359e-07
+    backward_reapproach: 4.965745036947741e-08
+    forward_reapproach: 9.264828886692251e-05
+    t_u_nd: 20.360431324628056
+    t_s_nd: -13.4503643835325
+    jacobi_drift: [2.1882051726151985e-11, 2.9749536167855695e-12]
+    dv_kms: 0.0
+  evidence_class: >
+    DIGIT-GRADE REPRODUCTION of a published state (match_distance
+    7.610531887910121e-07 vs Kumar-Rawat-Rosengren-Ross (2026) Table 5's own
+    printed C=2.54 Wu(3:1)->Ws(2:1) intersection state; runner-up separation
+    1.307, four orders of magnitude wider than the match distance). Independently
+    re-derived end-to-end from Kumar's printed state alone, never from a cached
+    result file (#854 Sec. 1(b)) -- a second, independent SOURCE confirms this
+    connection, not just a second run of this project's own code.
+  round_trip_note: >
+    The FORWARD direction Wu(2:1)->Ws(3:1) at this same node exists in this
+    project's OWN registry mu (see em-vaquero-hetero-wu21c254-ws31c254-2026
+    above) but that is a DIFFERENT model (Delta mu ~= 1.24e-10) -- not a true
+    same-model round trip. The registered follow-up (#840) would close a
+    same-model round trip at this row's own registry mu; the #854 adjudication
+    notes the C=2.54 leg is now a low-risk confirmation run rather than a
+    blind search, existence being independently pre-confirmed near this exact
+    node at a neighbouring mu.
+  dv_kms: 0.0
+  provenance:
+    task_refs: ["#827", "#854"]
+    data: >-
+      data/found/827_kumar_table5_reproduction/results.json (C=2.54 row);
+      independently re-verified fresh by #854 via
+      keh.reproduce_table5_intersection(system, 2.54), seeded only from Kumar's
+      printed state, never from results.json
+    module: "src/cyclerfinder/search/kumar_em_resonant_heteroclinics.py"
+    commit: "168ebb09"
+    notes:
+      - "docs/notes/2026-08-21-827-kumar-table5-reproduction.md"
+      - "docs/notes/2026-08-21-854-c254-kumar-evidence-adjudication.md"

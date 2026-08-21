@@ -57,6 +57,36 @@ try {
   }
 }
 
+// --- manifold_connections.yaml (committed; soft-fail on a stale remote) ------
+// The extrinsic manifold-connection registry (upstream data/manifold_connections.yaml,
+// task #838 design / #856 implementation, validated against
+// data/manifold_connection.schema.json by upstream tests). Small (~5 KB, errata-
+// sized not catalogue-sized) so it IS committed for an offline-reproducible build;
+// the sync merely keeps it current from the same single source of truth.
+const CONNECTIONS_URL =
+  process.env.CONNECTIONS_URL ??
+  "https://raw.githubusercontent.com/Bwooce/cyclers/main/data/manifold_connections.yaml";
+const CONNECTIONS_OUT = "src/data/manifold_connections.yaml";
+try {
+  const connRes = await fetch(CONNECTIONS_URL);
+  if (!connRes.ok) throw new Error(`HTTP ${connRes.status}`);
+  const connBody = await connRes.text();
+  if (!connBody.includes("- id:")) {
+    throw new Error("fetched content does not look like the connections registry (no '- id:')");
+  }
+  await writeFile(CONNECTIONS_OUT, connBody);
+  console.log(`sync-catalogue: wrote ${CONNECTIONS_OUT} (${connBody.length} bytes) from ${CONNECTIONS_URL}`);
+} catch (err) {
+  // Soft fail: keep the committed copy (must exist). Only hard-fail if missing.
+  try {
+    await access(CONNECTIONS_OUT);
+    console.warn(`sync-catalogue: ${CONNECTIONS_URL} unavailable (${err.message}); keeping committed ${CONNECTIONS_OUT}.`);
+  } catch {
+    console.error(`sync-catalogue: ${CONNECTIONS_URL} unavailable AND ${CONNECTIONS_OUT} missing. Cannot render manifold connections.`);
+    process.exit(1);
+  }
+}
+
 // --- errata.yaml (committed; soft-fail on a stale remote) --------------------
 // The assumed-errata ledger (upstream data/errata.yaml, validated against
 // data/errata.schema.json by upstream tests). Like planet-elements.json it IS
