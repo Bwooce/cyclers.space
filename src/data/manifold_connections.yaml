@@ -71,8 +71,14 @@
     own pp.171-172 existence assertion; literature gate verdict `published`,
     #822 Sec 6).
   round_trip_note: >
-    NOT demonstrated at this C: #822's reverse Wu(3:1)->Ws(2:1) demo is at
-    C=2.60 only (#840, registered, would close this at the band edges).
+    Round trip demonstrated: the reverse direction Wu(3:1) to Ws(2:1) is
+    independently verified at this same C=2.54 and this row's own registry
+    mass ratio (see em-vaquero-hetero-wu31c254-ws21c254-2026). That reverse
+    connection's own crossing matches the CR3BP time-reversal-symmetry
+    prediction from THIS forward crossing to about 6e-9, confirming it is
+    genuinely the mirror-image manifold intersection of this same
+    connection, not a coincidentally nearby different one.
+  reverse_of: em-vaquero-hetero-wu31c254-ws21c254-2026
   dv_kms: 0.0
   provenance:
     task_refs: ["#822", "#828"]
@@ -129,7 +135,16 @@
     jacobi_drift: [2.1880275369312585e-12, 1.219646605932212e-11]
     dv_kms: 0.0
   evidence_class: "SELF-CONSISTENCY ONLY -- as the C=2.54 entry."
-  round_trip_note: "NOT demonstrated at this C (reverse demo at C=2.60 only; #840)."
+  round_trip_note: >
+    Round trip demonstrated: the reverse direction Wu(3:1) to Ws(2:1) is
+    independently verified at this same C=2.66 and this row's own registry
+    mass ratio (see em-vaquero-hetero-wu31c266-ws21c266-2026). That reverse
+    connection's own crossing is a DIFFERENT manifold intersection from this
+    forward crossing's own time-reversal-symmetry prediction (about 0.26
+    away in the section plane, not its mirror image) -- the intersection
+    structure at this C is rich, not a single point, and this is still a
+    genuine, independently verified round trip at the same C and mass ratio.
+  reverse_of: em-vaquero-hetero-wu31c266-ws21c266-2026
   dv_kms: 0.0
   provenance:
     task_refs: ["#822", "#828"]
@@ -209,14 +224,15 @@
     result file (#854 Sec. 1(b)) -- a second, independent SOURCE confirms this
     connection, not just a second run of this project's own code.
   round_trip_note: >
-    The FORWARD direction Wu(2:1)->Ws(3:1) at this same node exists in this
-    project's OWN registry mu (see em-vaquero-hetero-wu21c254-ws31c254-2026
-    above) but that is a DIFFERENT model (Delta mu ~= 1.24e-10) -- not a true
-    same-model round trip. The registered follow-up (#840) would close a
-    same-model round trip at this row's own registry mu; the #854 adjudication
-    notes the C=2.54 leg is now a low-risk confirmation run rather than a
-    blind search, existence being independently pre-confirmed near this exact
-    node at a neighbouring mu.
+    The forward direction Wu(2:1) to Ws(3:1) at this same node exists in
+    this project's own registry mass ratio (see
+    em-vaquero-hetero-wu21c254-ws31c254-2026 above), a different model from
+    THIS entry's own Kumar mass ratio (delta mu about 1.24e-10). A
+    same-model round trip at this row's own registry mass ratio is now
+    separately demonstrated (see em-vaquero-hetero-wu31c254-ws21c254-2026),
+    but that is still a DIFFERENT model from THIS entry's own Kumar mass
+    ratio -- this entry's own round trip, within Kumar's own mass ratio
+    specifically, remains not demonstrated.
   dv_kms: 0.0
   provenance:
     task_refs: ["#827", "#854"]
@@ -230,3 +246,170 @@
     notes:
       - "docs/notes/2026-08-21-827-kumar-table5-reproduction.md"
       - "docs/notes/2026-08-21-854-c254-kumar-evidence-adjudication.md"
+
+# The two REVERSE-direction (Wu(3:1)->Ws(2:1)) entries added by #840, closing
+# the round trip on the two forward entries above at each row's own C and
+# this project's own registry mu. #822's own reverse demo was at C=2.60 only
+# (neither family node catalogued there); #840 runs the same machinery at
+# the two catalogued band-edge C values. A first blind find_free_transfer_reverse
+# scan at C=2.66 converged 6/11 candidates but every one failed the
+# forward-reapproach evidence gate (never loosened); the verified connections
+# below were found via find_free_transfer_reverse_near_prediction, which
+# ranks candidate seeds by proximity to the CR3BP time-reversal-symmetry
+# prediction of each forward entry's own crossing (predict_reverse_crossing)
+# and sweeps epsilon upward. Both entries' numbers were independently
+# re-derived this task (fresh build_vaquero_overlap_node re-convergence
+# against each row's own recorded state_nd/period_nd/jacobi_constant/
+# stability_index) before being written here.
+- id: em-vaquero-hetero-wu31c254-ws21c254-2026
+  kind: heteroclinic
+  model:
+    type: cr3bp
+    system: "Earth-Moon planar CR3BP"
+    mass_ratio: 0.01215058439469525 # this project's own DE440-registry mu; identical to em-vaquero-hetero-wu21c254-ws31c254-2026 and to this row's own recorded orbit_elements.cr3bp.mass_ratio
+  jacobi_constant: 2.54
+  endpoints:
+    # index 0 = unstable-manifold ORIGIN (the 3:1 row), index 1 = stable-manifold DESTINATION (uncatalogued 2:1)
+    - row_ref: vaquero-31-c254-em-cycler-2013
+      identity_evidence: >
+        This task's own fresh build_vaquero_overlap_node(system, 3, 2.54)
+        reproduces this row's recorded state_nd to 3.109e-15, period_nd to
+        1.066e-13, jacobi_constant to 5.329e-15 and Barden stability_index
+        to 1.400e-08 relative (rtol=atol=1e-13 STM tolerance) -- the SAME
+        node em-vaquero-hetero-wu21c254-ws31c254-2026's own identity_evidence
+        already confirmed, independently re-checked here rather than reused.
+    - uncatalogued:
+        family: "Vaquero 2013 Sec 4.4.7 Earth-Moon 2:1 Periodic Cycler family member"
+        x0: 1.0905363960533268 # OVERLAP_GRID_ICS[(2, 2.54)]
+        ydot0: -0.8231863180949408
+        period_nd: 5.941227735609639
+        jacobi_constant: 2.54
+        lambda_max: 3.149761131186353 # unstable (negative real saddle; see #822's own note)
+        derivation: >
+          build_vaquero_overlap_node (the #799 fixed-Jacobi corrector,
+          tol=1e-12, half_crossings=3) re-converges the #799-archived guess
+          vendored in OVERLAP_GRID_ICS at call time. NOT a catalogued row --
+          this member's C sits at the 3:1 row's own edge, not any printed
+          2:1 family endpoint (#811); the SAME uncatalogued node as
+          em-vaquero-hetero-wu21c254-ws31c254-2026's own endpoint above.
+  connection: # field names shared with crnbp seed_orbit_homoclinic.connection / results.json
+    branch_u: -1
+    branch_s: 1
+    k_u: 26
+    k_s: 38
+    tau_u: 4.258037700729926
+    tau_s: 0.316633984139843
+    epsilon: 1.0e-4
+    crossing_x: 0.23322508223108054
+    crossing_xdot: 1.7855964271675904
+    newton_residual: 5.003149384845799e-10
+  evidence:
+    full_state_gap: 3.3703459348666194e-06
+    ydot_signs_match: true
+    ghost_distance_from: 1.7999326702997418 # 1800x the 1e-3 ghost guard
+    ghost_distance_to: 0.24275809473080914
+    radau_gap: 1.34526141373117e-06
+    backward_reapproach: 4.404466549909856e-08
+    forward_reapproach: 0.0017654933650994179
+    t_u_nd: 25.901339218718725
+    t_s_nd: -37.057354011499974
+    jacobi_drift: [2.0730528405010773e-11, 2.149835864884153e-12]
+    dv_kms: 0.0
+  evidence_class: >
+    SELF-CONSISTENCY ONLY (this project's own full verification battery:
+    Newton residual, ydot-sign gate, ghost guard, independent-Radau
+    crosscheck, forward/backward re-approach, Jacobi drift). Vaquero prints
+    no transfer state at any C -- never a digit-grade reproduction claim.
+  round_trip_note: >
+    Round trip demonstrated: the forward direction Wu(2:1) to Ws(3:1) at
+    this same C=2.54 and this row's own registry mass ratio is already
+    verified (see em-vaquero-hetero-wu21c254-ws31c254-2026). This entry's
+    own verified crossing matches the CR3BP time-reversal-symmetry
+    prediction from that forward crossing to about 6e-9, confirming it is
+    genuinely the mirror-image manifold intersection of the same forward
+    connection, not a coincidentally nearby different one.
+  reverse_of: em-vaquero-hetero-wu21c254-ws31c254-2026
+  dv_kms: 0.0
+  provenance:
+    task_refs: ["#822", "#828", "#840"]
+    data: "data/found/840_em_reverse_round_trip/results.json (C=2.54 sweep row)"
+    module: "src/cyclerfinder/search/vaquero_em_cycler_connections.py"
+    commit: "7816c470"
+    notes:
+      - "docs/notes/2026-08-21-840-em-round-trip-demonstrations.md"
+      - "docs/notes/2026-08-11-822-vaquero-em-free-transfer.md"
+      - "docs/notes/2026-08-12-828-vaquero-connection-tier-adjudication.md"
+
+- id: em-vaquero-hetero-wu31c266-ws21c266-2026
+  kind: heteroclinic
+  model:
+    type: cr3bp
+    system: "Earth-Moon planar CR3BP"
+    mass_ratio: 0.01215058439469525
+  jacobi_constant: 2.66
+  endpoints:
+    # index 0 = unstable-manifold ORIGIN (uncatalogued 3:1), index 1 = stable-manifold DESTINATION (the 2:1 row)
+    - uncatalogued:
+        family: "Vaquero 2013 Sec 4.4.7 Earth-Moon 3:1 Periodic Cycler family member"
+        x0: 0.8919375112041409 # OVERLAP_GRID_ICS[(3, 2.66)]
+        ydot0: -0.7577709445440712
+        period_nd: 6.283952207405823
+        jacobi_constant: 2.66
+        lambda_max: 12.783603246229166
+        derivation: >
+          build_vaquero_overlap_node, as above; not a catalogued row -- the
+          SAME uncatalogued node as em-vaquero-hetero-wu21c266-ws31c266-2026's
+          own endpoint above.
+    - row_ref: vaquero-21-c266-em-cycler-2013
+      identity_evidence: >
+        This task's own fresh build_vaquero_overlap_node(system, 2, 2.66)
+        reproduces this row's recorded state_nd to 4.441e-15, period_nd to
+        5.151e-14, jacobi_constant to 7.994e-15 and Barden stability_index
+        to 4.603e-13 relative (rtol=atol=1e-13 STM tolerance) -- the SAME
+        node em-vaquero-hetero-wu21c266-ws31c266-2026's own identity_evidence
+        already confirmed, independently re-checked here rather than reused.
+  connection:
+    branch_u: -1
+    branch_s: 1
+    k_u: 29
+    k_s: 33
+    tau_u: 4.122557122466014
+    tau_s: 2.595563242258196
+    epsilon: 2.0e-4
+    crossing_x: 0.9590289887986131
+    crossing_xdot: 0.32719383414376546
+    newton_residual: 1.3791048718653995e-10
+  evidence:
+    full_state_gap: 2.8613823450224723e-06
+    ydot_signs_match: true
+    ghost_distance_from: 0.3340016039894232
+    ghost_distance_to: 0.3356352588856158
+    radau_gap: 1.7732494775443259e-06
+    backward_reapproach: 2.080963171115428e-09
+    forward_reapproach: 0.05191811455912227
+    t_u_nd: 33.61175705551284
+    t_s_nd: -38.291496898404276
+    jacobi_drift: [1.3347101202043632e-11, 2.212008354263162e-12]
+    dv_kms: 0.0
+  evidence_class: "SELF-CONSISTENCY ONLY -- as the sibling C=2.54 reverse-direction entry (this project's own full verification battery)."
+  round_trip_note: >
+    Round trip demonstrated: the forward direction Wu(2:1) to Ws(3:1) at
+    this same C=2.66 and this row's own registry mass ratio is already
+    verified (see em-vaquero-hetero-wu21c266-ws31c266-2026). This entry's
+    own verified crossing is a DIFFERENT manifold intersection from the
+    CR3BP time-reversal-symmetry prediction of that forward crossing (about
+    0.26 away in the section plane, not its mirror image) -- the manifold
+    intersection structure at this C is rich, not a single point, and this
+    is still a genuine, independently verified round trip at the same C and
+    mass ratio.
+  reverse_of: em-vaquero-hetero-wu21c266-ws31c266-2026
+  dv_kms: 0.0
+  provenance:
+    task_refs: ["#822", "#828", "#840"]
+    data: "data/found/840_em_reverse_round_trip/results.json (C=2.66 sweep row)"
+    module: "src/cyclerfinder/search/vaquero_em_cycler_connections.py"
+    commit: "7816c470"
+    notes:
+      - "docs/notes/2026-08-21-840-em-round-trip-demonstrations.md"
+      - "docs/notes/2026-08-11-822-vaquero-em-free-transfer.md"
+      - "docs/notes/2026-08-12-828-vaquero-connection-tier-adjudication.md"
