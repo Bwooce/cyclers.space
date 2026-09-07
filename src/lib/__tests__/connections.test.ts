@@ -82,3 +82,14 @@ describe("manifold connections registry (task #838 design / #856 upstream / #857
     }
   });
 });
+
+describe("connection provenance is task-token free (2026-09-07 regression)", () => {
+  const TASK_TOKEN = /(?<![\w-])#\d+/;
+  it("provenance.data / module / notes carry no raw #NNN tracker numbers", () => {
+    for (const c of loadConnections()) {
+      for (const text of [c.provenance.data, c.provenance.module, ...(c.provenance.notes ?? [])]) {
+        expect(TASK_TOKEN.exec(text), `${c.id}: ${text.slice(0, 100)}`).toBeNull();
+      }
+    }
+  });
+});

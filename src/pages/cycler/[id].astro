@@ -478,7 +478,7 @@ const formatCite = (c: Citation): string => {
                 </dl>
                 <p class="muted">
                   Source: <code>{c.provenance.data}</code>
-                  {c.provenance.task_refs.length > 0 && <> ({c.provenance.task_refs.join(", ")})</>}
+                  {/* provenance.task_refs are internal tracker numbers -- never rendered (see no-task-refs.test.ts) */}
                 </p>
               </details>
             </li>

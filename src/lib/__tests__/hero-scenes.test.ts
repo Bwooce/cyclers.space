@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { buildHeroScenes, heroSummary } from "../hero-scenes";
-import { reproducedCount } from "../hero-data";
+import { buildHeroScenes, earthMoonGroupOf, heroSummary } from "../hero-scenes";
+import type { EarthMoonGroup } from "../hero-scenes";
+import { heroGroups, reproducedCount } from "../hero-data";
 
 // Scene specs (task #227): one JSON-serialisable source consumed by both the
 // poster and the gallery. The honesty invariants live here — every row of
@@ -42,15 +43,15 @@ describe("hero scene specs", () => {
     expect(s.captionLines.join(" ")).toContain("idealized phase");
   });
 
-  // Earth-Moon split (2026-07 follow-up to #227): the single 9-curve panel
-  // overlaid a figure-8, a 3-petal cycler, and the whole Ross-RT/Braik-Ross
-  // resonant sweep in one tangled scene. It is now three family-grouped
-  // sub-scenes (earthMoonGroupOf's id-prefix partition in hero-scenes.ts).
-  // Today's live V1+ data: the "landmark" bucket (Arenstorf figure-8,
-  // Genova-Aldrin 3-petal) is V0-only and so contributes NO rows to the
-  // hero filter yet -- that sub-scene legitimately renders nothing today
-  // (same "omit empty groups" convention as every other scene) and will
-  // appear automatically once one of those rows is promoted off V0.
+  // Earth-Moon split (2026-07 follow-up to #227; widened 2026-09-07): the
+  // single 9-curve panel overlaid a figure-8, a 3-petal cycler, and the whole
+  // Ross-RT/Braik-Ross resonant sweep in one tangled scene. It is now
+  // family-grouped sub-scenes (earthMoonGroupOf's id-prefix partition in
+  // hero-scenes.ts). Which groups are populated is derived from the live
+  // catalogue below, never pinned: an upstream promotion or a new family row
+  // must not break the site build (2026-08-31 -> 2026-09-07 the deploy was
+  // blocked for a week by a hard-coded "9 rows, no landmark scene" pin after
+  // the Casoliva/Vaquero families landed at V1 upstream).
   function checkEarthMoonSubScene(id: string, curveCountLowerBound: number) {
     const s = scenes.find((x) => x.id === id)!;
     expect(s).toBeDefined();
@@ -78,14 +79,42 @@ describe("hero scene specs", () => {
     checkEarthMoonSubScene("earth-moon-braik-ross", 2);
   });
 
-  it("earth-moon-landmark scene: absent today (Arenstorf/Genova-Aldrin are V0-only, filtered out upstream by the V1+ hero filter -- verified directly, not assumed)", () => {
-    expect(scenes.find((x) => x.id === "earth-moon-landmark")).toBeUndefined();
+  const EM_GROUP_TO_SCENE: Record<EarthMoonGroup, string> = {
+    landmark: "earth-moon-landmark",
+    "ross-rt": "earth-moon-ross-rt",
+    "braik-ross": "earth-moon-braik-ross",
+    casoliva: "earth-moon-casoliva",
+    vaquero: "earth-moon-vaquero",
+  };
+
+  it("earth-moon sub-scenes: each group's scene exists iff the live V1+ catalogue has rows in it, with exactly that many rows", () => {
+    const em = heroGroups().earthMoon;
+    for (const [group, id] of Object.entries(EM_GROUP_TO_SCENE) as Array<[EarthMoonGroup, string]>) {
+      const rows = em.filter((e) => earthMoonGroupOf(e) === group);
+      const s = scenes.find((x) => x.id === id);
+      if (rows.length === 0) {
+        expect(s, `${id} must be omitted when its group is empty`).toBeUndefined();
+      } else {
+        expect(s, `${id} must exist for ${rows.length} live row(s)`).toBeDefined();
+        expect(s!.rowCount).toBe(rows.length);
+        expect([...s!.curves.map((c) => c.id), ...s!.badges.map((b) => b.id)].sort()).toEqual(
+          rows.map((e) => e.id).sort(),
+        );
+      }
+    }
   });
 
-  it("every earth-moon-* scene together carries exactly the live Earth-Moon V1+ rows (6 Ross-RT + 3 Braik-Ross today)", () => {
+  it("every earth-moon-* scene together carries exactly the live Earth-Moon V1+ rows (derived from the catalogue, not pinned)", () => {
     const emScenes = scenes.filter((s) => s.id.startsWith("earth-moon-"));
     const total = emScenes.reduce((n, s) => n + s.rowCount, 0);
-    expect(total).toBe(9);
+    expect(total).toBe(heroGroups().earthMoon.length);
+    expect(total).toBeGreaterThan(0);
+  });
+
+  it("earth-moon-casoliva / earth-moon-vaquero scenes: CR3BP curves when their families are live (they are today, at V1)", () => {
+    for (const id of ["earth-moon-casoliva", "earth-moon-vaquero"]) {
+      if (scenes.some((x) => x.id === id)) checkEarthMoonSubScene(id, 1);
+    }
   });
 
   it("uranian scene: leads the array and carries all six representative arcs (plus the torus_homoclinic badge row)", () => {

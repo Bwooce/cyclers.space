@@ -53,6 +53,12 @@ describe("sanitizeCatalogueText", () => {
     );
   });
 
+  it("strips a bare \"-- #N correction\" aside (the Europa 3:4 torus cr3bp.family text, 2026-09-07)", () => {
+    expect(
+      sanitizeCatalogueText("(Kumar et al. 2021 seed class; EXTERIOR, never 'interior' -- #724 correction)"),
+    ).not.toMatch(TASK_TOKEN);
+  });
+
   it("leaves legitimate mid-sentence slashes alone", () => {
     const s = "MMR periodic orbit / halo transfer, per Table 3.4 / 4.x";
     expect(sanitizeCatalogueText(s)).toBe(s);
@@ -68,6 +74,7 @@ function renderedTexts(e: CyclerEntry): string[] {
   cite(e.first_published);
   for (const c of e.corroborating_sources ?? []) cite(c);
   out.push(e.orbit_elements?.note, e.period?.note);
+  out.push(e.orbit_elements?.cr3bp?.family, e.orbit_elements?.cr3bp?.libration_point);
   for (const v of e.vinf_kms_at_encounters ?? []) out.push(v.note);
   for (const l of e.legs ?? []) out.push(l.note);
   for (const s of e.trajectory?.segments ?? []) out.push(s.note);

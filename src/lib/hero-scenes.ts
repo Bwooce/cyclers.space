@@ -74,6 +74,8 @@ export interface HeroSceneSpec {
     | "earth-moon-landmark"
     | "earth-moon-ross-rt"
     | "earth-moon-braik-ross"
+    | "earth-moon-casoliva"
+    | "earth-moon-vaquero"
     | "jovian"
     | "uranian"
     | "other";
@@ -215,7 +217,7 @@ function heliocentricScene(entries: CyclerEntry[]): HeroSceneSpec {
   };
 }
 
-type EarthMoonGroup = "landmark" | "ross-rt" | "braik-ross";
+export type EarthMoonGroup = "landmark" | "ross-rt" | "braik-ross" | "casoliva" | "vaquero";
 
 /**
  * Partition Earth-Moon CR3BP rows into three sub-scenes (2026-07 follow-up
@@ -226,14 +228,22 @@ type EarthMoonGroup = "landmark" | "ross-rt" | "braik-ross";
  * upstream identifier, more robust than parsing the free-text `family`
  * string): `braik-ross-*` is its own family; `ross-rt-em-cycler-*` plus the
  * one 3D out-of-plane spatial extension of that family form the Ross-RT
- * group; everything else (the historically-named Arenstorf figure-8, the
- * Genova-Aldrin 3-petal, and any future Earth-Moon row that doesn't yet fit
- * either family) falls into the "landmark/other" catch-all bucket — never a
- * silent drop, matching the `otherScene` rule elsewhere in this file.
+ * group; `casoliva-*` (the Casoliva 2010 Table 3 p:q resonant families,
+ * upstream 2026-08) and `vaquero-*` (the Vaquero 2013 Earth-Moon resonant
+ * families, upstream 2026-08) are each their own panel — before 2026-09-07
+ * they fell into the catch-all below and were rendered under a "landmark
+ * cyclers" title they do not deserve; everything else (the historically-named
+ * Arenstorf figure-8, the Genova-Aldrin 3-petal, and any future Earth-Moon row
+ * that doesn't yet fit a named family) falls into the "landmark/other"
+ * catch-all bucket — never a silent drop, matching the `otherScene` rule
+ * elsewhere in this file. Exported so the test suite can derive its
+ * expectations from the same partition instead of pinning row counts.
  */
-function earthMoonGroupOf(e: CyclerEntry): EarthMoonGroup {
+export function earthMoonGroupOf(e: CyclerEntry): EarthMoonGroup {
   if (e.id.startsWith("braik-ross-")) return "braik-ross";
   if (e.id.startsWith("ross-rt-em-cycler-") || e.id === "em-cycler-21-3d-spatial-2026") return "ross-rt";
+  if (e.id.startsWith("casoliva-")) return "casoliva";
+  if (e.id.startsWith("vaquero-")) return "vaquero";
   return "landmark";
 }
 
@@ -517,23 +527,22 @@ export function buildHeroScenes(): HeroSceneSpec[] {
   const scenes: HeroSceneSpec[] = [];
   if (g.uranian.length > 0) scenes.push(uranianScene(g.uranian));
   if (g.heliocentric.length > 0) scenes.push(heliocentricScene(g.heliocentric));
-  // Earth-Moon: split into three family-grouped panels (2026-07 follow-up to
-  // #227 — see earthMoonGroupOf's doc comment). Each sub-scene is omitted
-  // when empty, same convention as every other scene here; today's V1+ data
-  // populates only ross-rt (6 rows) and braik-ross (3 rows) — the landmark
-  // bucket (Arenstorf figure-8, Genova-Aldrin 3-petal) is V0-only right now,
-  // so it renders nothing until one of those rows is promoted off V0.
-  const landmark = g.earthMoon.filter((e) => earthMoonGroupOf(e) === "landmark");
-  const rossRt = g.earthMoon.filter((e) => earthMoonGroupOf(e) === "ross-rt");
-  const braikRoss = g.earthMoon.filter((e) => earthMoonGroupOf(e) === "braik-ross");
-  if (landmark.length > 0) {
-    scenes.push(earthMoonSubScene(landmark, "earth-moon-landmark", "Earth–Moon: landmark cyclers"));
-  }
-  if (rossRt.length > 0) {
-    scenes.push(earthMoonSubScene(rossRt, "earth-moon-ross-rt", "Earth–Moon: Ross-RT resonant family"));
-  }
-  if (braikRoss.length > 0) {
-    scenes.push(earthMoonSubScene(braikRoss, "earth-moon-braik-ross", "Earth–Moon: Braik-Ross cyclers"));
+  // Earth-Moon: split into family-grouped panels (2026-07 follow-up to #227,
+  // widened 2026-09-07 — see earthMoonGroupOf's doc comment). Each sub-scene
+  // is omitted when empty, same convention as every other scene here. Which
+  // groups are populated is DATA, read from the catalogue at build time, never
+  // pinned here: the landmark bucket (Arenstorf figure-8, Genova-Aldrin
+  // 3-petal) is V0-only today and renders nothing until a row is promoted.
+  const emPanels: Array<[EarthMoonGroup, HeroSceneSpec["id"], string]> = [
+    ["landmark", "earth-moon-landmark", "Earth–Moon: landmark cyclers"],
+    ["ross-rt", "earth-moon-ross-rt", "Earth–Moon: Ross-RT resonant family"],
+    ["braik-ross", "earth-moon-braik-ross", "Earth–Moon: Braik-Ross cyclers"],
+    ["casoliva", "earth-moon-casoliva", "Earth–Moon: Casoliva 2010 resonant families"],
+    ["vaquero", "earth-moon-vaquero", "Earth–Moon: Vaquero 2013 resonant families"],
+  ];
+  for (const [group, id, title] of emPanels) {
+    const rows = g.earthMoon.filter((e) => earthMoonGroupOf(e) === group);
+    if (rows.length > 0) scenes.push(earthMoonSubScene(rows, id, title));
   }
   if (g.jovian.length > 0) scenes.push(jovianScene(g.jovian));
   if (g.other.length > 0) scenes.push(otherScene(g.other));

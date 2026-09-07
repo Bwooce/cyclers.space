@@ -134,7 +134,20 @@ function sanitizeEntryText(entry: CyclerEntry): CyclerEntry {
   e.source_ephemeris = clean(e.source_ephemeris);
   e.first_published = cleanCitation(e.first_published);
   if (e.corroborating_sources) e.corroborating_sources = e.corroborating_sources.map(cleanCitation);
-  if (e.orbit_elements) e.orbit_elements = { ...e.orbit_elements, note: clean(e.orbit_elements.note) };
+  if (e.orbit_elements) {
+    // The CR3BP identity block's `family` string is rendered verbatim on the
+    // detail page ("CR3BP orbit identity" table) and carried a raw task token
+    // for the Europa 3:4 torus row until 2026-09-07 -- every string in the
+    // block is cleaned, not just the top-level note.
+    const cr3bp = e.orbit_elements.cr3bp
+      ? {
+          ...e.orbit_elements.cr3bp,
+          family: clean(e.orbit_elements.cr3bp.family),
+          libration_point: clean(e.orbit_elements.cr3bp.libration_point),
+        }
+      : e.orbit_elements.cr3bp;
+    e.orbit_elements = { ...e.orbit_elements, note: clean(e.orbit_elements.note), cr3bp };
+  }
   if (e.period) e.period = { ...e.period, note: clean(e.period.note) };
   if (e.vinf_kms_at_encounters)
     e.vinf_kms_at_encounters = e.vinf_kms_at_encounters.map((v) => ({ ...v, note: clean(v.note) }));

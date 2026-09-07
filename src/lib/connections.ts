@@ -111,6 +111,15 @@ export function loadConnections(): ManifoldConnection[] {
     ],
     evidence_class: sanitizeCatalogueText(c.evidence_class),
     round_trip_note: c.round_trip_note ? sanitizeCatalogueText(c.round_trip_note) : c.round_trip_note,
+    // provenance.data/module/notes are rendered under "verification numbers"
+    // (Source: <code>...</code>) and carried a raw task token for the Vaquero
+    // C=2.54 row until 2026-09-07; task_refs are internal and never rendered.
+    provenance: {
+      ...c.provenance,
+      data: sanitizeCatalogueText(c.provenance.data),
+      module: sanitizeCatalogueText(c.provenance.module),
+      notes: c.provenance.notes ? c.provenance.notes.map(sanitizeCatalogueText) : c.provenance.notes,
+    },
   }));
   return cache;
 }
