@@ -705,13 +705,15 @@ export const ourStatusLabel = (s: string | null | undefined): string =>
  *     (the spec §16.5 state for a row we found and have not yet published) or
  *     names the cyclerfinder project (the older upstream encoding). A citation
  *     naming anyone else means the orbit is published elsewhere.
- *  3. `our_status` is NOT a known-reproduction or known-class-member — those
- *     are explicit "not a discovery" tags.
- *  4. Corroborating sources: a row tagged `candidate-novel` MAY carry them —
- *     under the spec §16.4 novelty policy they are mandatory ATTRIBUTION (the
- *     source method, architecture or parent object), not prior publication of
- *     the orbit. A row with NO `our_status` must have none, which keeps the
- *     earlier conservative reading for rows nobody has adjudicated yet.
+ *  3. `our_status` is an adjudicated novelty label: `candidate-novel` or
+ *     `verified-novel`. A known-reproduction or known-class-member is an
+ *     explicit "not a discovery" tag, and a row with NO `our_status` has not
+ *     passed the spec §16.5 literature gate (or is under review), so it is not
+ *     presented as a discovery either.
+ *  4. Corroborating sources on such a row are, under the spec §16.4 novelty
+ *     policy, mandatory ATTRIBUTION (the source method, architecture, parent
+ *     object or nearest published trajectory), not prior publication of the
+ *     orbit, so they do not disqualify it.
  *
  * Data-driven: keyed off catalogue fields only, never a hard-coded id, so a
  * future discovery row auto-qualifies the moment it lands. When in doubt the
@@ -719,14 +721,12 @@ export const ourStatusLabel = (s: string | null | undefined): string =>
  */
 export function isProjectDiscovery(entry: CyclerEntry): boolean {
   if (entry.source !== "discovered") return false;
-  if (entry.our_status === "known-reproduction" || entry.our_status === "known-class-member") {
+  if (entry.our_status !== "candidate-novel" && entry.our_status !== "verified-novel") {
     return false;
   }
   const authors = entry.first_published?.authors ?? [];
   const byProject = authors.some((a) => (a ?? "").toLowerCase().includes("cyclerfinder"));
   if (authors.length > 0 && !byProject) return false;
-  const corroborating = entry.corroborating_sources ?? [];
-  if (corroborating.length > 0 && entry.our_status !== "candidate-novel") return false;
   return true;
 }
 

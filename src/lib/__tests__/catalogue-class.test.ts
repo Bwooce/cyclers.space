@@ -102,6 +102,7 @@ describe("isProjectDiscovery (#462) — honest genuine-discovery predicate", () 
   const discoveryEntry = (overrides: Partial<CyclerEntry> = {}): CyclerEntry =>
     minimalEntry({
       source: "discovered",
+      our_status: "candidate-novel",
       first_published: {
         authors: ["cyclerfinder discovery campaign"],
         year: 2026,
@@ -112,8 +113,12 @@ describe("isProjectDiscovery (#462) — honest genuine-discovery predicate", () 
       ...overrides,
     });
 
-  it("accepts a discovered, cyclerfinder-first, uncorroborated row", () => {
+  it("accepts a discovered, cyclerfinder-first, candidate-novel row", () => {
     expect(isProjectDiscovery(discoveryEntry())).toBe(true);
+  });
+
+  it("rejects a discovered row with NO novelty label (not adjudicated, or under review)", () => {
+    expect(isProjectDiscovery(discoveryEntry({ our_status: undefined }))).toBe(false);
   });
 
   it("rejects literature-anchor rows (source !== 'discovered')", () => {
@@ -147,6 +152,7 @@ describe("isProjectDiscovery (#462) — honest genuine-discovery predicate", () 
 
   it("rejects an UNLABELLED row corroborated by an external source", () => {
     const e = discoveryEntry({
+      our_status: undefined,
       corroborating_sources: [
         { authors: ["Someone Else"], year: 2019, title: "Prior art", venue: "MNRAS" },
       ],
@@ -172,6 +178,11 @@ describe("isProjectDiscovery (#462) — honest genuine-discovery predicate", () 
     expect(ids).not.toContain("em-cycler-21-3d-spatial-2026");
   });
 
+  it("excludes a discovered row that carries no novelty label", () => {
+    const ids = projectDiscoveries().map((e) => e.id);
+    expect(ids).not.toContain("umbriel-1-2-torus-homoclinic-uranus-2026");
+  });
+
   it("every selected row genuinely satisfies all four honesty conditions", () => {
     for (const e of projectDiscoveries()) {
       expect(e.source).toBe("discovered");
@@ -181,15 +192,12 @@ describe("isProjectDiscovery (#462) — honest genuine-discovery predicate", () 
         authors.length === 0 || authors.some((a) => a.toLowerCase().includes("cyclerfinder")),
         `row ${e.id} credits someone else`,
       ).toBe(true);
-      // Sources alongside the row are only allowed as attribution on an
-      // explicitly adjudicated candidate-novel row.
-      if ((e.corroborating_sources ?? []).length > 0) {
-        expect(e.our_status, `row ${e.id} has sources but no candidate-novel tag`).toBe(
-          "candidate-novel",
-        );
-      }
-      expect(e.our_status).not.toBe("known-class-member");
-      expect(e.our_status).not.toBe("known-reproduction");
+      // Every selected row carries an adjudicated novelty label; sources
+      // alongside it are attribution, never prior publication of the orbit.
+      expect(
+        e.our_status === "candidate-novel" || e.our_status === "verified-novel",
+        `row ${e.id} has no novelty label`,
+      ).toBe(true);
       // A project-found row always renders a real source label and year.
       expect(shortSourceLabel(e)).not.toBe("?");
       expect(hasPublishedCitation(e) || discoveryYear(e) !== null, `row ${e.id} has no year`).toBe(
