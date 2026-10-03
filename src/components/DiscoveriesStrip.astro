@@ -20,9 +20,10 @@ const { discoveries } = Astro.props;
     <p class="muted discoveries-intro">
       {discoveries.length === 1 ? "This orbit was" : `These ${discoveries.length} orbits were`}
       {" "}
-      first identified by this project's own search campaign — not reproduced from,
-      or corroborated by, the published record. Every other catalogue row is sourced
-      from the literature.
+      first identified by this project's own search campaign and not found in the
+      published record searched so far. Where an orbit re-applies a published
+      architecture at a system its authors did not treat, its page cites that
+      source. Every other catalogue row is sourced from the literature.
     </p>
     <ul class="discoveries-list">
       {discoveries.map((e) => {
