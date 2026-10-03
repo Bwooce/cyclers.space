@@ -2,14 +2,17 @@ import { describe, it, expect } from "vitest";
 import {
   ORBIT_CLASS_LABEL,
   classifyValidityWindow,
+  discoveryYear,
   effectiveOrbitClass,
   formatValidityWindow,
+  hasPublishedCitation,
   inEpochWindow,
   inNReturnsRange,
   isProjectDiscovery,
   loadCatalogue,
   nReturnsValue,
   projectDiscoveries,
+  shortSourceLabel,
 } from "../catalogue";
 import type { CyclerEntry, OrbitClass } from "../types";
 
@@ -122,7 +125,27 @@ describe("isProjectDiscovery (#462) — honest genuine-discovery predicate", () 
     expect(isProjectDiscovery(minimalEntry({ source: "this-project" }))).toBe(false);
   });
 
-  it("rejects a row corroborated by an external source", () => {
+  it("accepts a discovered row whose first_published is absent (spec 16.5: null until we publish)", () => {
+    // The loader backfills an empty Citation when upstream is null.
+    const e = discoveryEntry({ first_published: { authors: [], year: 0, title: "", venue: "" } });
+    expect(isProjectDiscovery(e)).toBe(true);
+    expect(shortSourceLabel(e)).toBe("cyclerfinder discovery campaign 2026");
+    expect(discoveryYear(e)).toBe(2026);
+    expect(hasPublishedCitation(e)).toBe(false);
+  });
+
+  it("accepts a candidate-novel row that carries attribution sources (spec 16.4 novelty policy)", () => {
+    const e = discoveryEntry({
+      our_status: "candidate-novel",
+      first_published: { authors: [], year: 0, title: "", venue: "" },
+      corroborating_sources: [
+        { authors: ["Russell, R. P.", "Strange, N. J."], year: 2009, title: "Architecture", venue: "JGCD" },
+      ],
+    });
+    expect(isProjectDiscovery(e)).toBe(true);
+  });
+
+  it("rejects an UNLABELLED row corroborated by an external source", () => {
     const e = discoveryEntry({
       corroborating_sources: [
         { authors: ["Someone Else"], year: 2019, title: "Prior art", venue: "MNRAS" },
@@ -152,12 +175,26 @@ describe("isProjectDiscovery (#462) — honest genuine-discovery predicate", () 
   it("every selected row genuinely satisfies all four honesty conditions", () => {
     for (const e of projectDiscoveries()) {
       expect(e.source).toBe("discovered");
-      expect(e.first_published.authors.some((a) => a.toLowerCase().includes("cyclerfinder"))).toBe(
-        true,
-      );
-      expect(e.corroborating_sources ?? []).toHaveLength(0);
+      // Nobody else is credited: no citation at all, or one naming the project.
+      const authors = e.first_published.authors;
+      expect(
+        authors.length === 0 || authors.some((a) => a.toLowerCase().includes("cyclerfinder")),
+        `row ${e.id} credits someone else`,
+      ).toBe(true);
+      // Sources alongside the row are only allowed as attribution on an
+      // explicitly adjudicated candidate-novel row.
+      if ((e.corroborating_sources ?? []).length > 0) {
+        expect(e.our_status, `row ${e.id} has sources but no candidate-novel tag`).toBe(
+          "candidate-novel",
+        );
+      }
       expect(e.our_status).not.toBe("known-class-member");
       expect(e.our_status).not.toBe("known-reproduction");
+      // A project-found row always renders a real source label and year.
+      expect(shortSourceLabel(e)).not.toBe("?");
+      expect(hasPublishedCitation(e) || discoveryYear(e) !== null, `row ${e.id} has no year`).toBe(
+        true,
+      );
     }
   });
 });

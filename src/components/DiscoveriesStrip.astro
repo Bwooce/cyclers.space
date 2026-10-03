@@ -5,7 +5,7 @@
 // isProjectDiscovery — future discovery rows appear automatically, no edits.
 //
 // Honest, understated copy: "Discovered by this project". No superlatives.
-import { fmtBodies } from "../lib/catalogue";
+import { discoveryYear, fmtBodies, hasPublishedCitation } from "../lib/catalogue";
 import type { CyclerEntry } from "../lib/types";
 
 interface Props {
@@ -37,7 +37,7 @@ const { discoveries } = Astro.props;
                 <span class="discovery-period">{e.period.years.toFixed(2)} yr</span>
               )}
               <span class="discovery-year muted">
-                {e.first_published?.year ?? ""}
+                {(hasPublishedCitation(e) ? e.first_published.year : discoveryYear(e)) ?? ""}
               </span>
             </div>
           </li>

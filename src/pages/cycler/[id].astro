@@ -5,7 +5,9 @@ import {
   ORBIT_CLASS_LABEL,
   ORBIT_CLASS_LONG_LABEL,
   OUR_STATUS_LONG,
+  discoveryYear,
   dvBandLabel,
+  hasPublishedCitation,
   ourStatusLabel,
   effectiveOrbitClass,
   fmt,
@@ -610,7 +612,18 @@ const formatCite = (c: Citation): string => {
   )}
 
   <h2>Primary citation</h2>
-  <p>{formatCite(entry.first_published)}</p>
+  {hasPublishedCitation(entry) ? (
+    <p>{formatCite(entry.first_published)}</p>
+  ) : entry.source === "discovered" ? (
+    <p>
+      Not yet published. First identified by this project's search campaign
+      {discoveryYear(entry) ? ` (${entry.priority_date})` : ""}. The project has
+      not yet published it in a peer-reviewed venue; the status badge and notes
+      on this page say how it relates to the published record.
+    </p>
+  ) : (
+    <p class="muted">No primary citation recorded; see the provenance tags below.</p>
+  )}
   {entry.first_published.doi && (
     <p>
       DOI: <a href={`https://doi.org/${entry.first_published.doi}`} rel="noopener noreferrer">

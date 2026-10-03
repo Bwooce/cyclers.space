@@ -222,7 +222,7 @@ const bodyCodes = Array.from(new Set(entries.flatMap((e) => e.bodies))).sort((a,
               data-defined={defined ? 1 : 0}
               data-validation={e.validation_level ?? "V0"}
               data-dvband={e.dv_band ?? ""}
-              data-citation={`${cite.authors[0] ?? "?"} ${cite.year}`}
+              data-citation={shortSourceLabel(e)}
             >
               <td>
                 <a href={`/cycler/${e.id}/`}>{e.name}</a>

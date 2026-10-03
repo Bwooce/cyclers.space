@@ -64,7 +64,11 @@ describe("system grouping", () => {
       if (e.id === URANIAN_TORUS_HOMOCLINIC_ID) {
         expect(e.primary).toBe("Uranus"); // explicit (schema v5.3), not the heuristic
       } else {
-        expect(e.primary).toBeUndefined();
+        // The six moon-pair rows originally carried no `primary` upstream (a
+        // data defect fixed upstream 2026-10-03); the bodies heuristic in
+        // effectivePrimary stays as a fallback, so accept either state but
+        // never a different explicit primary.
+        expect(e.primary === undefined || e.primary === "Uranus", `row ${e.id} primary`).toBe(true);
       }
     }
     // None of them leaked into the heliocentric ("Sun" default) bucket.

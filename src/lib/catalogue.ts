@@ -608,16 +608,44 @@ export const SOURCE_LABEL: Record<string, string> = {
 export const sourceLabel = (k: string | null | undefined): string =>
   k ? (SOURCE_LABEL[k] ?? k) : "";
 
+/** Label used wherever a project-found row needs a short attribution. */
+export const PROJECT_LABEL = "cyclerfinder discovery campaign";
+
+/**
+ * Year a project-found row was first identified: the year of `priority_date`
+ * (the discovery date until the row is published, per spec §16.5). Returns
+ * null when the date is absent or unparseable.
+ */
+export function discoveryYear(entry: CyclerEntry): number | null {
+  const m = /^(\d{4})/.exec(String(entry.priority_date ?? ""));
+  return m ? Number(m[1]) : null;
+}
+
+/**
+ * True when the row carries a real `first_published` citation. The loader
+ * backfills an empty Citation (no authors) for rows whose upstream value is
+ * null — which, per spec §16.5, is the correct upstream state for a row this
+ * project found and has not yet published.
+ */
+export function hasPublishedCitation(entry: CyclerEntry): boolean {
+  return (entry.first_published?.authors?.length ?? 0) > 0;
+}
+
 /**
  * Best human label for a row's source in a compact column: the first author +
- * year of `first_published` when present, else the provenance-source label
- * (orbit_source), else "—". Centralises the four-class fallback so the table and
- * detail pages agree.
+ * year of `first_published` when present; for a project-found row with no
+ * publication yet, the project label + discovery year; else the
+ * provenance-source label (orbit_source), else "—". Centralises the fallback
+ * so the table and detail pages agree.
  */
 export function shortSourceLabel(entry: CyclerEntry): string {
   const cite = entry.first_published;
   if (cite && cite.authors.length > 0) {
     return `${cite.authors[0].split(",")[0]} ${cite.year}`;
+  }
+  if (entry.source === "discovered") {
+    const y = discoveryYear(entry);
+    return y ? `${PROJECT_LABEL} ${y}` : PROJECT_LABEL;
   }
   return sourceLabel(entry.orbit_source) || "—";
 }
@@ -673,12 +701,17 @@ export const ourStatusLabel = (s: string | null | undefined): string =>
  *  1. `source === "discovered"` — the row was found by our search, not seeded
  *     from the literature (this also excludes `this-project` rows like the C21
  *     known-class member, which are computed-but-not-novel).
- *  2. `first_published.authors` names the cyclerfinder project — WE are the
- *     first to publish this specific orbit.
- *  3. `corroborating_sources` is empty — no external source pre-published the
- *     same orbit (a non-empty list means someone else got there too).
- *  4. `our_status` is NOT a known-reproduction or known-class-member — those
+ *  2. Nobody else is credited with it: `first_published` is either absent
+ *     (the spec §16.5 state for a row we found and have not yet published) or
+ *     names the cyclerfinder project (the older upstream encoding). A citation
+ *     naming anyone else means the orbit is published elsewhere.
+ *  3. `our_status` is NOT a known-reproduction or known-class-member — those
  *     are explicit "not a discovery" tags.
+ *  4. Corroborating sources: a row tagged `candidate-novel` MAY carry them —
+ *     under the spec §16.4 novelty policy they are mandatory ATTRIBUTION (the
+ *     source method, architecture or parent object), not prior publication of
+ *     the orbit. A row with NO `our_status` must have none, which keeps the
+ *     earlier conservative reading for rows nobody has adjudicated yet.
  *
  * Data-driven: keyed off catalogue fields only, never a hard-coded id, so a
  * future discovery row auto-qualifies the moment it lands. When in doubt the
@@ -686,14 +719,14 @@ export const ourStatusLabel = (s: string | null | undefined): string =>
  */
 export function isProjectDiscovery(entry: CyclerEntry): boolean {
   if (entry.source !== "discovered") return false;
-  const authors = entry.first_published?.authors ?? [];
-  const byProject = authors.some((a) => (a ?? "").toLowerCase().includes("cyclerfinder"));
-  if (!byProject) return false;
-  const corroborating = entry.corroborating_sources ?? [];
-  if (corroborating.length > 0) return false;
   if (entry.our_status === "known-reproduction" || entry.our_status === "known-class-member") {
     return false;
   }
+  const authors = entry.first_published?.authors ?? [];
+  const byProject = authors.some((a) => (a ?? "").toLowerCase().includes("cyclerfinder"));
+  if (authors.length > 0 && !byProject) return false;
+  const corroborating = entry.corroborating_sources ?? [];
+  if (corroborating.length > 0 && entry.our_status !== "candidate-novel") return false;
   return true;
 }
 

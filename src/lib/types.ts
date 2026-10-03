@@ -293,8 +293,10 @@ export interface DataGap {
 export interface CyclerEntry {
   id: string;
   name: string;
-  // "discovered": found by this project's search campaign and first-published by
-  // us (the genuine-discovery provenance, surfaced via isProjectDiscovery / #462).
+  // "discovered": found by this project's search campaign (the genuine-discovery
+  // provenance, surfaced via isProjectDiscovery / #462). Upstream leaves
+  // `first_published` null on these rows until the project publishes them
+  // (spec §16.5); the loader backfills an empty Citation.
   // "this-project": computed by us but NOT a novel discovery (e.g. a known-class
   // member). "literature"/"both": seeded from / corroborated by the published record.
   source: "literature" | "this-project" | "both" | "discovered";
@@ -378,6 +380,7 @@ export interface CyclerEntry {
   trajectory?: Trajectory;
   family?: Family | null;
   data_gaps?: DataGap[];
+  // Normalised by the loader: an empty Citation (no authors) when upstream is null.
   first_published: Citation;
   corroborating_sources?: Citation[];
   priority_date: string;
