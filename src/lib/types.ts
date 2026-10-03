@@ -129,10 +129,13 @@ export type DvBand =
 //    Earth-Moon cycler, a member of the Antoniadou & Libert 2019 spatial-
 //    resonant family).
 //  - candidate-novel: a candidate not yet found in the published record.
+//  - verified-novel: candidate-novel that has also passed V5 and a documented
+//    literature review (spec §16.4 hard rule). No row carries it yet.
 export type OurStatus =
   | "known-reproduction"
   | "known-class-member"
-  | "candidate-novel";
+  | "candidate-novel"
+  | "verified-novel";
 
 // Schema v5 validity window — when the trajectory is reachable for the epoch-
 // locked classes (quasi_cycler / precursor_mga / mga_tour). ISO-8601 dates.

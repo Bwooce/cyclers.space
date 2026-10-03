@@ -678,6 +678,7 @@ export const OUR_STATUS_LABEL: Record<string, string> = {
   "known-reproduction": "reproduction",
   "known-class-member": "known-class",
   "candidate-novel": "candidate",
+  "verified-novel": "verified",
 };
 
 export const OUR_STATUS_LONG: Record<string, string> = {
@@ -686,6 +687,8 @@ export const OUR_STATUS_LONG: Record<string, string> = {
   "known-class-member":
     "Computed member of a published class — not a novel discovery and not a literal reproduction of any single published orbit",
   "candidate-novel": "Candidate not yet found in the published record",
+  "verified-novel":
+    "Verified novel: passed V5 and a documented literature review with no match",
 };
 
 export const ourStatusLabel = (s: string | null | undefined): string =>
