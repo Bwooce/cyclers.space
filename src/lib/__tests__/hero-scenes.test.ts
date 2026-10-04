@@ -117,57 +117,15 @@ describe("hero scene specs", () => {
     }
   });
 
-  it("uranian scene: leads the array and carries all six representative arcs (plus the torus_homoclinic badge row)", () => {
-    expect(scenes[0]?.id).toBe("uranian");
-    const s = scenes.find((x) => x.id === "uranian")!;
-    expect(s).toBeDefined();
-    // Schema v5.3 (#707/#708): umbriel-1-2-torus-homoclinic-uranus-2026 also
-    // has primary=Uranus, so it lands in this scene's rowCount too — but as
-    // a badge (not a quasi_cycler moon-pair transfer), never a fabricated
-    // Umbriel<->Titania curve.
-    expect(s.rowCount).toBe(7);
-    expect(s.curves.length + s.badges.length).toBe(7);
-    expect(s.badges.map((b) => b.id)).toContain("umbriel-1-2-torus-homoclinic-uranus-2026");
-    expect(s.curves.length).toBe(6); // all six quasi_cycler rows resolve real moon pairs
-    for (const c of s.curves) {
-      expect(c.geom.kind).toBe("uranian-transfer");
-      // Plain-language lead (task: caption "technically correct but sucks"
-      // rewrite) comes first, naming the moon pair and translating the
-      // synodic timing + validity window into accessible language...
-      expect(c.fidelity).toMatch(/^A quasi-cyclic transfer between \S+ and \S+: recurs roughly every/);
-      expect(c.fidelity).toMatch(/flyable about [\d.]+% of each cycle, valid \d{4}–\d{4}/);
-      if (c.geom.kind === "uranian-transfer") {
-        expect(c.fidelity).toContain(c.geom.moonA);
-        expect(c.fidelity).toContain(c.geom.moonB);
-      }
-      // ...then the existing technical fidelity/honesty disclosure survives
-      // as a clearly-secondary continuation (the 3c79bd9 honesty binding:
-      // every curve still names its idealized-proxy status and the row's
-      // real invariants).
-      expect(c.fidelity).toContain("Technical detail: idealized");
-      expect(c.fidelity).toContain("NOT the row's actual computed arc");
-      if (c.geom.kind === "uranian-transfer") {
-        expect(c.geom.smaAKm).toBeGreaterThan(0);
-        expect(c.geom.smaBKm).toBeGreaterThan(0);
-        expect(c.geom.e).toBeGreaterThanOrEqual(0);
-        expect(c.geom.e).toBeLessThan(1);
-      }
+  it("has no uranian scene: the Uranian quasi-cycler and torus rows were withdrawn upstream", () => {
+    // 2026-10-04: the six moon-pair quasi-cycler rows were withdrawn (a
+    // turn-angle check showed they are not ballistic trajectories), and the
+    // torus_homoclinic row the day before. The scene is data-driven, so it
+    // disappears with its rows; it must not be drawn from stale data.
+    expect(scenes.find((x) => x.id === "uranian")).toBeUndefined();
+    for (const sc of scenes) {
+      for (const c of sc.curves) expect(c.geom.kind).not.toBe("uranian-transfer");
     }
-    // Six distinct azimuths (one per moon-pair direction) -- visually separated.
-    const azimuths = s.curves.map((c) => (c.geom.kind === "uranian-transfer" ? c.geom.azimuthDeg : -1));
-    expect(new Set(azimuths).size).toBe(6);
-    // Uranus + the four moons, all coplanar (i=0) with a real sourced sma.
-    expect(s.bodies.find((b) => b.name === "Uranus")?.kind).toBe("star");
-    const moons = s.bodies.filter((b) => b.kind === "moon");
-    expect(moons.map((b) => b.name).sort()).toEqual(["Ariel", "Oberon", "Titania", "Umbriel"]);
-    for (const m of moons) {
-      expect(m.el?.e).toBe(0);
-      expect(m.el?.i_deg).toBe(0);
-      expect(m.el?.a).toBeGreaterThan(0);
-    }
-    expect(s.captionLines.join(" ")).toContain("down the Uranian pole");
-    expect(s.captionLines.join(" ")).toContain("NOT the row's real arc");
-    expect(s.captionLines.join(" ")).toContain("V4");
   });
 
   it("jovian scene: badges only, zero curves, honesty caption says so", () => {

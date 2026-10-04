@@ -172,9 +172,12 @@ describe("isProjectDiscovery (#462) — honest genuine-discovery predicate", () 
     expect(isProjectDiscovery(e)).toBe(false);
   });
 
-  it("selects the headline #339 row and excludes the C21 known-class member", () => {
+  it("excludes the C21 known-class member and the withdrawn Uranian rows", () => {
+    // The six Uranian moon-pair quasi-cycler rows were withdrawn upstream on
+    // 2026-10-04 (a turn-angle check showed they are not ballistic
+    // trajectories), so the strip may legitimately be empty.
     const ids = projectDiscoveries().map((e) => e.id);
-    expect(ids).toContain("umbriel-oberon-1-1-uranian-quasi-cycler-2026");
+    expect(ids).not.toContain("umbriel-oberon-1-1-uranian-quasi-cycler-2026");
     expect(ids).not.toContain("em-cycler-21-3d-spatial-2026");
   });
 

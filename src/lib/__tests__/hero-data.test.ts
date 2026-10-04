@@ -54,26 +54,18 @@ describe("system grouping", () => {
     for (const e of g.jovian) expect(e.primary).toBe("Jupiter");
   });
 
-  it("buckets the six Uranian moon-pair rows plus the torus_homoclinic row via effectivePrimary, not Sun", () => {
+  it("carries none of the withdrawn Uranian rows in any group", () => {
+    // Upstream withdrew the six moon-pair quasi-cycler rows (2026-10-04: not
+    // ballistic trajectories) and the torus_homoclinic row (2026-10-03: not a
+    // trajectory of its own model). effectivePrimary's Uranus bucketing is
+    // still exercised by the remaining Uranian row (a published tour).
     const g = heroGroups();
-    const allUranianIds = [...URANIAN_IDS, URANIAN_TORUS_HOMOCLINIC_ID];
-    expect(g.uranian.map((e) => e.id).sort()).toEqual(allUranianIds.sort());
-    for (const e of g.uranian) {
-      expect(e.bodies).toContain("Uranus");
-      expect(effectivePrimary(e)).toBe("Uranus");
-      if (e.id === URANIAN_TORUS_HOMOCLINIC_ID) {
-        expect(e.primary).toBe("Uranus"); // explicit (schema v5.3), not the heuristic
-      } else {
-        // The six moon-pair rows originally carried no `primary` upstream (a
-        // data defect fixed upstream 2026-10-03); the bodies heuristic in
-        // effectivePrimary stays as a fallback, so accept either state but
-        // never a different explicit primary.
-        expect(e.primary === undefined || e.primary === "Uranus", `row ${e.id} primary`).toBe(true);
-      }
+    const withdrawn = new Set([...URANIAN_IDS, URANIAN_TORUS_HOMOCLINIC_ID]);
+    for (const group of Object.values(g)) {
+      for (const e of group) expect(withdrawn.has(e.id), `row ${e.id} was withdrawn`).toBe(false);
     }
-    // None of them leaked into the heliocentric ("Sun" default) bucket.
-    const helioIds = new Set(g.heliocentric.map((e) => e.id));
-    for (const id of allUranianIds) expect(helioIds.has(id)).toBe(false);
+    for (const e of g.uranian) expect(effectivePrimary(e)).toBe("Uranus");
+    for (const id of withdrawn) expect(getEntryById(id)).toBeUndefined();
   });
 });
 
