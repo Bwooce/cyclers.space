@@ -14727,6 +14727,82 @@
       "maintenance_dv_kms": null,
       "maintenance_dv_status": "not-computed",
       "status": "skipped: non-heliocentric primary=Earth"
+    },
+    {
+      "id": "ganymede-callisto-two-working-body-cycler-gc1-2026",
+      "name": "Computed Ganymede-Callisto two-working-body ballistic cycler gc-1 (k = 3, both moons bend; #943)",
+      "period_years": null,
+      "primary": "Jupiter",
+      "trajectory_regime": "ballistic",
+      "bodies": [
+        "Ganymede",
+        "Callisto"
+      ],
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "c3_km2_s2": [],
+      "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
+      "maintenance_dv_status": "not-computed",
+      "status": "skipped: non-heliocentric primary=Jupiter"
+    },
+    {
+      "id": "ganymede-callisto-two-working-body-cycler-gc2-2026",
+      "name": "Computed Ganymede-Callisto two-working-body ballistic cycler gc-2 (k = 3; a GanCal-family relative of Russell & Strange GanCal#5; #943)",
+      "period_years": null,
+      "primary": "Jupiter",
+      "trajectory_regime": "ballistic",
+      "bodies": [
+        "Ganymede",
+        "Callisto"
+      ],
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "c3_km2_s2": [],
+      "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
+      "maintenance_dv_status": "not-computed",
+      "status": "skipped: non-heliocentric primary=Jupiter"
+    },
+    {
+      "id": "earth-venus-venus-hosted-cycler-evc-2026",
+      "name": "Computed Earth-Venus ballistic cycler ev-C hosted by Venus (k = 2; Russell-Strange one-working-node architecture at Earth-Venus; #942)",
+      "period_years": 3.198,
+      "primary": "Sun",
+      "trajectory_regime": "ballistic",
+      "bodies": [
+        "E",
+        "V"
+      ],
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "c3_km2_s2": [],
+      "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
+      "maintenance_dv_status": "not-computed",
+      "status": "skipped: entry 'earth-venus-venus-hosted-cycler-evc-2026' has 0 legs; need 1"
+    },
+    {
+      "id": "earth-venus-two-working-body-cycler-eva-2026",
+      "name": "Computed Earth-Venus two-working-body ballistic cycler ev-A (k = 2, generic Venus return; #942)",
+      "period_years": 3.198,
+      "primary": "Sun",
+      "trajectory_regime": "ballistic",
+      "bodies": [
+        "E",
+        "V"
+      ],
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "c3_km2_s2": [],
+      "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
+      "maintenance_dv_status": "not-computed",
+      "status": "skipped: entry 'earth-venus-two-working-body-cycler-eva-2026' has 0 legs; need 1"
     }
   ]
 }
