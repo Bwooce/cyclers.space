@@ -14610,6 +14610,63 @@
       "status": "skipped: non-heliocentric primary=Earth"
     },
     {
+      "id": "earth-moon-5-2-prograde-asymmetric-cycler-1000a-2026",
+      "name": "#1000 family A: (5,2) prograde asymmetric resonant Earth-Moon cycler (CR3BP, C=2.4819, periselene 13,243 km alt; known-class member)",
+      "period_years": null,
+      "primary": "Earth",
+      "trajectory_regime": "ballistic",
+      "bodies": [
+        "E",
+        "Moon"
+      ],
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "c3_km2_s2": [],
+      "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
+      "maintenance_dv_status": "not-computed",
+      "status": "skipped: non-heliocentric primary=Earth"
+    },
+    {
+      "id": "earth-moon-5-3-retrograde-asymmetric-cycler-1000b-2026",
+      "name": "#1000 family B: (5,3) retrograde asymmetric resonant Earth-Moon cycler (CR3BP, C=0.8604, periselene 21,122 km alt; known-class member)",
+      "period_years": null,
+      "primary": "Earth",
+      "trajectory_regime": "ballistic",
+      "bodies": [
+        "E",
+        "Moon"
+      ],
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "c3_km2_s2": [],
+      "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
+      "maintenance_dv_status": "not-computed",
+      "status": "skipped: non-heliocentric primary=Earth"
+    },
+    {
+      "id": "earth-moon-7-3-prograde-asymmetric-cycler-1000d-2026",
+      "name": "#1000 family D: (7,3) prograde asymmetric resonant Earth-Moon cycler (CR3BP, C=2.5473, periselene 13,774 km alt; known-class member)",
+      "period_years": null,
+      "primary": "Earth",
+      "trajectory_regime": "ballistic",
+      "bodies": [
+        "E",
+        "Moon"
+      ],
+      "next_encounters_iso": [],
+      "vinf_actual_kms": [],
+      "c3_km2_s2": [],
+      "mismatch_kms": [],
+      "tof_first_leg_days": null,
+      "maintenance_dv_kms": null,
+      "maintenance_dv_status": "not-computed",
+      "status": "skipped: non-heliocentric primary=Earth"
+    },
+    {
       "id": "vaquero-21-c198-em-resonant-po-2013",
       "name": "Vaquero 2:1 resonant Earth-Moon periodic cycler family, C=1.98 printed-TOF family endpoint (6.39 d) (CR3BP, in-plane stable, vertically unstable, NO lunar encounter -- periselene 86,911 km, outside lunar SOI/Hill radius)",
       "period_years": null,
